@@ -311,11 +311,21 @@
 }
 
 .order-status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 8px 20px;
     border-radius: 20px;
     font-weight: 600;
     white-space: nowrap;
+    line-height: 1.2;
+}
+
+.order-status-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
 }
 
 .status-pending { background: #ffc107; color: #333; }
@@ -326,6 +336,10 @@
 .status-completed { background: #28a745; color: white; }
 .status-cancelled { background: #dc3545; color: white; }
 .status-refunded { background: #6c757d; color: white; }
+.status-payment-pending { background: #ffc107; color: #333; }
+.status-payment-paid { background: #28a745; color: white; }
+.status-payment-failed { background: #dc3545; color: white; }
+.status-payment-refunded { background: #6c757d; color: white; }
 
 .info-grid {
     display: grid;
@@ -620,7 +634,10 @@
     .order-status {
         padding: 6px 16px;
         font-size: 0.9rem;
-        margin-top: 10px;
+    }
+
+    .order-status-group {
+        margin-top: 4px;
     }
 
     .info-grid {

@@ -28,12 +28,16 @@
                         下單時間：{{ order.created_at|date:"Y年m月d日 H:i" }}
                     </div>
                 </div>
-                <div>
+                <div class="order-status-group">
                     <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
                     {% if order.payment_status == 'pending' %}
-                    <span class="order-status" style="background: #ffc107; color: #333; margin-left: 10px; display: block; margin-top: 10px;">待付款</span>
+                    <span class="order-status status-payment-pending">待付款</span>
                     {% elif order.payment_status == 'paid' %}
-                    <span class="order-status" style="background: #28a745; color: white; margin-left: 10px; display: block; margin-top: 10px;">已付款</span>
+                    <span class="order-status status-payment-paid">已付款</span>
+                    {% elif order.payment_status == 'failed' %}
+                    <span class="order-status status-payment-failed">付款失敗</span>
+                    {% elif order.payment_status == 'refunded' %}
+                    <span class="order-status status-payment-refunded">已退款</span>
                     {% endif %}
                 </div>
             </div>
@@ -145,27 +149,21 @@
                 <a href="{% url 'payment' order.id %}" class="btn btn-primary">
                     <i class="bi bi-credit-card"></i> 前往付款
                 </a>
+                <form method="post" action="{% url 'cancel_order' order.id %}" style="display:inline;" onsubmit="return confirm('確定取消此訂單？庫存將釋出。');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger">取消訂單</button>
+                </form>
                 {% endif %}
-                {% if order.status == 'delivered' %}
-                <button class="btn btn-success" onclick="confirmReceipt({{ order.id }})">
-                    <i class="bi bi-check-circle"></i> 確認收貨
-                </button>
+                {% if order.status == 'shipped' or order.status == 'delivered' %}
+                <form method="post" action="{% url 'confirm_receipt' order.id %}" style="display:inline;" onsubmit="return confirm('確認已收到商品？');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">確認收貨</button>
+                </form>
                 {% endif %}
             </div>
         </div>
     </div>
 </section>
-{% endblock %}
-
-{% block script %}
-<script>
-function confirmReceipt(orderId) {
-    if (confirm('確認已收到商品？')) {
-        // 這裡可以發送AJAX請求更新訂單狀態
-        alert('功能開發中...');
-    }
-}
-</script>
 {% endblock %}
 
 
