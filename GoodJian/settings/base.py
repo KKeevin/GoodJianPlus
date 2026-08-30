@@ -228,7 +228,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 收集靜態文件的目�
 
 # 靜態文件版本號（用於強制刷新緩存）
 # 每次更新 CSS/JS 時，請更新此版本號
-STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.2')
+STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.4')
 
 # 在檔案最後加入
 MEDIA_URL = '/media/'
@@ -238,6 +238,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'goodjian-local',
+        'TIMEOUT': 300,
+    }
+}
 
 # ========== Summernote 富文本編輯器設定 ==========
 SUMMERNOTE_THEME = 'bs5'  # 使用 Bootstrap 5 主題
@@ -413,3 +421,17 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+SENTRY_DSN = os.getenv('SENTRY_DSN', '').strip()
+if SENTRY_DSN:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.django import DjangoIntegration
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[DjangoIntegration()],
+            send_default_pii=False,
+            traces_sample_rate=0.1,
+        )
+    except ImportError:
+        pass

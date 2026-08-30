@@ -101,3 +101,11 @@ def newsletter_subscribe(request):
         'message': '感謝您的訂閱！我們將定期發送最新資訊給您。'
     })
 
+
+def page_not_found(request, exception):
+    return render(request, 'errors/404.html', status=404)
+
+
+def server_error(request):
+    return render(request, 'errors/500.html', status=500)
+

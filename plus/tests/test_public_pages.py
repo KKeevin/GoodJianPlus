@@ -15,6 +15,7 @@ PUBLIC_GET_URLS = [
     'return_policy',
     'faq',
     'contact_us',
+    'search',
 ]
 
 

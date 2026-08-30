@@ -19,3 +19,6 @@ gunicorn>=21.2.0
 
 # 社群登入
 social-auth-app-django>=5.4.0
+
+# 可選：設定 SENTRY_DSN 後才會啟用
+sentry-sdk>=2.0.0

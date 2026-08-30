@@ -1,0 +1,10 @@
+{% extends "base/main_all.html" %}
+{% block title %}找不到頁面 - 好健健 GoodJian Plus{% endblock %}
+{% block content %}
+<section class="container py-5 text-center">
+    <h1 class="mb-3">找不到這個頁面</h1>
+    <p class="text-muted mb-4">連結可能已過期，或網址打錯了。</p>
+    <a href="{% url 'home' %}" class="btn btn-primary">回到首頁</a>
+    <a href="{% url 'products' %}" class="btn btn-outline-secondary">瀏覽商品</a>
+</section>
+{% endblock %}
