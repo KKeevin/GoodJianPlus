@@ -75,7 +75,7 @@ def cart_view(request):
         ).select_related('category', 'brand').prefetch_related('images', 'reviews').annotate(
             avg_rating=Avg('reviews__rating', filter=Q(reviews__is_approved=True)),
             review_count=Count('reviews', filter=Q(reviews__is_approved=True))
-        ).order_by('?')[:4]
+        ).order_by('-updated_at', '-id')[:4]
         
         # 確保 avg_rating 有值
         for product in recommended_products:

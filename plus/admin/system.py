@@ -45,6 +45,11 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         # 不允許刪除設定記錄
         return False
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        from plus.context_processors import invalidate_site_settings_cache
+        invalidate_site_settings_cache()
+
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
