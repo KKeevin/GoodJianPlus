@@ -29,19 +29,7 @@ def goal_management_view(request):
         if profile:
             # 同步身高（如果目標中沒有，從會員資料填充）
             # UserProfile 現在直接存儲為小數
-            if not goal.height and profile.height:
-                goal.height = Decimal(str(profile.height))
-            # 如果目標中有身高但會員資料沒有，同步到會員資料
-            elif goal.height and not profile.height:
-                profile.height = Decimal(str(goal.height))
-            
-            # 同步體重（如果目標中沒有，從會員資料填充）
-            # UserProfile 現在直接存儲為小數
-            if not goal.current_weight and profile.weight:
-                goal.current_weight = Decimal(str(profile.weight))
-            # 如果目標中有體重但會員資料沒有，同步到會員資料
-            elif goal.current_weight and not profile.weight:
-                profile.weight = Decimal(str(goal.current_weight))
+            # 身高／體重已改為從 UserProfile 讀取的 property，不可寫回 UserGoal
             
             # 同步年齡（如果目標中沒有，從生日計算）
             if not goal.age and user.birthday:
@@ -506,12 +494,6 @@ def weight_log_api(request):
         return JsonResponse({
             'success': False,
             'message': '載入失敗，請稍後再試'
-        })
-    except Exception as e:
-        logger.error(f'Add weight log error: {str(e)}')
-        return JsonResponse({
-            'success': False,
-            'message': '添加失敗，請稍後再試'
         })
 
 

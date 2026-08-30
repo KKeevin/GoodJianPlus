@@ -591,11 +591,11 @@ function updateNutritionDisplay(data) {
     // 更新總計數據 - 支持 today_totals 和 totals（來自 nutrition_log_api）
     const totals = data.today_totals || data.totals;
     // 獲取每日目標 - 優先使用 data.targets，否則使用當前目標設定
-    const targets = data.targets || {
-        calories: {{ goal.target_calories|default:0 }},
-        protein: {{ goal.target_protein|default:0 }},
-        carbs: {{ goal.target_carbs|default:0 }},
-        fat: {{ goal.target_fat|default:0 }}
+    const targets = data.targets || (window.GOALS_CONFIG && window.GOALS_CONFIG.defaultTargets) || {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0
     };
     
     if (totals) {
@@ -722,15 +722,7 @@ function showAddWeightModal() {
     const modal = new bootstrap.Modal(document.getElementById('addWeightModal'));
     modal.show();
     
-    // 預填表單數據
-    const goal = {
-        current_weight: {{ goal.current_weight|default:0 }},
-        height: {{ goal.height|default:0 }},
-        current_muscle_percentage: {{ goal.current_muscle_percentage|default:0 }},
-        current_fat_percentage: {{ goal.current_fat_percentage|default:0 }},
-        current_bone_percentage: {{ goal.current_bone_percentage|default:0 }},
-        current_water_percentage: {{ goal.current_water_percentage|default:0 }}
-    };
+    const goal = (window.GOALS_CONFIG && window.GOALS_CONFIG.goalPrefill) || {};
     
     // 預填體重
     const weightInput = document.getElementById('weightInput');

@@ -593,7 +593,21 @@ window.GOALS_CONFIG = {
     updateNutritionLogUrlTemplate: '{% url "update_nutrition_log" 0 %}',
     deleteNutritionLogUrlTemplate: '{% url "delete_nutrition_log" 0 %}',
     weightLogApiUrl: '{% url "weight_log_api" %}',
-    csrfToken: '{{ csrf_token }}'
+    csrfToken: '{{ csrf_token }}',
+    defaultTargets: {
+        calories: {{ goal.target_calories|default:0 }},
+        protein: {{ goal.target_protein|default:0 }},
+        carbs: {{ goal.target_carbs|default:0 }},
+        fat: {{ goal.target_fat|default:0 }}
+    },
+    goalPrefill: {
+        current_weight: {{ goal.current_weight|default:0 }},
+        height: {{ goal.height|default:0 }},
+        current_muscle_percentage: {{ goal.current_muscle_percentage|default:0 }},
+        current_fat_percentage: {{ goal.current_fat_percentage|default:0 }},
+        current_bone_percentage: {{ goal.current_bone_percentage|default:0 }},
+        current_water_percentage: {{ goal.current_water_percentage|default:0 }}
+    }
 };
 </script>
 <script src="{% static 'js/goals.js' %}?v={{ static_version }}"></script>
