@@ -15,6 +15,13 @@ python manage.py createsuperuser
 python manage.py check
 ```
 
+若 `migrate` 出現 `KeyError: ('social_django', 'code')`，先跑一次（可重複執行）：
+
+```bash
+python manage.py repair_social_migrations
+python manage.py migrate
+```
+
 ## 正式環境（占位，請換成你自己的主機）
 
 - Web：Gunicorn（`gunicorn_config.py`）+ Nginx 反向代理（`nginx_https.conf.example`）
