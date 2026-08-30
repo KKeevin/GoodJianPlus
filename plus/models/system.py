@@ -58,6 +58,9 @@ class Notification(models.Model):
         verbose_name = '通知'
         verbose_name_plural = '通知管理'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+        ]
 
     def __str__(self):
         return f"{self.user.username} - {self.title}"

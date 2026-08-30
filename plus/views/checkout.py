@@ -43,6 +43,7 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.services.inventory import hold_stock_for_cart_items, InsufficientStock, consume_coupon
 
 logger = logging.getLogger(__name__)
 
@@ -88,30 +89,21 @@ def checkout(request):
             messages.error(request, '請填寫完整的收件人資訊')
             return redirect('checkout')
         
+        shipping_fee = resolve_shipping_fee(
+            subtotal, free_shipping_threshold, shipping_method_id
+        )
+        tax_amount = subtotal * tax_rate
+        discount_amount, shipping_fee, coupon, _coupon_info, coupon_error = compute_coupon_discount(
+            coupon_code, subtotal, shipping_fee
+        )
+        if coupon_error:
+            messages.error(request, coupon_error)
+            return redirect('checkout')
+
         try:
             with transaction.atomic():
-                # 驗證庫存
-                for item in items:
-                    if item.product.stock_quantity < item.quantity:
-                        messages.error(request, f'{item.product.name} 庫存不足')
-                        return redirect('cart')
-                
-                shipping_fee = resolve_shipping_fee(
-                    subtotal, free_shipping_threshold, shipping_method_id
-                )
-                
-                # 重新計算稅額（基於商品小計）
-                tax_amount = subtotal * tax_rate
-                
-                discount_amount, shipping_fee, coupon, _coupon_info, coupon_error = compute_coupon_discount(
-                    coupon_code, subtotal, shipping_fee
-                )
-                if coupon_error:
-                    messages.warning(request, coupon_error)
-                elif coupon:
-                    coupon.used_count += 1
-                    coupon.save()
-                
+                hold_stock_for_cart_items(items)
+
                 # 計算最終金額
                 final_total = subtotal + shipping_fee + tax_amount - discount_amount
                 
@@ -131,12 +123,13 @@ def checkout(request):
                     tax_amount=tax_amount,
                     discount_amount=discount_amount,
                     total_amount=final_total,
+                    coupon_code=coupon.code if coupon else '',
+                    inventory_held=True,
                     status='pending',
                     payment_status='pending',
                     payment_method=payment_method
                 )
                 
-                # 建立訂單項目並減少庫存
                 for item in items:
                     OrderItem.objects.create(
                         order=order,
@@ -147,11 +140,9 @@ def checkout(request):
                         quantity=item.quantity,
                         subtotal=item.subtotal
                     )
-                    # 減少庫存（預留庫存）
-                    item.product.stock_quantity -= item.quantity
-                    item.product.save()
                 
-                # 建立通知
+                consume_coupon(order)
+                
                 Notification.objects.create(
                     user=user,
                     type='order',
@@ -161,17 +152,20 @@ def checkout(request):
                 
                 logger.info(f'Order created: {order.order_number} by user {user.username}')
                 
-                # 訂單已建立，清空購物車（這是正確的邏輯）
                 cart.items.all().delete()
                 
-                # 如果是貨到付款，直接跳轉到訂單詳情
                 if payment_method == 'cod':
                     messages.success(request, f'訂單已成功建立！訂單編號：{order.order_number}')
                     return redirect('order_detail', order_id=order.id)
                 else:
-                    # 線上支付：跳轉到支付頁面（購物車已清空，但可以從訂單頁面繼續付款）
                     return redirect('payment', order_id=order.id)
                 
+        except InsufficientStock as e:
+            messages.error(request, f'{e.product_name} 庫存不足')
+            return redirect('cart')
+        except ValueError as e:
+            messages.error(request, str(e))
+            return redirect('checkout')
         except Exception as e:
             logger.error(f'Checkout error: {str(e)}')
             messages.error(request, '訂單建立失敗，請稍後再試')

@@ -58,6 +58,10 @@ class OrderAdmin(admin.ModelAdmin):
                 
                 # 訂單狀態變更通知
                 if old_status != obj.status:
+                    if obj.status == 'cancelled' and old_status != 'cancelled':
+                        from plus.services.inventory import release_order_inventory, restore_coupon
+                        release_order_inventory(obj)
+                        restore_coupon(obj)
                     status_messages = {
                         'confirmed': '您的訂單已確認，正在準備出貨。',
                         'processing': '您的訂單正在處理中。',

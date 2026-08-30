@@ -57,7 +57,7 @@ def index(request):
     ).select_related('category', 'brand').prefetch_related('images', 'reviews').annotate(
         avg_rating=Avg('reviews__rating', filter=Q(reviews__is_approved=True)),
         review_count=Count('reviews', filter=Q(reviews__is_approved=True))
-    ).order_by('?')[:4]  # 隨機排序並只取4個
+    ).order_by('-updated_at', '-id')[:4]
     # 確保 featured_products 的 avg_rating 有值
     for product in featured_products:
         if product.avg_rating is None:
@@ -250,24 +250,8 @@ def products(request):
 
 
 def search_products(request):
-    """商品搜尋"""
-    query = request.GET.get('q', '').strip()
-    category = request.GET.get('category', '')
-    products = Product.objects.filter(status='published')
-    if query:
-        products = products.filter(
-            Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(short_description__icontains=query)
-        )
-    if category:
-        products = products.filter(category__slug=category)
-    context = {
-        'products': products,
-        'query': query,
-        'category': category,
-    }
-    return render(request, 'products/search_results.html', context)
+    """商品搜尋：與商品列表共用畫面與分頁。"""
+    return products(request)
 
 
 def product_detail_view(request, product_id):

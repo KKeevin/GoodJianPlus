@@ -113,6 +113,9 @@ class Product(models.Model):
         verbose_name = '商品'
         verbose_name_plural = '商品管理'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', 'is_featured']),
+        ]
 
     def __str__(self):
         return self.name

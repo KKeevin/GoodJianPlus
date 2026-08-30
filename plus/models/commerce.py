@@ -30,7 +30,8 @@ class Cart(models.Model):
 
     @property
     def total_items(self):
-        return sum(item.quantity for item in self.items.all())
+        from django.db.models import Sum
+        return self.items.aggregate(total=Sum('quantity'))['total'] or 0
 
 
 class CartItem(models.Model):
@@ -89,6 +90,8 @@ class Order(models.Model):
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='稅額')
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='折扣金額')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='總金額')
+    coupon_code = models.CharField(max_length=50, blank=True, verbose_name='優惠券代碼')
+    inventory_held = models.BooleanField(default=False, verbose_name='是否仍預扣庫存')
     
     # 支付相關
     payment_method = models.CharField(max_length=50, default='cod', verbose_name='支付方式')
@@ -108,6 +111,9 @@ class Order(models.Model):
         verbose_name = '訂單'
         verbose_name_plural = '訂單管理'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+        ]
 
     def __str__(self):
         return f"訂單 {self.order_number}"
