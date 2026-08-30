@@ -43,6 +43,8 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.services.inventory import release_order_inventory, restore_coupon
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +62,7 @@ def payment_view(request, order_id):
     
     context = {
         'order': order,
+        'allow_test_payment': settings.DEBUG,
     }
     return render(request, 'payment/payment.html', context)
 
@@ -78,9 +81,12 @@ def process_payment(request, order_id):
         
         payment_method = request.POST.get('payment_method', order.payment_method)
         
-        # 處理不同支付方式
         if payment_method == 'test_payment':
-            # 模擬支付成功
+            if not settings.DEBUG:
+                return JsonResponse({
+                    'success': False,
+                    'message': '不支援的支付方式'
+                })
             import uuid
             transaction_id = f"TXN{uuid.uuid4().hex[:16].upper()}"
             
@@ -228,6 +234,8 @@ def linepay_confirm(request, order_id):
         # 驗證交易 ID 是否匹配
         if order.payment_transaction_id != transaction_id:
             logger.warning(f'Transaction ID mismatch for order {order.order_number}')
+            messages.error(request, '交易資訊不符，已取消此次確認')
+            return redirect('payment_failed', order_id=order.id)
         
         # 確認支付
         from plus.payment.linepay import LinePayAPI
@@ -267,7 +275,9 @@ def linepay_confirm(request, order_id):
             # 支付失敗
             with transaction.atomic():
                 order.payment_status = 'failed'
-                order.save()
+                order.save(update_fields=['payment_status'])
+                release_order_inventory(order)
+                restore_coupon(order)
             
             logger.error(f'LINE Pay confirm failed: {result.get("message")} for order {order.order_number}')
             messages.error(request, f'付款確認失敗：{result.get("message", "未知錯誤")}')

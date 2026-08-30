@@ -186,9 +186,9 @@
                     <h3 style="margin-bottom: 20px;">選擇支付方式</h3>
                     
                     <!-- LINE Pay -->
-                    <div class="payment-method" onclick="selectPaymentMethod('linepay')">
+                    <div class="payment-method{% if not allow_test_payment %} active{% endif %}" onclick="selectPaymentMethod('linepay')">
                         <label class="payment-method-label">
-                            <input type="radio" name="payment_method" value="linepay">
+                            <input type="radio" name="payment_method" value="linepay"{% if not allow_test_payment %} checked{% endif %}>
                             <div>
                                 <div>
                                     <img src="https://static.line-scdn.net/linepay/portal/img/linepay_logo.svg" alt="LINE Pay" style="height: 24px; vertical-align: middle; margin-right: 8px;">
@@ -199,16 +199,18 @@
                         </label>
                     </div>
                     
-                    <!-- 測試支付 -->
+                    {% if allow_test_payment %}
+                    <!-- 測試支付（僅開發環境） -->
                     <div class="payment-method active" onclick="selectPaymentMethod('test_payment')">
                         <label class="payment-method-label">
                             <input type="radio" name="payment_method" value="test_payment" checked>
                             <div>
                                 <div><i class="bi bi-credit-card-2-front"></i> 測試支付（模擬付款）</div>
-                                <div class="payment-method-desc">用於測試的模擬支付方式，點擊付款後會立即完成付款</div>
+                                <div class="payment-method-desc">僅本機開發可用，正式環境不會出現此選項</div>
                             </div>
                         </label>
                     </div>
+                    {% endif %}
                 </div>
 
                 <!-- 付款按鈕 -->

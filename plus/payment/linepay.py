@@ -7,7 +7,7 @@ import hashlib
 import base64
 import json
 import logging
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class LinePayAPI:
     """LINE Pay API 客戶端"""
     
     # LINE Pay API 端點
-    SANDBOX_BASE_URL = 'https://sandbox-web-pay.line.me'
+    SANDBOX_BASE_URL = 'https://sandbox-api-pay.line.me'
     PRODUCTION_BASE_URL = 'https://api-pay.line.me'
     
     def __init__(self):
@@ -32,6 +32,11 @@ class LinePayAPI:
         
         if not self.channel_id or not self.channel_secret:
             logger.warning('LINE Pay credentials not configured')
+
+    @staticmethod
+    def to_twd_amount(amount):
+        """TWD 以「元」為整數，不可再乘 100。"""
+        return int(Decimal(amount).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
     
     def _generate_signature(self, uri, body, nonce):
         """生成 LINE Pay 簽名"""
@@ -82,8 +87,7 @@ class LinePayAPI:
         nonce = str(uuid.uuid4())
         uri = '/v3/payments/request'
         
-        # 將金額轉換為整數（LINE Pay 使用最小貨幣單位）
-        amount_int = int(amount * 100)  # TWD 使用元，轉換為分
+        amount_int = self.to_twd_amount(amount)
         
         body = {
             'amount': amount_int,
@@ -159,8 +163,7 @@ class LinePayAPI:
         nonce = str(uuid.uuid4())
         uri = f'/v3/payments/{transaction_id}/confirm'
         
-        # 將金額轉換為整數
-        amount_int = int(amount * 100)
+        amount_int = self.to_twd_amount(amount)
         
         body = {
             'amount': amount_int,
