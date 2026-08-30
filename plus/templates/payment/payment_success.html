@@ -1,0 +1,126 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}付款成功 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<style>
+.success-section {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.success-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    padding: 50px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.success-icon {
+    font-size: 80px;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.success-title {
+    font-size: 2rem;
+    color: #28a745;
+    margin-bottom: 20px;
+}
+
+.order-details {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.order-detail-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.order-detail-item:last-child {
+    border-bottom: none;
+}
+
+.action-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.action-buttons .btn {
+    padding: 12px 30px;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="success-section">
+    <div class="container">
+        <div class="success-container">
+            <div class="success-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <h1 class="success-title">付款成功！</h1>
+            <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">
+                感謝您的購買，您的訂單已成功付款
+            </p>
+
+            <div class="order-details">
+                <h3 style="margin-bottom: 20px; text-align: center;">訂單資訊</h3>
+                <div class="order-detail-item">
+                    <span><strong>訂單編號</strong></span>
+                    <span>{{ order.order_number }}</span>
+                </div>
+                {% if order.payment_transaction_id %}
+                <div class="order-detail-item">
+                    <span><strong>交易編號</strong></span>
+                    <span>{{ order.payment_transaction_id }}</span>
+                </div>
+                {% endif %}
+                <div class="order-detail-item">
+                    <span><strong>付款金額</strong></span>
+                    <span style="color: #e74c3c; font-size: 1.2rem; font-weight: bold;" data-price="{{ order.total_amount }}">
+                        NT${{ order.total_amount|floatformat:0 }}
+                    </span>
+                </div>
+                <div class="order-detail-item">
+                    <span><strong>付款狀態</strong></span>
+                    <span style="color: #28a745; font-weight: bold;">已付款</span>
+                </div>
+                <div class="order-detail-item">
+                    <span><strong>訂單狀態</strong></span>
+                    <span>{{ order.get_status_display }}</span>
+                </div>
+            </div>
+
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #155724;">
+                    <i class="bi bi-info-circle"></i>
+                    我們已發送訂單確認信至您的電子郵件信箱，請注意查收。
+                </p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'order_detail' order.id %}" class="btn btn-primary">
+                    <i class="bi bi-file-text"></i> 查看訂單詳情
+                </a>
+                <a href="{% url 'products' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> 繼續購物
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+

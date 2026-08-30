@@ -1,0 +1,393 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}
+    {% if selected_category %}
+        {% if selected_category.parent %}
+            {{ parent_category.name }} | {{ selected_category.name }} - 好健健 GoodJian Plus
+        {% else %}
+            {{ selected_category.name }} - 好健健 GoodJian Plus
+        {% endif %}
+    {% else %}
+        商品專區 - 好健健 GoodJian Plus
+    {% endif %}
+{% endblock %}
+
+<!-- header區塊 -->
+{% block head %}
+<link href="{% static 'css/products.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<script src="{% static 'js/wishlist.js' %}?v={{ static_version }}"></script>
+<script src="{% static 'js/products.js' %}?v={{ static_version }}"></script>
+{% endblock %}
+
+<!-- 內容區塊 -->
+{% block content %} 
+<!-- 搜尋與分類導航區域 -->
+<section class="search-category-section">
+    <div class="container">
+        <!-- 搜尋欄 -->
+        <div class="search-wrapper">
+            <form method="get" action="{% url 'products' %}" class="search-form">
+                <div class="input-group">
+                    <input type="text" 
+                           class="form-control" 
+                           name="q" 
+                           id="searchInput"
+                           placeholder="搜尋商品名稱、品牌、分類..." 
+                           value="{{ search_query|default:'' }}"
+                           autocomplete="off">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> 搜尋
+                    </button>
+                    {% if search_query %}
+                    <a href="{% url 'products' %}{% if request.GET.category %}?category={{ request.GET.category }}{% endif %}" class="btn btn-outline-secondary" title="清除搜尋">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% if request.GET.category %}
+                <input type="hidden" name="category" value="{{ request.GET.category }}">
+                {% endif %}
+            </form>
+        </div>
+        
+        <!-- 商品分類導航 -->
+        <div class="category-nav-content">
+            {% if parent_category %}
+            <div class="category-header">
+                <div class="category-header-content">                    
+                    <h3 class="category-header-title">{{ parent_category.name }}</h3>
+                    <div class="category-header-decoration"></div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="category-tabs">
+                {% if parent_category %}
+                    <!-- 顯示主類別按鈕和子類別標籤 -->
+                    <button class="tab-btn {% if selected_category_slug == parent_category.slug %}active{% endif %}" 
+                            data-category="{{ parent_category.slug }}">全部商品</button>
+                    {% for subcategory in subcategories %}
+                    <button class="tab-btn {% if selected_category_slug == subcategory.slug %}active{% endif %}" 
+                            data-category="{{ subcategory.slug }}">{{ subcategory.name }}</button>
+                    {% endfor %}
+                {% else %}
+                    <!-- 顯示所有頂層類別 -->
+                    <button class="tab-btn {% if not selected_category %}active{% endif %}" data-category="all">全部分類</button>
+                    {% for category in categories %}
+                    <button class="tab-btn {% if selected_category_slug == category.slug %}active{% endif %}" 
+                            data-category="{{ category.slug }}">{{ category.name }}</button>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 篩選與排序 -->
+<section class="filter-section">
+    <div class="container">
+        <div class="filter-controls">
+            <div class="filter-left">
+                <span class="results-count">共 <strong>{{ page_obj.paginator.count }}</strong> 項商品</span>
+                {% if search_query %}
+                <span class="search-info" style="margin-left: 15px; color: #666;">
+                    <i class="bi bi-search"></i> 搜尋「<strong>{{ search_query }}</strong>」的結果
+                    <a href="{% url 'products' %}{% if request.GET.category %}?category={{ request.GET.category }}{% endif %}" 
+                       class="text-decoration-none ms-2" title="清除搜尋">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                </span>
+                {% endif %}
+            </div>
+            <div class="filter-right">
+                <select class="sort-select" id="sortSelect">
+                    <option value="default" {% if sort_by == 'default' %}selected{% endif %}>預設排序</option>
+                    <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>價格：低到高</option>
+                    <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>價格：高到低</option>
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>最新商品</option>
+                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>熱門商品</option>
+                </select>
+                <div class="view-toggle">
+                    <button class="view-btn grid-view active" title="網格檢視"><i class="bi bi-grid"></i></button>
+                    <button class="view-btn list-view" title="列表檢視"><i class="bi bi-list"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 商品展示區域 -->
+<section class="products-display">
+    <div class="container">
+        {% if products %}
+        <div class="product-grid" id="productGrid">
+            {% for product in products %}
+            <div class="product-card" data-category="{{ product.category.slug }}" data-product-id="{{ product.id }}">
+                <!-- 商品標籤 -->
+                {% if product.is_featured %}
+                <div class="product-badge">推薦</div>
+                {% elif product.is_new %}
+                <div class="product-badge">新品上市</div>
+                {% elif product.discount_percentage > 0 %}
+                <div class="product-badge hot">限時優惠</div>
+                {% endif %}
+
+                <!-- 商品圖片 -->
+                <div class="product-image">
+                    <a href="{% url 'product_detail' product.id %}">
+                        {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                    <div class="product-overlay">
+                        <button class="quick-view-btn" data-product-id="{{ product.id }}">快速預覽</button>
+                        {% if user.is_authenticated %}
+                        <button class="wishlist-btn {% if product.id in user_wishlist %}active{% endif %}" 
+                                data-product-id="{{ product.id }}" 
+                                title="{% if product.id in user_wishlist %}移除收藏{% else %}加入收藏{% endif %}">
+                            <i class="bi {% if product.id in user_wishlist %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 商品資訊 -->
+                <div class="product-info">
+                    <!-- 評分 -->
+                    <div class="product-rating">
+                        {% if product.avg_rating and product.avg_rating > 0 %}
+                        <div class="stars" style="color: #ffc107;" data-rating="{{ product.avg_rating|floatformat:1 }}">
+                            <span class="rating-stars-placeholder"></span>
+                        </div>
+                        <span class="rating-count">({{ product.review_count|default:0 }})</span>
+                        {% else %}
+                        <div class="stars" style="color: #a87700;" data-rating="0">
+                            <span class="rating-stars-placeholder">☆☆☆☆☆</span>
+                        </div>
+                        <span class="rating-count text-muted">(尚無評價)</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- 商品名稱 -->
+                    <h3 class="product-name">
+                        <a href="{% url 'product_detail' product.id %}" title="{{ product.name }}">{{ product.name|truncatechars:50 }}</a>
+                    </h3>
+
+                    <!-- 價格 -->
+                    <div class="product-price">
+                        {% if product.original_price and product.original_price > product.price %}
+                        <span class="original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                        {% endif %}
+                        <span class="current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                        {% if product.discount_percentage > 0 %}
+                        <span class="discount-badge">-{{ product.discount_percentage }}%</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- 庫存狀態 -->
+                    <div class="stock-status">
+                        {% if product.stock_quantity > 10 %}
+                            <span class="in-stock">現貨充足</span>
+                        {% elif product.stock_quantity > 0 %}
+                            <span class="low-stock">僅剩 {{ product.stock_quantity }} 件</span>
+                        {% else %}
+                            <span class="out-of-stock">暫時缺貨</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="product-actions">
+                        {% if product.stock_quantity > 0 %}
+                            {% if user.is_authenticated %}
+                            <button class="add-to-cart" data-product-id="{{ product.id }}">
+                                <i class="bi bi-cart-plus"></i>加入購物車
+                            </button>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={% url 'products' %}" class="add-to-cart">
+                                <i class="bi bi-person"></i>登入購買
+                            </a>
+                            {% endif %}
+                        {% else %}
+                        <button class="add-to-cart disabled" disabled>
+                            <i class="bi bi-x-circle"></i>暫時缺貨
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- 分頁 -->
+        {% if is_paginated %}
+        <div class="pagination">
+        <nav aria-label="商品分頁">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="首頁">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                </li>
+                <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="上一頁">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="下一頁">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                </li>
+                <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="末頁">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- 無商品時的顯示 -->
+        <div class="no-products">
+            <div class="no-products-content">
+                <i class="bi bi-box-seam"></i>
+                <h3>目前沒有商品</h3>
+                <p>{% if search_query %}找不到符合「{{ search_query }}」的商品{% else %}此分類暫無商品{% endif %}</p>
+                <a href="{% url 'products' %}" class="btn btn-primary">瀏覽所有商品</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- 推薦商品區塊 -->
+{% if featured_products %}
+<section class="recommended-products-section">
+    <div class="container">
+        <div class="recommended-section-title">
+            <h3>
+                <i class="bi bi-star-fill"></i>
+                為您推薦
+                <span class="title-underline"></span>
+            </h3>
+        </div>
+        <div class="recommended-products-grid">
+            {% for product in featured_products %}
+            <div class="recommended-product-card">
+                <div class="recommended-product-image">
+                    <a href="{% url 'product_detail' product.id %}">
+                        {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                    {% if product.is_featured %}
+                    <div class="recommended-product-badge">推薦</div>
+                    {% elif product.discount_percentage > 0 %}
+                    <div class="recommended-product-badge hot">-{{ product.discount_percentage }}%</div>
+                    {% endif %}
+                </div>
+                <div class="recommended-product-info">
+                    <!-- 評分 -->
+                    <div class="recommended-product-rating">
+                        {% if product.avg_rating and product.avg_rating > 0 %}
+                        <div class="recommended-stars" data-rating="{{ product.avg_rating|floatformat:1 }}"></div>
+                        <span class="recommended-rating-count">({{ product.review_count|default:0 }})</span>
+                        {% else %}
+                        <div class="recommended-stars" data-rating="0"></div>
+                        <span class="recommended-rating-count text-muted">(尚無評價)</span>
+                        {% endif %}
+                    </div>
+                    <!-- 商品名稱 -->
+                    <h4 class="recommended-product-name">
+                        <a href="{% url 'product_detail' product.id %}" title="{{ product.name }}">{{ product.name|truncatechars:50 }}</a>
+                    </h4>
+                    <!-- 價格 -->
+                    <div class="recommended-product-price">
+                        {% if product.original_price and product.original_price > product.price %}
+                        <span class="recommended-original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                        {% endif %}
+                        <span class="recommended-current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                    </div>
+                    <!-- 庫存狀態 -->
+                    <div class="recommended-stock-status">
+                        {% if product.stock_quantity > 10 %}
+                            <span class="recommended-in-stock">現貨充足</span>
+                        {% elif product.stock_quantity > 0 %}
+                            <span class="recommended-low-stock">僅剩 {{ product.stock_quantity }} 件</span>
+                        {% else %}
+                            <span class="recommended-out-of-stock">暫時缺貨</span>
+                        {% endif %}
+                    </div>
+                    <!-- 加入購物車按鈕 -->
+                    <div class="recommended-product-actions">
+                        {% if product.stock_quantity > 0 %}
+                            {% if user.is_authenticated %}
+                            <button class="recommended-add-to-cart" data-product-id="{{ product.id }}">
+                                <i class="bi bi-cart-plus"></i> 加入購物車
+                            </button>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={% url 'products' %}" class="recommended-add-to-cart">
+                                <i class="bi bi-person"></i> 登入購買
+                            </a>
+                            {% endif %}
+                        {% else %}
+                        <button class="recommended-add-to-cart disabled" disabled>
+                            <i class="bi bi-x-circle"></i> 暫時缺貨
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- 快速預覽 Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickViewModalLabel">商品快速預覽</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="quickViewContent">
+                <!-- 快速預覽內容將透過AJAX載入 -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- 腳本區塊 -->
+{% block script %}
+<script>
+// 配置收藏功能 URL
+window.WISHLIST_CONFIG = {
+    toggleUrl: '{% url "api_toggle_wishlist" %}'
+};
+</script>
+{% endblock %}

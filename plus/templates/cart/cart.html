@@ -1,0 +1,252 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}購物車 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/cart.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/account-pages.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="cart-section">
+    <div class="container">
+        <div class="cart-header">
+            <h1><i class="bi bi-cart"></i> 我的購物車</h1>
+            <div class="breadcrumb">
+                <a href="{% url 'home' %}">首頁</a>
+                <span>></span>
+                <a href="{% url 'products' %}">商品</a>
+                <span>></span>
+                <span>購物車</span>
+            </div>
+        </div>
+
+        {% if items %}
+        <div class="cart-content">
+            <div class="cart-items">
+                <div class="cart-table-header">
+                    <div class="col-product">商品</div>
+                    <div class="col-price">單價</div>
+                    <div class="col-quantity">數量</div>
+                    <div class="col-subtotal">小計</div>
+                    <div class="col-action">操作</div>
+                </div>
+
+                {% for item in items %}
+                <div class="cart-item" data-item-id="{{ item.id }}">
+                    <div class="col-product">
+                        <div class="product-info">
+                            <div class="product-image">
+                                {% if item.product.images.exists %}
+                                    <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
+                                {% else %}
+                                    <img src="{% static 'img/products/default.png' %}" alt="{{ item.product.name }}">
+                                {% endif %}
+                            </div>
+                            <div class="product-details">
+                                <h3><a href="{% url 'product_detail' item.product.id %}">{{ item.product.name }}</a></h3>
+                                <p class="product-sku">商品編號：{{ item.product.sku }}</p>
+                                {% if item.product.stock_quantity < 10 %}
+                                    <p class="stock-warning">庫存僅剩 {{ item.product.stock_quantity }} 件</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-price">
+                        <span class="price" data-price="{{ item.product.price }}">NT${{ item.product.price|floatformat:0 }}</span>
+                    </div>
+                    
+                    <div class="col-quantity">
+                        <div class="quantity-controls">
+                            <button class="qty-btn minus" onclick="updateQuantity({{ item.id }}, -1)">-</button>
+                            <input type="number" class="qty-input" value="{{ item.quantity }}" min="1" max="{{ item.product.stock_quantity }}" 
+                                   id="qty-{{ item.id }}" onchange="updateQuantityFromInput({{ item.id }}, this.value)">
+                            <button class="qty-btn plus" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-subtotal">
+                        <span class="subtotal" id="subtotal-{{ item.id }}" data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span>
+                    </div>
+                    
+                    <div class="col-action">
+                        <button class="remove-btn" onclick="removeFromCart({{ item.id }})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <div class="summary-card">
+                    <h3>訂單摘要</h3>
+                    
+                    <div class="summary-row">
+                        <span>商品小計</span>
+                        <span id="itemsTotal" data-price="{{ cart.total_price }}">NT${{ cart.total_price|floatformat:0 }}</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span>運費</span>
+                        <span id="shippingFee">
+                            {% if cart.total_price >= free_shipping_threshold|default:1000 %}
+                                免運費
+                            {% else %}
+                                NT$100
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="summary-row total-row">
+                        <span>總計</span>
+                        <span id="totalAmount" data-price="{% if cart.total_price >= free_shipping_threshold|default:1000 %}{{ cart.total_price }}{% else %}{{ cart.total_price|add:'100' }}{% endif %}">
+                            {% if cart.total_price >= free_shipping_threshold|default:1000 %}
+                                NT${{ cart.total_price|floatformat:0 }}
+                            {% else %}
+                                NT${{ cart.total_price|add:'100'|floatformat:0 }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% if cart.total_price < free_shipping_threshold|default:1000 %}
+                    <div class="free-shipping-notice">
+                        <i class="bi bi-truck"></i>
+                        <span data-price="{{ free_shipping_remaining }}">還差 NT${{ free_shipping_remaining }} 即可享免運費</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="checkout-actions">
+                        <button class="btn-checkout" onclick="proceedToCheckout()">
+                            <i class="bi bi-credit-card"></i>
+                            <span>前往結帳</span>
+                        </button>
+                        <a href="{% url 'products' %}" class="btn-secondary">
+                            <i class="bi bi-arrow-left"></i>
+                            <span>繼續購物</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 推薦商品 -->
+        <div class="recommended-section">
+            <h3 class="recommended-section-title">
+                <i class="bi bi-heart-fill" style="margin-right: 10px; color: #4CAF50;"></i>您可能也喜歡
+                <span class="title-underline"></span>
+            </h3>
+            <div class="recommended-products-grid">
+                {% for product in recommended_products %}
+                <div class="recommended-product-card">
+                    <div class="recommended-product-image">
+                        <a href="{% url 'product_detail' product.id %}">
+                            {% if product.images.exists %}
+                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                            {% else %}
+                                <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                            {% endif %}
+                        </a>
+                        {% if product.is_featured %}
+                        <div class="recommended-product-badge">推薦</div>
+                        {% elif product.discount_percentage > 0 %}
+                        <div class="recommended-product-badge hot">現省{{ product.discount_percentage }}%</div>
+                        {% endif %}
+                    </div>
+                    <div class="recommended-product-info">
+                        <div class="recommended-product-rating">
+                            {% if product.avg_rating and product.avg_rating > 0 %}
+                            <div class="stars" style="color: #ffc107; font-size: 13px;" data-rating="{{ product.avg_rating|floatformat:1 }}">
+                                <span class="rating-stars-placeholder"></span>
+                            </div>
+                            <span class="rating-count" style="color: #999; font-size: 11px;">({{ product.review_count|default:0 }})</span>
+                            {% else %}
+                            <div class="stars" style="color: #ddd; font-size: 13px;" data-rating="0">
+                                <span class="rating-stars-placeholder">☆☆☆☆☆</span>
+                            </div>
+                            <span class="rating-count text-muted" style="font-size: 11px;">(尚無評價)</span>
+                            {% endif %}
+                        </div>
+                        <h4 class="recommended-product-name">
+                            <a href="{% url 'product_detail' product.id %}" title="{{ product.name }}">{{ product.name|truncatechars:50 }}</a>
+                        </h4>
+                        <div class="recommended-product-price">
+                            {% if product.original_price and product.original_price > product.price %}
+                            <span class="recommended-original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                            {% endif %}
+                            <span class="recommended-current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                        </div>
+                        <div class="recommended-product-stock">
+                            {% if product.stock_quantity > 10 %}
+                                <span class="stock-badge in-stock"><i class="bi bi-check-circle"></i> 現貨充足</span>
+                            {% elif product.stock_quantity > 0 %}
+                                <span class="stock-badge low-stock"><i class="bi bi-exclamation-triangle"></i> 僅剩 {{ product.stock_quantity }} 件</span>
+                            {% else %}
+                                <span class="stock-badge out-of-stock"><i class="bi bi-x-circle"></i> 暫時缺貨</span>
+                            {% endif %}
+                        </div>
+                        <button class="recommended-add-cart-btn" onclick="addToCartFromRecommended({{ product.id }})" {% if product.stock_quantity == 0 %}disabled{% endif %}>
+                            <i class="bi bi-cart-plus"></i> 加入購物車
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% else %}
+        <!-- 空購物車 -->
+        <div class="empty-cart">
+            <div class="empty-cart-content">
+                <i class="bi bi-cart-x"></i>
+                <h2>您的購物車是空的</h2>
+                <p>還沒有選購商品，快去看看我們的精選商品吧！</p>
+                <a href="{% url 'products' %}" class="btn btn-primary">
+                    <i class="bi bi-bag-check"></i>
+                    <span>開始購物</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+// 配置購物車頁面 URL
+window.CART_CONFIG = window.CART_CONFIG || {};
+window.CART_CONFIG.totalsUrl = '{% url "cart_totals" %}';
+window.CART_CONFIG.freeShippingThreshold = {{ free_shipping_threshold|default:1000 }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 為所有數量輸入框添加防抖功能
+    const qtyInputs = document.querySelectorAll('.qty-input');
+    qtyInputs.forEach(input => {
+        let timeout;
+        input.addEventListener('input', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                const itemId = this.id.replace('qty-', '');
+                if (typeof window.updateQuantityFromInput === 'function') {
+                    window.updateQuantityFromInput(itemId, this.value);
+                }
+            }, 500); // 0.5秒防抖
+        });
+    });
+    
+    // 格式化價格
+    if (typeof formatAllPrices === 'function') {
+        formatAllPrices();
+    }
+    
+    // 渲染推薦商品的評分星星
+    if (typeof renderRatingStars === 'function') {
+        renderRatingStars();
+    }
+});
+</script>
+{% endblock %}

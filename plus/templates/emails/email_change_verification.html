@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>確認電子郵件變更</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">好健健 GoodJian Plus</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 20px;">確認電子郵件變更</h2>
+                            
+                            <p style="color: #666666; line-height: 1.6; margin: 0 0 20px 0;">
+                                親愛的 {{ user.first_name|default:user.username }}，您好！
+                            </p>
+                            
+                            <p style="color: #666666; line-height: 1.6; margin: 0 0 20px 0;">
+                                您已申請將帳號的電子郵件地址變更為：<strong style="color: #667eea;">{{ new_email }}</strong>
+                            </p>
+                            
+                            <p style="color: #666666; line-height: 1.6; margin: 0 0 30px 0;">
+                                請點擊下方的按鈕確認此變更。此連結將在 {{ expires_hours }} 小時後過期。
+                            </p>
+                            
+                            <!-- Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 20px 0;">
+                                        <a href="{{ verification_url }}" style="display: inline-block; padding: 14px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                                            確認變更電子郵件
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #999999; font-size: 12px; line-height: 1.6; margin: 30px 0 0 0;">
+                                如果按鈕無法點擊，請複製以下連結到瀏覽器打開：<br>
+                                <a href="{{ verification_url }}" style="color: #667eea; word-break: break-all;">{{ verification_url }}</a>
+                            </p>
+                            
+                            <p style="color: #999999; font-size: 12px; line-height: 1.6; margin: 20px 0 0 0;">
+                                如果您沒有申請此變更，請忽略此郵件，您的帳號將保持不變。
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 20px 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                此郵件由系統自動發送，請勿回覆。<br>
+                                © 2024 好健健 GoodJian Plus. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+

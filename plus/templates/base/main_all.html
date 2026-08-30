@@ -1,0 +1,406 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}{% endblock %}</title>
+    
+    <!-- Favicon 網站圖標 -->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/common/favicon.ico' %}">
+    <!-- <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/common/favicon-32x32.png' %}"> -->
+    <!-- <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/common/favicon-16x16.png' %}"> -->
+    <!-- <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/common/apple-touch-icon.png' %}"> -->
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/common/Logo.png' %}">    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link href="{% static 'css/main.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/overlay-panels.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/confirm-dialog.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/notification-toast.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/session-timeout.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/date-input.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/floating-cart.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+    <script src="{% static 'js/utils.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/common.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/cart.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/back-to-top.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/session-timeout.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/date-input-enhancement.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/mobile-menu.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/confirm-dialog.js' %}?v={{ static_version }}"></script>
+    <script src="{% static 'js/overlay-panels.js' %}?v={{ static_version }}"></script>
+    {% if user.is_authenticated %}
+    <script src="{% static 'js/notifications.js' %}?v={{ static_version }}"></script>
+    {% endif %}
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-container">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <a href="{% url 'home' %}" title="回到首頁"><img src="{% static 'img/common/Logo.png' %}" alt="好健健 Logo"></a>
+                    </div>
+                </div>
+
+                <label for="menu-toggle" class="menu-icon">
+                    <span class="navicon"></span>
+                </label>
+                <input type="checkbox" id="menu-toggle" class="menu-toggle">
+
+                <div class="nav-and-icons">
+                    <nav>
+                        <ul class="main-nav">
+                            <li><a href="{% url 'home' %}">首頁</a></li>
+                            <li class="dropdown-nav">
+                                <a href="{% url 'products' %}?category=equipment" class="drop-btn">健身用品 <i class="bi bi-chevron-down"></i></a>
+                                <ul class="dropdown-nav-menu">
+                                    <li><a href="{% url 'products' %}?category=cardio">有氧器材</a></li>
+                                    <li><a href="{% url 'products' %}?category=strength">重訓器材</a></li>
+                                    <li><a href="{% url 'products' %}?category=yoga">瑜珈用品</a></li>
+                                    <li><a href="{% url 'products' %}?category=accessories">運動配件</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-nav">
+                                <a href="{% url 'products' %}?category=food" class="drop-btn">健身食品 <i class="bi bi-chevron-down"></i></a>
+                                <ul class="dropdown-nav-menu">
+                                    <li><a href="{% url 'products' %}?category=protein">蛋白質補充</a></li>
+                                    <li><a href="{% url 'products' %}?category=meals">健身餐盒</a></li>
+                                    <li><a href="{% url 'products' %}?category=snacks">健康零食</a></li>
+                                    <li><a href="{% url 'products' %}?category=drinks">運動飲品</a></li>
+                                </ul>
+                            </li>
+                            {% if user.is_authenticated %}
+                            <li><a href="{% url 'goal_management' %}">目標管理</a></li>
+                            {% else %}
+                            <li><a href="{% url 'login' %}?next={% url 'goal_management' %}">目標管理</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'articles_list' %}">健康專欄</a></li>
+                        </ul>
+                    </nav>
+                    <div class="header-icons">
+                        <div class="header-icon search-icon" id="searchIcon" style="cursor: pointer;" title="搜尋商品" data-panel="searchPanel">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <!-- 搜尋面板 -->
+                        <div class="overlay-panel search-panel" id="searchPanel">
+                            <button type="button" class="overlay-close-btn" data-panel="searchPanel" aria-label="關閉搜索">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <form method="get" action="{% url 'products' %}">
+                                <div class="search-input-wrapper">
+                                    <input type="text" 
+                                           class="form-control" 
+                                           name="q" 
+                                           id="headerSearchInput"
+                                           placeholder="搜尋商品..." 
+                                           autocomplete="off">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-search"></i>
+                                        <span class="d-none d-sm-inline">搜尋</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="header-icon">
+                            <a href="{% if user.is_authenticated %}{% url 'cart' %}{% else %}{% url 'login' %}?next={% url 'cart' %}{% endif %}" title="購物車">
+                                <i class="bi bi-cart"></i>
+                                {% if user.is_authenticated %}
+                                <span class="cart-count" id="cartCount">{{ cart_count|default:0 }}</span>
+                                {% endif %}
+                            </a>
+                        </div>
+                        {% if user.is_authenticated %}
+                        <div class="header-icon notification-icon" id="notificationIcon" title="通知" data-panel="notificationPanel">
+                            <i class="bi bi-bell"></i>
+                            <span class="notification-count" id="notificationCount" style="display: none;">0</span>
+                        </div>
+                        <!-- 通知面板 -->
+                        <div class="overlay-panel notification-panel" id="notificationPanel">
+                            <button type="button" class="overlay-close-btn" data-panel="notificationPanel" aria-label="關閉通知">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                            <div class="notification-header">
+                                <h5>通知</h5>
+                                <div class="notification-actions">
+                                    <button class="btn-mark-all-read" id="markAllReadBtn" title="標記全部為已讀">
+                                        <i class="bi bi-check-all"></i>
+                                    </button>
+                                    <a href="{% url 'notification_list' %}" class="btn-view-all" title="查看全部">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="notification-list" id="notificationList">
+                                <div class="notification-loading">
+                                    <i class="bi bi-hourglass-split"></i> 載入中...
+                                </div>
+                            </div>
+                            <div class="notification-footer">
+                                <a href="{% url 'notification_list' %}">查看所有通知</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                            {% if user.is_authenticated %}
+                                <!-- 已登入用戶 -->
+                            <div class="member-icon header-icon" id="memberIcon" style="cursor: pointer;" title="會員選單" data-panel="memberPanel">
+                                    {% if user.avatar %}
+                                        <img src="{{ user.avatar.url }}" alt="用戶頭像" class="user-avatar">
+                                    {% else %}
+                                        <i class="bi bi-person-circle"></i>
+                                    {% endif %}
+                                    <span class="username-display">{{ user.first_name|default:user.username }}</span>
+                            </div>
+                            <!-- 會員面板 -->
+                            <div class="overlay-panel member-panel" id="memberPanel">
+                                <button type="button" class="overlay-close-btn" data-panel="memberPanel" aria-label="關閉選單">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <ul class="member-menu-list">
+                                    <li class="member-menu-header">
+                                        <strong>{{ user.first_name|default:user.username }}</strong>
+                                        <small class="text-muted d-block">{{ user.email }}</small>
+                                    </li>
+                                    <li><a class="member-menu-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>我的帳戶</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'goal_management' %}"><i class="bi bi-bullseye me-2"></i>目標管理</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'order_list' %}"><i class="bi bi-box me-2"></i>我的訂單</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'wishlist' %}"><i class="bi bi-heart me-2"></i>我的收藏</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'cart' %}"><i class="bi bi-cart me-2"></i>購物車</a></li>
+                                    <!-- <li><a class="member-menu-item" href="{% url 'profile_complete' %}"><i class="bi bi-gear me-2"></i>帳戶設定</a></li> -->
+                                    <li><a class="member-menu-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>登出</a></li>
+                                </ul>
+                            </div>
+                            {% else %}
+                                <!-- 未登入用戶 -->
+                            <div class="member-icon header-icon" id="guestIcon" style="cursor: pointer;" title="會員登入" data-panel="guestPanel">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span class="username-display">會員</span>
+                            </div>
+                            <!-- 訪客面板 -->
+                            <div class="overlay-panel member-panel" id="guestPanel">
+                                <button type="button" class="overlay-close-btn" data-panel="guestPanel" aria-label="關閉選單">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                                <ul class="member-menu-list">
+                                    <li class="member-menu-header">
+                                        <strong>歡迎來到好健健</strong>
+                                        <small class="text-muted d-block">登入享受更多服務</small>
+                                    </li>
+                                    <li><a class="member-menu-item" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right me-2"></i>會員登入</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'register' %}"><i class="bi bi-person-plus me-2"></i>免費註冊</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'products' %}"><i class="bi bi-shop me-2"></i>瀏覽商品</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'faq' %}"><i class="bi bi-question-circle me-2"></i>常見問題</a></li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 通知彈出容器 -->
+    {% if user.is_authenticated %}
+    <div class="notification-toast-container" id="notificationToastContainer"></div>
+    {% endif %}
+
+    <!-- 訊息顯示區域 -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="bi bi-check-circle me-2"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="bi bi-info-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- 內容區塊 -->
+    {% block content %} 
+    {% endblock %}
+
+    <!-- 頁尾 -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="footer-logo-icon"><img src="{% static 'img/common/Logo.png' %}" alt="好健健 Logo"></div>
+                    </div>
+                    <p>{{ site_description|default:"專業健身用品與營養餐食專家，讓健康生活變得簡單親民" }}</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>商品分類</h4>
+                    <ul>
+                        <li><a href="{% url 'products' %}?category=equipment">健身用品</a></li>
+                        <li><a href="{% url 'products' %}?category=protein">營養補給</a></li>
+                        <li><a href="{% url 'products' %}?category=meals">健身餐食</a></li>
+                        <li><a href="{% url 'products' %}?category=accessories">運動配件</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>客戶服務</h4>
+                    <ul>
+                        <li><a href="{% url 'shipping_info' %}">配送資訊</a></li>
+                        <li><a href="{% url 'return_policy' %}">退換貨政策</a></li>
+                        <li><a href="{% url 'faq' %}">常見問題</a></li>
+                        <li><a href="{% url 'contact_us' %}">聯絡客服</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>聯絡資訊</h4>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="bi bi-telephone"></span>
+                            <span>電話：{{ contact_phone|default:"0800-892010" }}</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="bi bi-envelope"></span>
+                            <span>信箱：<a href="mailto:{{ contact_email|default:'service@goodjianplus.com' }}">{{ contact_email|default:"service@goodjianplus.com" }}</a></span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="bi bi-pin-map"></span>
+                            <span>地址：{{ contact_address|default:"台北市信義區健康路123號" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {% now "Y" %} {{ site_name|default:"好健健 GoodJian Plus" }}. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 回到頂部按鈕 -->
+    <button id="backToTopBtn" class="back-to-top-btn" title="回到頂部">
+        <i class="bi bi-arrow-up"></i>
+        <span>TOP</span>
+    </button>
+
+    <!-- 懸浮購物車按鈕（平板和手機版） -->
+    <a href="{% if user.is_authenticated %}{% url 'cart' %}{% else %}{% url 'login' %}?next={% url 'cart' %}{% endif %}" 
+       id="floatingCartBtn" 
+       class="floating-cart-btn" 
+       title="購物車">
+        <i class="bi bi-cart"></i>
+        <span class="floating-cart-count" id="floatingCartCount">0</span>
+    </a>
+
+    <!-- JavaScript 配置 -->
+    <script>
+        // 配置購物車 API URLs（需要 Django 模板變數）
+        window.CART_CONFIG = {
+            cartCountUrl: '{% url "cart_count_api" %}',
+            addToCartUrl: '{% url "api_add_to_cart" %}',
+            updateUrl: '{% url "update_cart_item" %}',
+            removeUrl: '{% url "remove_cart_item" %}',
+            csrfToken: '{{ csrf_token }}'
+        };
+        
+        {% if user.is_authenticated %}
+        // 配置通知 API URLs
+        window.NOTIFICATION_CONFIG = {
+            apiUrl: '{% url "notification_api" %}',
+            countUrl: '{% url "notification_unread_count_api" %}',
+            markAllReadUrl: '{% url "notification_mark_all_read" %}',
+            csrfToken: '{{ csrf_token }}'
+        };
+        
+        // 用戶認證狀態
+        window.USER_AUTHENTICATED = true;
+        {% else %}
+        window.USER_AUTHENTICATED = false;
+        {% endif %}
+        
+        // 初始化購物車數量
+        {% if user.is_authenticated %}
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            
+            // 初始化懸浮購物車按鈕（檢查是否在購物車頁面）
+            const floatingCartBtn = document.getElementById('floatingCartBtn');
+            if (floatingCartBtn) {
+                const isCartPage = window.location.pathname.includes('/cart/');
+                if (isCartPage) {
+                    floatingCartBtn.classList.add('hidden');
+                }
+            }
+        });
+        {% else %}
+        // 未登入用戶：隱藏懸浮購物車按鈕
+        document.addEventListener('DOMContentLoaded', function() {
+            const floatingCartBtn = document.getElementById('floatingCartBtn');
+            if (floatingCartBtn) {
+                floatingCartBtn.classList.add('hidden');
+            }
+        });
+        {% endif %}
+        
+        // 格式化所有價格（添加千位分隔符）
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof formatAllPrices === 'function') {
+                formatAllPrices();
+            }
+        });
+
+        // 通知相關功能已移至 static/js/notifications.js
+        {% if user.is_authenticated %}
+        // 通知功能將由 notifications.js 自動初始化
+        {% endif %}
+
+        // 覆蓋面板管理系統已移至 static/js/overlay-panels.js
+        // 確認對話框已移至 static/js/confirm-dialog.js
+        
+        // 初始化通用功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 搜尋框 Enter 鍵提交
+            const searchInput = document.getElementById('headerSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.closest('form').submit();
+                    }
+                });
+            }
+            
+            // 自動隱藏訊息（排除 alert-info 和有 data-persist 屬性的 alert）
+            const alerts = document.querySelectorAll('.alert:not(.alert-info):not([data-persist])');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert && alert.parentNode) {
+                        alert.classList.remove('show');
+                        setTimeout(function() {
+                            if (alert.parentNode) {
+                                alert.remove();
+                            }
+                        }, 300);
+                    }
+                }, 5000);
+            });
+        });
+    </script>
+
+    {% block script %}{% endblock %}    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

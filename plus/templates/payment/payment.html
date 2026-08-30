@@ -1,0 +1,293 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}付款 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/cart.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<style>
+.payment-section {
+    padding: 40px 0;
+}
+
+.payment-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.payment-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.payment-header h1 {
+    color: #2D5B69;
+    margin-bottom: 10px;
+}
+
+.order-info {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.order-info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.order-info-item:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #e74c3c;
+    padding-top: 15px;
+    margin-top: 10px;
+    border-top: 2px solid #333;
+}
+
+.payment-methods {
+    margin: 30px 0;
+}
+
+.payment-method {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.payment-method:hover {
+    border-color: #2D5B69;
+    background: #f8f9fa;
+}
+
+.payment-method.active {
+    border-color: #2D5B69;
+    background: #e8f4f8;
+}
+
+.payment-method input[type="radio"] {
+    margin-right: 15px;
+    transform: scale(1.2);
+}
+
+.payment-method-label {
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.payment-method-desc {
+    margin-left: 35px;
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.payment-btn {
+    width: 100%;
+    padding: 15px;
+    background: #2D5B69;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 20px;
+}
+
+.payment-btn:hover {
+    background: #1e3d47;
+}
+
+.payment-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.security-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #856404;
+}
+
+.security-notice i {
+    margin-right: 5px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="payment-section">
+    <div class="container">
+        <div class="payment-container">
+            <div class="payment-card">
+                <div class="payment-header">
+                    <h1><i class="bi bi-credit-card"></i> 付款</h1>
+                    <p class="text-muted">訂單編號：{{ order.order_number }}</p>
+                </div>
+
+                <!-- 訂單資訊 -->
+                <div class="order-info">
+                    <h3 style="margin-bottom: 15px;">訂單資訊</h3>
+                    <div class="order-info-item">
+                        <span>商品小計</span>
+                        <span data-price="{{ order.subtotal }}">NT${{ order.subtotal|floatformat:0 }}</span>
+                    </div>
+                    {% if order.shipping_fee > 0 %}
+                    <div class="order-info-item">
+                        <span>運費</span>
+                        <span data-price="{{ order.shipping_fee }}">NT${{ order.shipping_fee|floatformat:0 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.tax_amount > 0 %}
+                    <div class="order-info-item">
+                        <span>稅額</span>
+                        <span data-price="{{ order.tax_amount }}">NT${{ order.tax_amount|floatformat:0 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if order.discount_amount > 0 %}
+                    <div class="order-info-item" style="color: #28a745;">
+                        <span>折扣</span>
+                        <span data-price="{{ order.discount_amount }}">-NT${{ order.discount_amount|floatformat:0 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="order-info-item">
+                        <span>總計</span>
+                        <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                    </div>
+                </div>
+
+                <!-- 支付方式 -->
+                <div class="payment-methods">
+                    <h3 style="margin-bottom: 20px;">選擇支付方式</h3>
+                    
+                    <!-- LINE Pay -->
+                    <div class="payment-method" onclick="selectPaymentMethod('linepay')">
+                        <label class="payment-method-label">
+                            <input type="radio" name="payment_method" value="linepay">
+                            <div>
+                                <div>
+                                    <img src="https://static.line-scdn.net/linepay/portal/img/linepay_logo.svg" alt="LINE Pay" style="height: 24px; vertical-align: middle; margin-right: 8px;">
+                                    LINE Pay
+                                </div>
+                                <div class="payment-method-desc">使用 LINE Pay 快速安全付款，支援信用卡、銀行帳戶等多種付款方式</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- 測試支付 -->
+                    <div class="payment-method active" onclick="selectPaymentMethod('test_payment')">
+                        <label class="payment-method-label">
+                            <input type="radio" name="payment_method" value="test_payment" checked>
+                            <div>
+                                <div><i class="bi bi-credit-card-2-front"></i> 測試支付（模擬付款）</div>
+                                <div class="payment-method-desc">用於測試的模擬支付方式，點擊付款後會立即完成付款</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 付款按鈕 -->
+                <button type="button" class="payment-btn" id="payBtn" onclick="processPayment()">
+                    <i class="bi bi-lock-fill"></i> 確認付款 <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                </button>
+
+                <div class="security-notice">
+                    <i class="bi bi-shield-check"></i>
+                    您的付款資訊將透過安全加密傳輸，我們不會儲存您的信用卡資訊
+                </div>
+            </div>
+
+            <!-- 返回按鈕 -->
+            <div style="text-align: center;">
+                <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回訂單詳情
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+function selectPaymentMethod(method) {
+    // 更新選中的支付方式
+    document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('active');
+        el.querySelector('input[type="radio"]').checked = false;
+    });
+    
+    event.currentTarget.classList.add('active');
+    event.currentTarget.querySelector('input[type="radio"]').checked = true;
+}
+
+function processPayment() {
+    const payBtn = document.getElementById('payBtn');
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    
+    // 禁用按鈕
+    payBtn.disabled = true;
+    payBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 處理中...';
+    
+    // 發送支付請求
+    fetch('{% url "process_payment" order.id %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `payment_method=${paymentMethod}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 如果是 LINE Pay，直接跳轉到 LINE Pay 支付頁面
+            if (paymentMethod === 'linepay' && data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                // 其他支付方式，跳轉到成功頁面
+                window.location.href = data.redirect_url;
+            }
+        } else {
+            // 支付失敗
+            alert(data.message || '付款失敗，請稍後再試');
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="bi bi-lock-fill"></i> 確認付款 <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>';
+        }
+    })
+    .catch(error => {
+        console.error('Payment error:', error);
+        alert('付款處理發生錯誤，請稍後再試');
+        payBtn.disabled = false;
+        payBtn.innerHTML = '<i class="bi bi-lock-fill"></i> 確認付款 NT${{ order.total_amount|floatformat:0 }}';
+    });
+}
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,254 @@
+/* 自定義 Summernote 富文本編輯器樣式 - 調整寬度 */
+
+/* 調整編輯器容器寬度 - 最重要 */
+.flex-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.flex-container label {
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+/* 調整 Summernote 編輯器寬度 */
+.summernote-div {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    flex: 1 !important;
+}
+
+/* 調整 iframe 寬度 - 關鍵 */
+#id_content_iframe,
+iframe[id*="content_iframe"],
+iframe[src*="summernote/editor"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+}
+
+/* 確保編輯器在 wide 類的 fieldset 中佔滿寬度 */
+fieldset.wide .summernote-div,
+fieldset.wide .flex-container,
+fieldset.wide #id_content_iframe,
+fieldset.wide iframe[id*="content_iframe"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+}
+
+/* 調整表單欄位寬度 */
+.form-row.field-content,
+.form-row.field-content > div,
+.field-content,
+.field-content > div {
+    width: 95% !important;
+    max-width: 95% !important;
+    min-width: 95% !important;
+}
+
+/* 針對 Django admin 的特定樣式調整 */
+.module .form-row .flex-container,
+.module .form-row .summernote-div,
+.module .form-row #id_content_iframe {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+}
+
+/* 確保編輯器在響應式布局中也能正常顯示 */
+@media (min-width: 768px) {
+    .summernote-div,
+    #id_content_iframe,
+    iframe[id*="content_iframe"],
+    iframe[src*="summernote/editor"] {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+    
+    /* 在桌面版確保編輯器佔滿可用空間 */
+    fieldset.wide {
+        width: 100% !important;
+    }
+    
+    fieldset.wide .summernote-div,
+    fieldset.wide #id_content_iframe {
+        width: 100% !important;
+        min-width: calc(100% - 20px) !important;
+    }
+}
+
+/* 針對全寬度顯示的優化 */
+.field-content .summernote-div,
+.field-content #id_content_iframe {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-width: 100% !important;
+}
+
+/* 覆蓋任何可能限制寬度的父元素 */
+.form-row,
+.aligned {
+    width: 100% !important;
+}
+
+/* ============================================
+   修復 Summernote iframe 內下拉選單顯示問題
+   ============================================ */
+
+/* 確保所有父容器都不會裁剪下拉選單 */
+.flex-container,
+.summernote-div,
+fieldset.wide,
+.module,
+.form-row,
+.aligned,
+#content,
+#content-main,
+.field-content {
+    overflow: visible !important;
+}
+
+/* 修復 iframe 容器 - 關鍵！ */
+#id_content_iframe,
+iframe[id*="content_iframe"],
+iframe[src*="summernote/editor"] {
+    overflow: visible !important;
+    min-height: 650px !important; /* 增加高度以容納下拉選單 */
+}
+
+/* 修復 Summernote 編輯器框架 */
+.note-editor.note-frame {
+    overflow: visible !important;
+    min-height: 650px !important;
+}
+
+.note-editor.note-frame .note-toolbar {
+    overflow: visible !important;
+    position: relative !important;
+    z-index: 1000 !important;
+}
+
+/* 修復按鈕組和下拉選單 */
+.note-btn-group {
+    position: relative !important;
+    overflow: visible !important;
+}
+
+.note-btn-group.open {
+    z-index: 10050 !important;
+    overflow: visible !important;
+}
+
+/* 下拉選單樣式 - 針對 iframe 內 */
+/* 注意：不要設置默認隱藏，讓 Bootstrap 自己控制 */
+.note-dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    z-index: 10051 !important;
+    /* 不設置 display，讓 Bootstrap 控制 */
+    margin-top: 1px !important;
+    min-width: 160px !important;
+    background: white !important;
+    border: 1px solid #ddd !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+    padding: 4px 0 !important;
+    list-style: none !important;
+    margin-left: 0 !important;
+    overflow: visible !important;
+}
+
+/* 只有當按鈕組打開時才顯示下拉選單 - 支援 Bootstrap 5 的 show 類 */
+.note-btn-group.open .note-dropdown-menu,
+.note-btn-group[aria-expanded="true"] .note-dropdown-menu,
+.note-btn-group.show .note-dropdown-menu,
+.note-dropdown-menu.show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 10051 !important;
+    position: absolute !important;
+    pointer-events: auto !important;
+}
+
+/* 確保未打開的按鈕組下拉選單保持隱藏 */
+.note-btn-group:not(.open):not(.show):not([aria-expanded="true"]) .note-dropdown-menu:not(.show) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* 下拉選單項目 */
+.note-dropdown-menu > li {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.note-dropdown-menu > li > a {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    padding: 8px 16px !important;
+    color: #333 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+.note-dropdown-menu > li > a:hover {
+    background-color: #f5f5f5 !important;
+    color: #333 !important;
+}
+
+/* 針對 Django admin 的特定修復 */
+#content {
+    overflow: visible !important;
+    position: relative !important;
+}
+
+#content-main {
+    overflow: visible !important;
+    position: relative !important;
+}
+
+/* 確保表單容器不會限制下拉選單 */
+form .form-row,
+form .aligned {
+    overflow: visible !important;
+}
+
+/* 修復可能的 transform 或 clip 問題 */
+.note-dropdown-menu {
+    transform: none !important;
+    clip: auto !important;
+    clip-path: none !important;
+}
+
+/* 針對 Bootstrap 5 主題的特定修復 */
+.note-editor.note-frame .note-toolbar .note-btn-group .note-dropdown-menu {
+    z-index: 10051 !important;
+    position: absolute !important;
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+.note-editor.note-frame .note-toolbar .note-btn-group.open .note-dropdown-menu,
+.note-editor.note-frame .note-toolbar .note-btn-group.show .note-dropdown-menu,
+.note-editor.note-frame .note-toolbar .note-btn-group[aria-expanded="true"] .note-dropdown-menu,
+.note-editor.note-frame .note-toolbar .note-btn-group .note-dropdown-menu.show {
+    z-index: 10051 !important;
+    position: absolute !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+

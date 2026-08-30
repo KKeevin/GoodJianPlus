@@ -1,0 +1,427 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}{{ site_name|default:"好健健 GoodJian Plus" }} - 您的運動健康夥伴{% endblock %}
+{% block head %}
+<link href="{% static 'css/index.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+<!-- 內容區塊 -->
+{% block content %} 
+<section class="hero">
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge"><img src="/static/img/common/Logo_white.png" alt="logo_white"> 好健健+</div>
+            <h1 class="hero-title">{{ homepage_slogan|default:"健康生活觸手可及" }}</h1>
+            <a href="{% url 'products' %}?category=equipment" class="hero-cta">
+                <i class="bi bi-arrow-right-circle"></i> 選購熱銷產品
+            </a>
+        </div>
+    </div>
+</section>
+<section class="categories">
+    <div class="container">
+        <div class="category-grid">
+            <a href="{% url 'products' %}?category=equipment" class="category-card">
+                <div class="category-image">
+                    <img src="/static/img/index/1.png" alt="健身器材">
+                </div>
+                <div class="category-content">
+                    <h3 class="category-title">健身器材</h3>
+                    <p class="category-desc">運動器材・存儲收納・體適能用品</p>
+                </div>
+            </a>
+            
+            <a href="{% url 'products' %}?category=meals" class="category-card">
+                <div class="category-image">
+                    <img src="/static/img/index/2.png" alt="美味健身餐">
+                </div>
+                <div class="category-content">
+                    <h3 class="category-title">美味健身餐</h3>
+                    <p class="category-desc">專業健身飲食搭配・營養均衡餐盒<br>美味低卡・讓你吃得健康又滿足</p>
+                </div>
+            </a>
+            
+            <a href="{% url 'products' %}?category=protein" class="category-card">
+                <div class="category-image">
+                    <img src="/static/img/index/3.png" alt="雞胸肉批發">
+                </div>
+                <div class="category-content">
+                    <h3 class="category-title">雞胸肉批發</h3>
+                    <p class="category-desc">新鮮優質雞胸肉・高蛋白低脂肪<br>健身餐廳・工作室首選供應商</p>
+                </div>
+            </a>  
+        </div>
+    </div>
+</section>
+<section class="why-choose">
+    <div class="container">
+        <div class="section-title">
+            <h2>為什麼要好健健？</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-item">
+                <div class="feature-icon bi bi-bullseye"></div>
+                <h4 class="feature-title">智能目標管理</h4>
+                <p class="feature-desc">專業的營養追蹤系統<br>• 自動計算每日營養需求<br>• 記錄飲食與體重變化<br>• 視覺化進度追蹤</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon bi bi-shop"></div>
+                <h4 class="feature-title">優質商品選擇</h4>
+                <p class="feature-desc">一站式健康生活平台<br>• 健身器材・運動配件<br>• 美味健身餐・營養補給<br>• 新鮮雞胸肉批發</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon bi bi-cart-check"></div>
+                <h4 class="feature-title">便捷購物體驗</h4>
+                <p class="feature-desc">流暢的購物流程<br>• 購物車・收藏清單<br>• 優惠券折扣系統<br>• 訂單追蹤管理</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon bi bi-truck"></div>
+                <h4 class="feature-title">快速配送服務</h4>
+                <p class="feature-desc">全台快速到貨<br>• 冷鏈運輸保鮮<br>• 多種配送方式<br>• 親民價格・高CP值</p>
+            </div>
+        </div>
+    </div>
+</section>
+<section class="product-showcase">
+    <div class="container">
+        <div class="section-title">
+            <h2>熱銷商品推薦</h2>
+        </div>
+        <div class="product-grid">
+            {% for product in featured_products %}
+            <div class="product-card" data-product-id="{{ product.id }}">
+                <!-- 商品標籤 -->
+                {% if product.discount_percentage > 0 %}
+                <div class="product-badge hot">現省{{ product.discount_percentage }}%</div>
+                {% elif product.is_featured %}
+                <div class="product-badge">推薦</div>
+                {% else %}
+                <div class="product-badge">熱賣商品</div>
+                {% endif %}
+                
+                <!-- 商品圖片 -->
+                <div class="product-image">
+                    <a href="{% url 'product_detail' product.id %}">
+                        {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="/static/img/products/default.png" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <!-- 商品資訊 -->
+                <div class="product-info">
+                    <!-- 評分 -->
+                    <div class="product-rating">
+                        {% if product.avg_rating and product.avg_rating > 0 %}
+                        <div class="stars" style="color: #ffc107;" data-rating="{{ product.avg_rating|floatformat:1 }}">
+                            <span class="rating-stars-placeholder"></span>
+                        </div>
+                        <span class="rating-count">({{ product.review_count|default:0 }})</span>
+                        {% else %}
+                        <div class="stars" style="color: #ddd;" data-rating="0">
+                            <span class="rating-stars-placeholder">☆☆☆☆☆</span>
+                        </div>
+                        <span class="rating-count text-muted">(尚無評價)</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 商品名稱 -->
+                    <p class="product-name">
+                        <a href="{% url 'product_detail' product.id %}" title="{{ product.name }}">{{ product.name|truncatechars:50 }}</a>
+                    </p>
+                    
+                    <!-- 價格 -->
+                    <div class="product-price">
+                        {% if product.original_price and product.original_price > product.price %}
+                        <span class="original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                        {% endif %}
+                        <span class="current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                    </div>
+                    
+                    <!-- 庫存狀態 -->
+                    <div class="stock-status">
+                        {% if product.stock_quantity > 10 %}
+                            <span class="in-stock">現貨充足</span>
+                        {% elif product.stock_quantity > 0 %}
+                            <span class="low-stock">僅剩 {{ product.stock_quantity }} 件</span>
+                        {% else %}
+                            <span class="out-of-stock">暫時缺貨</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- 加入購物車按鈕 -->
+                    {% if product.stock_quantity > 0 %}
+                        {% if user.is_authenticated %}
+                        <button class="add-to-cart" data-product-id="{{ product.id }}">
+                            <i class="bi bi-cart-plus"></i> 加入購物車
+                        </button>
+                        {% else %}
+                        <a href="{% url 'login' %}?next=/" class="add-to-cart">
+                            <i class="bi bi-person"></i> 登入購買
+                        </a>
+                        {% endif %}
+                    {% else %}
+                    <button class="add-to-cart disabled" disabled>
+                        <i class="bi bi-x-circle"></i> 暫時缺貨
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-featured-products">
+                <p>目前沒有推薦商品</p>
+                <a href="{% url 'products' %}" class="btn btn-primary">瀏覽所有商品</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<!-- 目標管理區塊 -->
+<section class="goal-management-section">
+    <div class="container">
+        {% if user.is_authenticated %}
+        <!-- 登入用戶：顯示今日營養目標達成情況 -->
+        <div class="goal-dashboard">
+            <div class="goal-header">
+                <h2><i class="bi bi-bullseye"></i> 今日營養目標</h2>
+                <a href="{% url 'goal_management' %}" class="btn-goal-link">前往目標管理 <i class="bi bi-arrow-right"></i></a>
+            </div>
+            
+            {% if today_target %}
+            <div class="goal-stats-grid">
+                <!-- 熱量 -->
+                <div class="goal-stat-card">
+                    <div class="stat-label">熱量</div>
+                    <div class="stat-value">
+                        <span class="current">{{ today_totals.calories|default:0|floatformat:0 }}</span>
+                        <span class="target">/ {{ today_target.target_calories|floatformat:0 }} 大卡</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            {% with current=today_totals.calories|default:0 target=today_target.target_calories %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                <div class="progress-fill" style="width: {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%"></div>
+                            {% else %}
+                                <div class="progress-fill" style="width: 0%"></div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <span class="progress-text">
+                            {% with current=today_totals.calories|default:0 target=today_target.target_calories %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                            {% endwith %}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- 蛋白質 -->
+                <div class="goal-stat-card">
+                    <div class="stat-label">蛋白質</div>
+                    <div class="stat-value">
+                        <span class="current">{{ today_totals.protein|default:0|floatformat:1 }}</span>
+                        <span class="target">/ {{ today_target.target_protein|floatformat:1 }} g</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            {% with current=today_totals.protein|default:0 target=today_target.target_protein %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                <div class="progress-fill" style="width: {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%"></div>
+                            {% else %}
+                                <div class="progress-fill" style="width: 0%"></div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <span class="progress-text">
+                            {% with current=today_totals.protein|default:0 target=today_target.target_protein %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                            {% endwith %}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- 碳水化合物 -->
+                <div class="goal-stat-card">
+                    <div class="stat-label">碳水化合物</div>
+                    <div class="stat-value">
+                        <span class="current">{{ today_totals.carbs|default:0|floatformat:1 }}</span>
+                        <span class="target">/ {{ today_target.target_carbs|floatformat:1 }} g</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            {% with current=today_totals.carbs|default:0 target=today_target.target_carbs %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                <div class="progress-fill" style="width: {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%"></div>
+                            {% else %}
+                                <div class="progress-fill" style="width: 0%"></div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <span class="progress-text">
+                            {% with current=today_totals.carbs|default:0 target=today_target.target_carbs %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                            {% endwith %}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- 脂肪 -->
+                <div class="goal-stat-card">
+                    <div class="stat-label">脂肪</div>
+                    <div class="stat-value">
+                        <span class="current">{{ today_totals.fat|default:0|floatformat:1 }}</span>
+                        <span class="target">/ {{ today_target.target_fat|floatformat:1 }} g</span>
+                    </div>
+                    <div class="stat-progress">
+                        <div class="progress-bar">
+                            {% with current=today_totals.fat|default:0 target=today_target.target_fat %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                <div class="progress-fill" style="width: {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%"></div>
+                            {% else %}
+                                <div class="progress-fill" style="width: 0%"></div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                        <span class="progress-text">
+                            {% with current=today_totals.fat|default:0 target=today_target.target_fat %}
+                            {% if target > 0 %}
+                                {% widthratio current target 100 as percentage %}
+                                {% if percentage > 100 %}100{% else %}{{ percentage }}{% endif %}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                            {% endwith %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="goal-actions">
+                <a href="{% url 'goal_management' %}" class="btn-action-primary">
+                    <i class="bi bi-plus-circle"></i> 記錄飲食
+                </a>
+                <a href="{% url 'goal_management' %}" class="btn-action-secondary">
+                    <i class="bi bi-graph-up"></i> 查看詳細記錄
+                </a>
+            </div>
+            {% else %}
+            <div class="goal-empty-state">
+                <i class="bi bi-info-circle"></i>
+                <p>尚未設定目標，立即開始您的健康之旅！</p>
+                <a href="{% url 'goal_management' %}" class="btn-action-primary">設定目標</a>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <!-- 未登入用戶：推廣功能 -->
+        <div class="goal-promotion">
+            <div class="promotion-content">
+                <div class="promotion-icon">
+                    <i class="bi bi-bullseye"></i>
+                </div>
+                <h2>智能目標管理系統</h2>
+                <p class="promotion-subtitle">專業的營養追蹤與目標管理，讓健康生活更簡單</p>
+                
+                <div class="promotion-features">
+                    <div class="feature-item">
+                        <i class="bi bi-calculator"></i>
+                        <h4>智能計算</h4>
+                        <p>根據您的體重、身高、年齡和活動強度，自動計算每日營養需求</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-clipboard-data"></i>
+                        <h4>飲食記錄</h4>
+                        <p>輕鬆記錄每日飲食，即時追蹤熱量、蛋白質、碳水化合物和脂肪攝取</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <h4>體重追蹤</h4>
+                        <p>記錄體重變化，查看趨勢圖表，掌握健康進度</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-trophy"></i>
+                        <h4>目標達成</h4>
+                        <p>設定個人目標，追蹤達成進度，讓健康管理更有動力</p>
+                    </div>
+                </div>
+                
+                <div class="promotion-cta">
+                    <a href="{% url 'register' %}" class="btn-promotion-primary">
+                        <i class="bi bi-person-plus"></i> <span>立即註冊，開始使用</span>
+                    </a>
+                    <a href="{% url 'login' %}" class="btn-promotion-secondary">
+                        <span>已有帳號？立即登入</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="newsletter">
+    <div class="container recommen">
+        <img src="/static/img/index/ad_001.png" alt="推薦者01">
+    </div>
+</section>
+{% endblock %}
+
+<!-- 腳本區塊 -->
+{% block script %}
+<script>
+// 加入購物車功能（首頁）
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart[data-product-id]');
+    addToCartButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            {% if user.is_authenticated %}
+            const productId = this.dataset.productId;
+            const originalHTML = this.innerHTML;
+            
+            // 顯示載入狀態
+            this.innerHTML = '<i class="bi bi-hourglass"></i> 加入中...';
+            this.disabled = true;
+            
+            // 使用 cart.js 中的 addToCart 函數
+            addToCart(productId, 1, {
+                onSuccess: function(data) {
+                    this.innerHTML = '<i class="bi bi-check"></i> 已加入！';
+                    this.style.backgroundColor = '#28a745';
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                        this.style.backgroundColor = '';
+                        this.disabled = false;
+                    }, 2000);
+                }.bind(this),
+                onError: function(data) {
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                }.bind(this)
+            });
+            {% endif %}
+        });
+    });
+});
+</script>
+{% endblock %}

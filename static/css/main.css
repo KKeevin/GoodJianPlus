@@ -1,0 +1,2384 @@
+/* 全局樣式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden; /* 防止橫向滾動 */
+    width: 100%;
+    max-width: 100%;
+}
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    overflow-x: hidden; /* 防止橫向滾動 */
+    width: 100%;
+    max-width: 100%;
+    padding-top: 70px; /* 為固定 header 留出空間 */
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+    padding: 12px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1001; /* 提高z-index，確保在選單上方 */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #4CAF50, transparent);
+    opacity: 0.6;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    gap: 20px;
+}
+
+/* Logo 區塊 */
+.logo-section {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.logo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-icon img {
+    height: 70px;
+    width: auto;
+    display: block;
+    filter: 
+        drop-shadow(0px 0px 8px rgb(201, 138, 45))
+        drop-shadow(0px 0px 10px rgba(255, 255, 255, 0.7));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-icon img:hover {
+    transform: scale(1.05) translateY(-2px);
+    filter: 
+        drop-shadow(0px 0px 12px rgb(201, 138, 45))
+        drop-shadow(0px 0px 20px rgba(211, 224, 212, 0.9));
+}
+
+/* 漢堡選單樣式 */
+.menu-toggle {
+    display: none;
+}
+
+.menu-icon {
+    display: none;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    position: relative;
+    z-index: 1002; /* 確保在header上方 */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+/* 手機版選單按鈕按下狀態 */
+@media (max-width: 768px) {
+    /* 點擊時的瞬間效果 */
+    .menu-icon:active {
+        background: rgba(255, 255, 255, 0.15) !important;
+        transform: scale(0.95);
+    }
+    
+    /* 選單打開時（body.menu-open），保持背景色（優先級最高） */
+    body.menu-open .menu-icon {
+        background: rgba(255, 255, 255, 0.25) !important;
+        transform: scale(1) !important; /* 覆蓋 :active 的 scale */
+    }
+}
+
+.navicon {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    position: relative;
+    transition: all 0.3s ease-in-out;
+}
+
+.navicon::before,
+.navicon::after {
+    content: '';
+    display: block;
+    width: 25px;
+    height: 3px;
+    background: white;
+    position: absolute;
+    transition: all 0.3s ease-in-out;
+}
+
+.navicon::before {
+    top: -8px;
+}
+
+.navicon::after {
+    top: 8px;
+}
+
+/* 漢堡選單動畫 */
+.menu-toggle:checked + .menu-icon .navicon {
+    background: transparent;
+}
+
+.menu-toggle:checked + .menu-icon .navicon::before {
+    top: 0;
+    transform: rotate(45deg);
+}
+
+.menu-toggle:checked + .menu-icon .navicon::after {
+    top: 0;
+    transform: rotate(-45deg);
+}
+
+/* 導覽列和圖示容器 */
+.nav-and-icons {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+/* 主導覽列 */
+.main-nav {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.main-nav > li {
+    position: relative;
+}
+
+.main-nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.main-nav a::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #4CAF50;
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.main-nav a:hover {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4CAF50;
+    transform: translateY(-2px);
+}
+
+.main-nav a:hover::before {
+    width: 85%;
+}
+
+/* 導覽列下拉選單樣式 */
+.dropdown-nav {
+    position: relative;
+}
+
+.dropdown-nav-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    background: #ffffff;
+    min-width: 220px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    padding: 8px;
+    margin-top: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    list-style: none;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.dropdown-nav:hover .dropdown-nav-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-nav-menu li {
+    margin: 0;
+    list-style: none;
+}
+
+.dropdown-nav-menu li:first-child a {
+    margin-top: 0;
+}
+
+.dropdown-nav-menu li:last-child a {
+    margin-bottom: 0;
+}
+
+.dropdown-nav-menu a {
+    color: #333333;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
+    display: block;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    margin: 2px 0;
+    isolation: isolate;
+    line-height: 1.5;
+}
+
+/* 下拉箭頭動畫 */
+.drop-btn i {
+    transition: transform 0.3s ease;
+}
+
+.dropdown-nav:hover .drop-btn i {
+    transform: rotate(180deg);
+}
+
+/* Header 圖示 */
+.header-icons {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.header-icon {
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+}
+
+.member-icon {
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+}
+
+.header-icon a {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.search-dropdown {
+    position: absolute !important;
+    top: calc(100% + 12px) !important;
+    right: 0 !important;
+    background: white !important;
+    padding: 24px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1) !important;
+    z-index: 1000 !important;
+    min-width: 380px !important;
+    max-width: 450px;
+    animation: slideDown 0.3s ease-out;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    margin-top: 0 !important;
+    box-sizing: border-box;
+    overflow: visible;
+}
+
+/* 桌面版隱藏關閉按鈕 */
+.search-dropdown .search-close-btn {
+    display: none;
+}
+
+.search-dropdown form {
+    display: flex !important;
+    gap: 0 !important;
+    align-items: stretch;
+    margin: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 桌面版搜索輸入框容器 */
+.search-dropdown form .search-input-wrapper {
+    display: flex !important;
+    gap: 0 !important;
+    align-items: stretch;
+    width: 100%;
+    background: #f8f9fa;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.search-dropdown form:focus-within .search-input-wrapper {
+    border-color: #4CAF50;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+}
+
+.search-dropdown .form-control {
+    flex: 1;
+    padding: 14px 20px !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-size: 15px !important;
+    transition: all 0.3s ease;
+    margin: 0 !important;
+    box-sizing: border-box;
+    max-width: 100%;
+    width: auto;
+    background: transparent;
+    color: #333;
+}
+
+.search-dropdown .form-control::placeholder {
+    color: #999;
+}
+
+.search-dropdown .form-control:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.search-dropdown .btn {
+    padding: 14px 24px !important;
+    border-radius: 0 !important;
+    font-weight: 600 !important;
+    border: none !important;
+    background: linear-gradient(135deg, #4CAF50, #45A049) !important;
+    color: white !important;
+    transition: all 0.3s ease;
+    min-width: 60px;
+    max-width: none;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    margin: 0 !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-dropdown .btn:hover {
+    background: linear-gradient(135deg, #45A049, #3d8e40) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+}
+
+.search-dropdown .btn:active {
+    transform: translateY(0);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.search-section {
+    background: #f8f9fa;
+    padding: 30px 0;
+    margin-bottom: 30px;
+}
+
+.search-form .input-group {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-form .form-control {
+    border: none;
+    padding: 12px 20px;
+    font-size: 1rem;
+}
+
+.search-form .form-control:focus {
+    box-shadow: none;
+    border: none;
+}
+
+.search-form .btn {
+    border-radius: 0;
+    padding: 12px 25px;
+}
+
+.search-info {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.header-icon:hover {
+    color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.15);
+    transform: translateY(-2px);
+}
+
+.header-icon:active {
+    transform: translateY(0);
+}
+
+/* 下拉選單樣式 - 使用 !important 覆蓋 Popper.js 的內聯樣式 */
+.header-icon.dropdown .dropdown-menu {
+    display: none !important;
+}
+
+.header-icon.dropdown .dropdown-item {
+    color: #333;
+    padding: 0.25rem 1.5rem;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    font-weight: 400;
+    background-color: transparent;
+    border: 0;
+}
+
+.header-icon.dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* Section 通用樣式 */
+.section-title {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-title h2 {
+    font-size: 36px;
+    color: #2D5B69;
+    margin-bottom: 15px;
+    font-weight: 800;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title h2::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #4CAF50, #2D5B69);
+    border-radius: 2px;
+}
+
+/* 保留原有的通用樣式以兼容其他頁面 */
+.product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #4CAF50;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+    z-index: 2;
+}
+
+.product-image {
+    height: 17vh;
+    background: linear-gradient(135deg, #e0e0e0, #f0f0f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 12px;
+    text-align: center;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.3s ease;
+}
+
+.product-info {
+    padding: 20px;
+}
+
+.product-price {
+    display: flex;
+    align-items: center;
+    gap: 0.4vh;
+    margin-bottom: 10px;
+}
+
+.original-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 1vh;
+}
+
+.current-price {
+    color: #4CAF50;
+    font-size: 1.2vh;
+    font-weight: 600;
+}
+
+.product-name {
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.add-to-cart {
+    width: 100%;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 7px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-to-cart:hover {
+    background: #45A049;
+    transform: translateY(-1px);
+}
+
+/* Footer */
+footer {
+    background: #2D5B69;
+    color: white;
+    padding: 50px 0 20px;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.footer-section h4 {
+    margin-bottom: 20px;
+    font-weight: 600;
+    font-size: 18px;
+    color: #4CAF50;
+}
+
+.footer-section ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer-section ul li {
+    padding: 5px 0;
+}
+
+.footer-section ul li a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+    color: #4CAF50;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.footer-logo-icon {
+    width: 105px;
+    height: 80px;
+    background: #ffffffbd;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.footer-logo-icon img {
+    height: 75px;
+    width: auto;
+    display: block;
+}
+
+.footer-section p {
+    color: #ccc;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ccc;
+    font-size: 14px;
+}
+
+.contact-item a {
+    color: #ccc !important;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-item a:hover {
+    color: #4CAF50 !important;
+}
+
+.contact-icon {
+    width: 20px;
+    text-align: center;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #3a6b7a;
+    color: #ccc;
+    font-size: 14px;
+}
+
+/* Modal 位置調整 - 讓 modal-dialog 顯示得更下面 */
+.modal {
+    align-items: flex-start !important; /* 改為從頂部對齊，而不是居中 */
+    padding-top: 15vh !important; /* 從頂部向下移動 5vh */
+}
+
+.modal-dialog {
+    margin-top: 0 !important; /* 移除默認的 margin */
+    margin-bottom: auto !important;
+}
+
+.modal.show .modal-dialog {
+    transform: translateY(0) !important;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .modal {
+        padding-top: 10vh !important; /* 手機版稍微少一點 */
+    }
+}
+
+@media (max-width: 480px) {
+    .modal {
+        padding-top: 10vh !important; /* 小螢幕再少一點 */
+    }
+}
+
+/* 回到頂部按鈕 */
+.back-to-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #4CAF50, #45A049);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 600;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+.back-to-top-btn.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top-btn:hover {
+    background: linear-gradient(135deg, #45A049, #3d8e40);
+    transform: translateY(-5px);
+    box-shadow: 0 6px 25px rgba(76, 175, 80, 0.5);
+}
+
+.back-to-top-btn:active {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+}
+
+.back-to-top-btn i {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.back-to-top-btn span {
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.5px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .back-to-top-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+    }
+    
+    .back-to-top-btn i {
+        font-size: 18px;
+    }
+    
+    .back-to-top-btn span {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 480px) {
+    .back-to-top-btn {
+        bottom: 15px;
+        right: 15px;
+        width: 48px;
+        height: 48px;
+    }
+    
+    .back-to-top-btn i {
+        font-size: 16px;
+    }
+    
+    .back-to-top-btn span {
+        font-size: 8px;
+    }
+}
+
+/* 動畫效果 */
+.product-card {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+.product-card:nth-child(1) { animation-delay: 0.1s; }
+.product-card:nth-child(2) { animation-delay: 0.2s; }
+.product-card:nth-child(3) { animation-delay: 0.3s; }
+.product-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* RWD 響應式設計 */
+@media (max-width: 1200px) {
+    .container {
+        padding: 0 15px;
+    }
+
+}
+
+@media (max-width: 992px) {
+    /* 平板優化 */
+    .header-container {
+        gap: 15px;
+    }
+    
+    .logo-icon img {
+        height: 60px;
+    }
+    
+    .main-nav {
+        gap: 20px;
+    }
+    
+    .main-nav a {
+        font-size: 15px;
+        padding: 8px 12px;
+    }
+    
+    .header-icons {
+        gap: 12px;
+    }
+    
+    .header-icon {
+        font-size: 20px;
+        min-width: 36px;
+        height: 36px;
+        padding: 6px;
+    }
+    
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+    
+    .section-title h2 {
+        font-size: 28px;
+    }
+    
+    /* 平板版選單按鈕：選單打開時保持背景色 */
+    .menu-icon {
+        background: transparent !important; /* 確保默認是透明的 */
+    }
+    
+    .menu-icon:active {
+        background: rgba(255, 255, 255, 0.15) !important;
+        transform: scale(0.95);
+    }
+    
+    /* 選單打開時（body.menu-open），保持背景色（優先級最高） */
+    body.menu-open .menu-icon {
+        background: rgba(255, 255, 255, 0.25) !important;
+        transform: scale(1) !important; /* 覆蓋 :active 的 scale */
+    }
+}
+
+@media (max-width: 768px) {
+    /* 顯示漢堡選單 */
+    .menu-icon {
+        display: flex;
+        order: 2;
+        background: transparent !important; /* 確保默認是透明的 */
+    }
+    
+    /* 選單打開時（body.menu-open），menu-icon 保持背景色 */
+    body.menu-open .menu-icon {
+        background: rgba(255, 255, 255, 0.25) !important;
+    }
+    
+    .logo-section {
+        order: 1;
+        display: flex; /* 確保手機版header中logo正常顯示 */
+    }
+    
+    .header-icons {
+        order: 3;
+        gap: 10px;
+    }
+    
+    /* 隱藏桌面導覽列 */
+    .nav-and-icons {
+        display: none;
+        flex-direction: column;
+        align-items: flex-start;
+        position: fixed;
+        top: 75px; /* 從header下方開始（header高度約76px） */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: calc(100vh - 76px); /* 高度減去header高度 */
+        max-height: calc(100vh - 76px);
+        background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+        padding: 0;
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 120px); /* 為瀏覽器底部功能列預留足夠空間，至少 120px */
+        box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        gap: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        z-index: 1000; /* 低於header的z-index */
+        animation: slideDownFromHeader 0.3s ease-out;
+        -webkit-overflow-scrolling: touch;
+        box-sizing: border-box;
+    }
+    
+    /* 手機選單打開時，header保持可見（選單在header下方） */
+    
+    
+    /* 隱藏滾動條但保持滾動功能 */
+    .nav-and-icons::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .nav-and-icons::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .nav-and-icons::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+    }
+    
+    .nav-and-icons::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+    }
+    
+    @keyframes slideInFromTop {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideDownFromHeader {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* 漢堡選單啟動時顯示 */
+    .menu-toggle:checked ~ .nav-and-icons {
+        display: flex;
+    }
+    
+    /* 當手機版選單打開時，禁用背景頁面滾動 */
+    body.menu-open {
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* 選單在header下方，不需要背景遮罩 */
+    
+    /* 手機版導覽列樣式 */
+    .main-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        flex-shrink: 0;
+        flex: 1;
+    }
+    
+    /* 確保nav在logo下方 */
+    .nav-and-icons > nav {
+        width: 100%;
+        flex: 1;
+        overflow-y: auto;
+    }
+    
+    .main-nav > li {
+        width: 100%;
+        position: relative;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-nav > li:last-child {
+        border-bottom: none;
+    }
+    
+    .main-nav a {
+        font-size: 17px;
+        font-weight: 500;
+        padding: 20px 24px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        border-radius: 0;
+        justify-content: space-between;
+        border: none;
+        min-height: 60px;
+        box-sizing: border-box;
+        line-height: 1.5;
+        background: transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .main-nav a::before {
+        display: none;
+    }
+    
+    .main-nav a:hover,
+    .main-nav a:active {
+        background-color: rgba(76, 175, 80, 0.15);
+        padding-left: 32px;
+        border: none;
+        transform: none;
+    }
+    
+    .main-nav a i {
+        font-size: 14px;
+        transition: transform 0.3s ease;
+    }
+    
+    .dropdown-nav:hover .main-nav a i {
+        transform: rotate(180deg);
+    }
+    
+    /* 手機版下拉選單 */
+    .dropdown-nav-menu {
+        position: static;
+        background: rgba(0, 0, 0, 0.15);
+        box-shadow: none;
+        border-radius: 0;
+        margin: 0;
+        padding: 0;
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: none;
+        visibility: visible;
+        border: none;
+    }
+    
+    .dropdown-nav:hover .dropdown-nav-menu,
+    .dropdown-nav.active .dropdown-nav-menu {
+        opacity: 1;
+        max-height: 500px;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .dropdown-nav-menu a {
+        color: rgba(255, 255, 255, 0.85);
+        padding: 16px 24px 16px 48px;
+        font-size: 15px;
+        font-weight: 400;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin: 0;
+        border-radius: 0;
+        background: rgba(0, 0, 0, 0.1);
+    }
+    
+    .dropdown-nav-menu a::before {
+        content: '•';
+        position: absolute;
+        left: 32px;
+        color: rgba(76, 175, 80, 0.6);
+        font-size: 18px;
+    }
+    
+    .dropdown-nav-menu a:hover,
+    .dropdown-nav-menu a:active {
+        background-color: rgba(76, 175, 80, 0.2);
+        color: white;
+        padding-left: 52px;
+        transform: none;
+    }
+    
+    .dropdown-nav-menu li:last-child a {
+        border-bottom: none;
+    }
+    
+    /* 手機版 header 圖示 - 在菜單內顯示 */
+    .nav-and-icons .header-icons {
+        display: flex !important;
+        flex-direction: row;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 2vh;
+        width: 100%;
+        padding-top: 30px;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        flex-shrink: 0;
+        margin-top: 20px;
+        position: relative;
+        bottom: auto;
+        left: auto;
+        right: auto;
+        background: transparent;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: none;
+        padding: 3vh 0 max(calc(5.5vh + env(safe-area-inset-bottom, 0px)), 120px) 3vh; /* 底部 padding 至少 120px，確保不被瀏覽器功能列擋住 */
+    }
+    
+    .nav-and-icons .header-icon {
+        font-size: 22px;
+        min-width: 50px;
+        height: 50px;
+        padding: 12px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .nav-and-icons .header-icon:hover,
+    .nav-and-icons .header-icon:active {
+        background-color: rgba(76, 175, 80, 0.3);
+        border-color: rgba(76, 175, 80, 0.5);
+        transform: scale(0.95);
+    }
+    
+    .nav-and-icons .header-icon a {
+        color: white;
+    }
+    
+    /* 會員下拉選單 - 參照search-dropdown的實現方式 */
+    .member-dropdown:not([style*="display: block"]):not([style*="display:block"]) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        pointer-events: none !important;
+        z-index: -1 !important;
+    }
+    
+    /* 只在顯示時才應用全屏樣式 */
+    .member-dropdown[style*="display: block"],
+    .member-dropdown[style*="display:block"],
+    body.member-menu-open .member-dropdown {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        background: white !important;
+        z-index: 1003 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        animation: slideDownFullScreen 0.3s ease-out;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    .member-dropdown::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+        z-index: 1;
+    }
+    
+    .member-dropdown > * {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .member-close-btn {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+        font-size: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        z-index: 1004 !important;
+        transition: all 0.3s ease !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .member-close-btn:hover,
+    .member-close-btn:active {
+        background: rgba(255, 255, 255, 0.3) !important;
+        transform: scale(1.1) !important;
+    }
+    
+    .member-menu-list {
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 20px !important;
+        flex: 1;
+        overflow-y: auto;
+    }
+    
+    .member-menu-header {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        margin: 20px 20px 0 20px !important;
+        border-radius: 16px !important;
+        padding: 20px !important;
+    }
+    
+    .member-menu-item {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        margin: 8px 20px !important;
+        border-radius: 12px !important;
+        padding: 16px 20px !important;
+        display: block !important;
+        color: #333 !important;
+        text-decoration: none !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .member-menu-item:hover,
+    .member-menu-item:active {
+        background: rgba(76, 175, 80, 0.1) !important;
+        color: #4CAF50 !important;
+        padding-left: 25px !important;
+    }
+    
+    .member-menu-item.text-danger {
+        color: #e74c3c !important;
+    }
+    
+    .member-menu-item.text-danger:hover {
+        background: #fee !important;
+        color: #c82333 !important;
+    }
+    
+    body.member-menu-open .member-icon {
+        display: none !important;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    }
+    
+    .header-icon.dropdown .dropdown-item {
+        color: #333;
+        padding: 14px 24px;
+        font-weight: 500;
+        font-size: 15px;
+    }
+    
+    .header-icon.dropdown .dropdown-item:hover,
+    .header-icon.dropdown .dropdown-item:active {
+        background-color: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+    }
+    
+    /* 手機版搜索下拉菜單 - 全屏搜索界面 */
+    .search-dropdown:not([style*="display: block"]):not([style*="display:block"]) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        pointer-events: none !important;
+        z-index: -1 !important;
+    }
+    
+    /* 只在顯示時才應用全屏樣式 */
+    .search-dropdown[style*="display: block"],
+    .search-dropdown[style*="display:block"],
+    body.search-open .search-dropdown,
+    body.search-open #headerSearchDropdown {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        background: white !important;
+        z-index: 1003 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        animation: slideDownFullScreen 0.3s ease-out;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    @keyframes slideDownFullScreen {
+        from {
+            opacity: 0;
+            transform: translateY(-100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* 搜索頭部背景 - 全屏背景 */
+    .search-dropdown::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+        z-index: 1;
+    }
+    
+    /* 搜索表單容器 - 垂直居中 */
+    .search-dropdown form {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        align-items: stretch;
+        margin: 0 !important;
+        width: calc(100% - 40px) !important;
+        max-width: 500px;
+        padding: 0 !important;
+        box-sizing: border-box;
+        background: transparent;
+    }
+    
+    /* 搜索輸入框和按鈕容器 */
+    .search-dropdown form .search-input-wrapper {
+        display: flex !important;
+        gap: 12px !important;
+        align-items: center;
+        width: 100%;
+        margin: 0 !important;
+    }
+    
+    .search-dropdown .form-control {
+        flex: 1;
+        padding: 18px 24px !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 16px !important;
+        font-size: 18px !important;
+        background: rgba(255, 255, 255, 0.98) !important;
+        color: #333 !important;
+        transition: all 0.3s ease;
+        margin: 0 !important;
+        box-sizing: border-box;
+        width: 100%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-dropdown .form-control::placeholder {
+        color: #999;
+        font-size: 18px;
+    }
+    
+    .search-dropdown .form-control:focus {
+        outline: none !important;
+        border-color: #4CAF50 !important;
+        background: white !important;
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.25), 0 6px 24px rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-2px);
+    }
+    
+    /* 手機版關閉按鈕 - 固定在右上角，避免與選單按鈕重疊 */
+    .search-dropdown .search-close-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px; /* 左移，避免與選單按鈕重疊（選單按鈕約在right: 20px） */
+        width: 44px;
+        height: 44px;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1004;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+    
+    /* 當搜索框打開時，隱藏選單按鈕避免重疊 */
+    body.search-open .menu-icon {
+        display: none !important;
+    }
+    
+    .search-dropdown .search-close-btn:hover,
+    .search-dropdown .search-close-btn:active {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+    
+    /* 搜索按鈕 */
+    .search-dropdown .btn {
+        padding: 18px 32px !important;
+        border-radius: 16px !important;
+        font-weight: 600 !important;
+        font-size: 18px !important;
+        min-width: 90px;
+        max-width: none;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #4CAF50, #45A049) !important;
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4) !important;
+        box-sizing: border-box;
+        margin: 0 !important;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .search-dropdown .btn:hover,
+    .search-dropdown .btn:active {
+        background: linear-gradient(135deg, #45A049, #3d8e40) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.5) !important;
+    }
+    
+    .search-dropdown .btn i {
+        font-size: 20px;
+    }
+    
+    /* 移除搜索內容區域背景，使用全屏背景 */
+    
+    /* 確保搜索下拉菜单在显示时可见 */
+    #headerSearchDropdown[style*="display: block"],
+    #headerSearchDropdown[style*="display:block"],
+    body.search-open #headerSearchDropdown {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    
+    body.search-open {
+        overflow: hidden;
+    }
+    
+    .notification-icon.active::after,
+    .header-icon.dropdown.show::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1001;
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    footer {
+        padding: 40px 0 20px;
+    }
+    
+    /* 文字大小調整 */
+    .section-title h2 {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    /* 小屏手機時，header中的logo調整 */
+    .logo-section {
+        display: flex; /* 確保小屏手機時logo正常顯示 */
+    }
+    
+    .logo-icon img {
+        height: 55px; /* 小屏手機時logo稍小一點 */
+    }
+
+    .section-title h2 {
+        font-size: 22px;
+    }
+    
+    .logo-icon img {
+        height: 55px;
+    }
+    
+    header {
+        padding: 10px 0;
+    }
+    
+    .header-container {
+        gap: 10px;
+    }
+    
+    .header-icons {
+        gap: 12px;
+    }
+    
+    .header-icon {
+        font-size: 20px;
+        min-width: 40px;
+        height: 40px;
+        padding: 8px;
+    }
+    
+    .cart-count,
+    .notification-count {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        top: -1px;
+        right: -1px;
+    }
+    
+    .user-avatar {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .username-display {
+        font-size: 12px;
+    }
+    
+    .nav-and-icons {
+        padding: 0 0 max(calc(15vh + env(safe-area-inset-bottom, 0px)), 120px) 0; /* 底部 padding 至少 120px */
+        height: 100vh;
+        max-height: 100vh;
+    }
+    
+    .main-nav {
+        padding: 0;
+        margin: 0;
+        gap: 0;
+        width: 100%;
+    }
+    
+    .main-nav a {
+        font-size: 16px;
+        padding: 18px 24px;
+        min-height: 58px;
+    }
+    
+    /* 小屏手機優化 */
+    .nav-and-icons .header-icons {
+        gap: 3vhpx;
+        padding: 5vh 0 max(calc(0.5vh + env(safe-area-inset-bottom, 0px)), 120px) 3vh; /* 底部 padding 至少 120px */
+    }
+    
+    .nav-and-icons .header-icon {
+        min-width: 48px;
+        height: 48px;
+        font-size: 20px;
+        padding: 10px;
+    }
+    
+    .main-nav a {
+        font-size: 16px;
+        padding: 12px 14px;
+    }
+    
+    .dropdown-nav-menu a {
+        font-size: 15px;
+        padding: 10px 20px;
+    }
+    
+    .product-info {
+        padding: 15px;
+    }
+    
+    .footer-logo-icon {
+        width: 90px;
+        height: 70px;
+    }
+    
+    .footer-logo-icon img {
+        height: 65px;
+    }
+}
+
+/* 用戶頭像樣式 */
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.header-icon.dropdown:hover .user-avatar {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.username-display {
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 5px;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+
+/* 通知圖標樣式 */
+.notification-icon {
+    position: relative;
+    cursor: pointer;
+}
+
+.notification-count {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 20px;
+    padding: 0;
+    line-height: 1;
+    text-align: center;
+    border: 2px solid #2D5B69;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
+
+/* Pulse 動畫 */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.6);
+    }
+}
+
+/* 通知下拉菜單 */
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    width: 380px;
+    max-width: calc(100vw - 40px);
+    max-height: 500px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 28px;
+    z-index: 1001;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.notification-dropdown[style*="display: block"],
+.notification-dropdown[style*="display:block"] {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* 手機版通知下拉菜單 - 全屏顯示 */
+@media (max-width: 768px) {
+    /* 默認隱藏狀態 */
+    .notification-dropdown:not([style*="display: block"]):not([style*="display:block"]) {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        pointer-events: none !important;
+        z-index: -1 !important;
+    }
+    
+    /* 只在顯示時才應用全屏樣式 */
+    .notification-dropdown[style*="display: block"],
+    .notification-dropdown[style*="display:block"],
+    body.notification-open .notification-dropdown {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        background: white !important;
+        z-index: 1003 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        animation: slideDownFullScreen 0.3s ease-out;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    
+    .notification-dropdown[style*="display: block"]::before,
+    .notification-dropdown[style*="display:block"]::before,
+    body.notification-open .notification-dropdown::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+        z-index: 1;
+    }
+    
+    .notification-dropdown[style*="display: block"] > *,
+    .notification-dropdown[style*="display:block"] > *,
+    body.notification-open .notification-dropdown > * {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .notification-dropdown[style*="display: block"] .notification-close-btn,
+    .notification-dropdown[style*="display:block"] .notification-close-btn,
+    body.notification-open .notification-close-btn {
+        position: fixed !important;
+        top: 20px !important;
+        right: 20px !important;
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 50% !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        color: white !important;
+        font-size: 20px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        z-index: 1004 !important;
+        transition: all 0.3s ease !important;
+    }
+    
+    .notification-dropdown[style*="display: block"] .notification-close-btn:hover,
+    .notification-dropdown[style*="display: block"] .notification-close-btn:active,
+    .notification-dropdown[style*="display:block"] .notification-close-btn:hover,
+    .notification-dropdown[style*="display:block"] .notification-close-btn:active,
+    body.notification-open .notification-close-btn:hover,
+    body.notification-open .notification-close-btn:active {
+        background: rgba(255, 255, 255, 0.3) !important;
+        transform: scale(1.1) !important;
+    }
+    
+    .notification-dropdown[style*="display: block"] .notification-header,
+    .notification-dropdown[style*="display:block"] .notification-header,
+    body.notification-open .notification-header {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        margin: 20px 20px 0 20px !important;
+        border-radius: 16px !important;
+        padding: 20px !important;
+    }
+    
+    .notification-dropdown[style*="display: block"] .notification-list,
+    .notification-dropdown[style*="display:block"] .notification-list,
+    body.notification-open .notification-list {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        margin: 20px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 16px !important;
+        padding: 15px !important;
+    }
+    
+    .notification-dropdown[style*="display: block"] .notification-footer,
+    .notification-dropdown[style*="display:block"] .notification-footer,
+    body.notification-open .notification-footer {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
+        margin: 0 20px 20px 20px !important;
+        border-radius: 16px !important;
+        padding: 15px 20px !important;
+    }
+    
+    .notification-icon {
+        position: relative;
+    }
+    
+    body.notification-open .notification-icon {
+        display: none !important;
+    }
+}
+
+.notification-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.notification-header h5 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-mark-all-read,
+.btn-view-all {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #666;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-mark-all-read:hover,
+.btn-view-all:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.3s ease;
+    cursor: pointer;
+}
+
+.notification-item:hover {
+    background: #f8f9fa;
+}
+
+.notification-item.unread {
+    background: #f0f8ff;
+    border-left: 3px solid #4CAF50;
+}
+
+.notification-item.read {
+    opacity: 0.7;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.notification-item.unread .notification-icon-wrapper {
+    background: #4CAF50;
+    color: white;
+}
+
+.notification-item.read .notification-icon-wrapper {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.notification-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notification-message {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-time {
+    font-size: 11px;
+    color: #999;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.btn-toggle-read,
+.btn-delete-notification {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: #666;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.notification-item:hover .btn-toggle-read,
+.notification-item:hover .btn-delete-notification {
+    opacity: 1;
+}
+
+.btn-toggle-read:hover {
+    background: #e0e0e0;
+    color: #4CAF50;
+}
+
+.btn-delete-notification:hover {
+    background: #fee;
+    color: #dc3545;
+}
+
+.notification-loading,
+.notification-empty,
+.notification-error {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+}
+
+.notification-loading i,
+.notification-empty i,
+.notification-error i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.notification-footer {
+    padding: 12px 20px;
+    border-top: 1px solid #eee;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+.notification-footer a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.notification-footer a:hover {
+    color: #45A049;
+}
+
+/* 購物車數量標示 */
+.cart-count {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    min-width: 20px;
+    padding: 0;
+    line-height: 1;
+    text-align: center;
+    border: 2px solid #2D5B69;
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.4);
+}
+
+/* 下拉選單樣式增強 */
+.dropdown-menu {
+    min-width: 220px;
+    padding: 0;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 8px;
+}
+
+.dropdown-header {
+    padding: 15px 20px 10px;
+    background: linear-gradient(135deg, #2D5B69, #4CAF50);
+    color: white;
+    margin-bottom: 0;
+}
+
+.dropdown-header strong {
+    font-size: 16px;
+}
+
+.dropdown-header small {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.dropdown-item {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-item:hover {
+    background: #f8f9fa;
+    color: #4CAF50;
+    padding-left: 25px;
+}
+
+.dropdown-item i {
+    width: 16px;
+    margin-right: 12px;
+}
+
+.dropdown-item.text-danger {
+    color: #e74c3c !important;
+}
+
+.dropdown-item.text-danger:hover {
+    background: #fee;
+    color: #c82333 !important;
+}
+
+.dropdown-divider {
+    margin: 8px 0;
+    border-color: #eee;
+}
+
+/* 訊息顯示區域 */
+.messages-container {
+    position: fixed;
+    top: 110px; /* 調整為固定 header 下方（94px header + 16px 間距） */
+    right: 20px;
+    z-index: 1050;
+    max-width: 400px;
+}
+
+.messages-container .alert {
+    margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 8px;
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.alert-error,
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f1c2c7);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    color: #856404;
+    border-left: 4px solid #ffc107;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+}
+
+
+/* 旋轉動畫 - 用於載入狀態 */
+.spin-icon {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+    .notification-dropdown {
+        width: calc(100vw - 50px);
+        right: -10px;
+    }
+    
+    .notification-header {
+        padding: 12px 15px;
+    }
+    
+    .notification-item {
+        padding: 10px 12px;
+    }
+    
+    .notification-icon-wrapper {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+    
+    .notification-title {
+        font-size: 12px;
+    }
+    
+    .notification-message {
+        font-size: 11px;
+        -webkit-line-clamp: 1;
+    }
+    
+    .notification-count {
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+    }
+    
+    .dropdown-header {
+        padding: 12px 15px 8px;
+    }
+    
+    .dropdown-item {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+    
+    .dropdown-item:hover {
+        padding-left: 20px;
+    }
+}
+
+/* 載入動畫 */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu.show {
+    animation: fadeInDown 0.3s ease;
+}
+
+/* 購物車和通知圖示動畫 */
+.header-icon a:hover .cart-count,
+.header-icon:hover .notification-count {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+/* 用戶頭像 hover 效果 */
+.user-avatar:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
+/* 下拉選單項目圖示顏色 */
+.dropdown-item i.bi-person { color: #4CAF50; }
+.dropdown-item i.bi-box { color: #17a2b8; }
+.dropdown-item i.bi-heart { color: #e91e63; }
+.dropdown-item i.bi-cart { color: #ff9800; }
+.dropdown-item i.bi-gift { color: #9c27b0; }
+.dropdown-item i.bi-gear { color: #6c757d; }
+.dropdown-item i.bi-box-arrow-right { color: #dc3545; }
+.dropdown-item i.bi-box-arrow-in-right { color: #28a745; }
+.dropdown-item i.bi-person-plus { color: #007bff; }
+.dropdown-item i.bi-shop { color: #fd7e14; }
+.dropdown-item i.bi-question-circle { color: #6f42c1; }
+
+/* 目標管理區塊 */

@@ -1,0 +1,815 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}{{ product.name }} - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/product-detail.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/lightbox.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<script src="{% static 'js/lightbox.js' %}?v={{ static_version }}"></script>
+<script src="{% static 'js/product-detail.js' %}?v={{ static_version }}"></script>
+{% endblock %}
+
+{% block content %}
+<section class="product-detail-section">
+    <div class="container">
+        <!-- 麵包屑導航 -->
+        <nav aria-label="breadcrumb" style="margin-bottom: 30px;">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">首頁</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'products' %}">商品</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'products' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+                <li class="breadcrumb-item active">{{ product.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="product-detail-container">
+            <!-- 商品圖片 -->
+            <div class="product-images">
+                <div class="main-image-wrapper">
+                    <img src="{% if product.images.exists %}{{ product.images.first.image.url }}{% else %}{% static 'img/products/default.png' %}{% endif %}" 
+                         alt="{{ product.name }}" 
+                         class="main-image" 
+                         id="mainImage"
+                         data-image-index="0">
+                </div>
+                
+                {% if product.images.count > 1 %}
+                <div class="thumbnail-images">
+                    {% for image in product.images.all %}
+                    <img src="{{ image.image.url }}" 
+                         alt="{{ product.name }}" 
+                         class="thumbnail {% if forloop.first %}active{% endif %}"
+                         data-image-index="{{ forloop.counter0 }}"
+                         onclick="changeMainImage('{{ image.image.url }}', this, {{ forloop.counter0 }})">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 商品資訊 -->
+            <div class="product-info-section">
+                <h1>{{ product.name }}</h1>
+                
+                <div class="product-meta">
+                    <div class="product-rating">
+                        <div class="stars" style="color: #ffc107; font-size: 1.1rem;" id="productRatingStars" data-rating="{{ avg_rating|default:0 }}">
+                            <!-- 星星將由JavaScript渲染 -->
+                        </div>
+                        <span>
+                            {% if avg_rating %}
+                                <strong>{{ avg_rating|floatformat:1 }}</strong> 分
+                            {% else %}
+                                尚無評分
+                            {% endif %}
+                            <span class="text-muted">({{ reviews|length }} 評價)</span>
+                        </span>
+                    </div>
+                    <span>商品編號：{{ product.sku }}</span>
+                </div>
+
+                <div class="product-price-section">
+                    {% if product.original_price and product.original_price > product.price %}
+                    <span class="original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                    {% endif %}
+                    <span class="current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                    {% if product.discount_percentage > 0 %}
+                    <span class="discount-badge">-{{ product.discount_percentage }}%</span>
+                    {% endif %}
+                </div>
+
+                <div class="product-description">
+                    <p>{{ product.short_description }}</p>
+                </div>
+
+                <!-- 庫存狀態 -->
+                <div class="stock-info" style="margin: 20px 0;">
+                    {% if product.stock_quantity > 10 %}
+                        <span style="color: #28a745;"><i class="bi bi-check-circle"></i> 現貨充足</span>
+                    {% elif product.stock_quantity > 0 %}
+                        <span style="color: #ffc107;"><i class="bi bi-exclamation-triangle"></i> 僅剩 {{ product.stock_quantity }} 件</span>
+                    {% else %}
+                        <span style="color: #dc3545;"><i class="bi bi-x-circle"></i> 暫時缺貨</span>
+                    {% endif %}
+                </div>
+
+                <!-- 商品操作 -->
+                <div class="product-actions">
+                    {% if request.user.is_authenticated %}
+                    <div class="quantity-selector">
+                        <label>數量：</label>
+                        <div class="quantity-controls">
+                            <button class="qty-btn" onclick="changeQuantity(-1)">-</button>
+                            <input type="number" id="productQuantity" class="qty-input" value="1" min="1" max="{% if available_quantity > 0 %}{{ available_quantity }}{% else %}0{% endif %}">
+                            <button class="qty-btn" onclick="changeQuantity(1)">+</button>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.9rem;">
+                            {% if cart_quantity > 0 %}
+                            <span style="color: #ffc107;">購物車中已有：{{ cart_quantity }} 件</span><br>
+                            {% endif %}
+                            <span>可購買：{{ available_quantity }} 件</span>
+                            <span style="color: #666;">（總庫存：{{ product.stock_quantity }} 件）</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        {% if available_quantity > 0 %}
+                        <button class="btn-add-cart" onclick="addToCart({{ product.id }})">
+                            <i class="bi bi-cart-plus"></i> 加入購物車
+                        </button>
+                        <button class="btn-buy-now" onclick="buyNow({{ product.id }})">
+                            <i class="bi bi-bag-check"></i> 立即購買
+                        </button>
+                        {% else %}
+                        <button class="btn-add-cart" disabled style="opacity: 0.6; cursor: not-allowed;">
+                            <i class="bi bi-cart-x"></i> 已達購買上限
+                        </button>
+                        <div class="alert alert-warning" style="margin-top: 10px; padding: 10px; font-size: 0.9rem;">
+                            {% if cart_quantity > 0 %}
+                            購物車中已有 {{ cart_quantity }} 件，已達庫存上限
+                            {% else %}
+                            暫時缺貨
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        <button class="wishlist-btn {% if is_favorited %}active{% endif %}" 
+                                onclick="toggleWishlist({{ product.id }})"
+                                title="{% if is_favorited %}已收藏{% else %}加入收藏{% endif %}">
+                            <i class="bi bi-heart{% if is_favorited %}-fill{% endif %}"></i>
+                            <span class="wishlist-btn-text">{% if is_favorited %}已收藏{% else %}加入收藏{% endif %}</span>
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="action-buttons">
+                        <div class="alert alert-info" style="width: 100%; margin-bottom: 10px;">
+                            <a href="{% url 'login' %}?next={% url 'product_detail' product.id %}">請先登入</a> 以購買商品
+                        </div>
+                        <button class="wishlist-btn" 
+                                onclick="toggleWishlist({{ product.id }})"
+                                title="加入收藏">
+                            <i class="bi bi-heart"></i>
+                            <span class="wishlist-btn-text">加入收藏</span>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 商品詳細資訊標籤 -->
+        <div class="product-details-tabs">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('description', event)">商品描述</button>
+                <button class="tab-btn" onclick="switchTab('specs', event)">商品規格</button>
+                <button class="tab-btn" onclick="switchTab('reviews', event)">商品評價 ({{ reviews|length }})</button>
+            </div>
+
+            <div id="description-tab" class="tab-content active">
+                <div style="line-height: 1.8;">
+                    {{ product.description|linebreaks }}
+                </div>
+            </div>
+
+            <div id="specs-tab" class="tab-content">
+                <table class="table">
+                    <tbody>
+                        {% if product.brand %}
+                        <tr>
+                            <th>品牌</th>
+                            <td>{{ product.brand.name }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if product.weight %}
+                        <tr>
+                            <th>重量</th>
+                            <td>{{ product.weight }} kg</td>
+                        </tr>
+                        {% endif %}
+                        {% if product.dimensions %}
+                        <tr>
+                            <th>尺寸</th>
+                            <td>{{ product.dimensions }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if product.color %}
+                        <tr>
+                            <th>顏色</th>
+                            <td>{{ product.color }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if product.size %}
+                        <tr>
+                            <th>尺碼</th>
+                            <td>{{ product.size }}</td>
+                        </tr>
+                        {% endif %}
+                        {% if product.calories_per_100g %}
+                        <tr>
+                            <th colspan="2" style="background: #f8f9fa; font-weight: bold;">營養成分（每100g）</th>
+                        </tr>
+                        <tr>
+                            <th>熱量</th>
+                            <td>{{ product.calories_per_100g }} 大卡</td>
+                        </tr>
+                        <tr>
+                            <th>蛋白質</th>
+                            <td>{{ product.protein_per_100g }} g</td>
+                        </tr>
+                        <tr>
+                            <th>碳水化合物</th>
+                            <td>{{ product.carbs_per_100g }} g</td>
+                        </tr>
+                        <tr>
+                            <th>脂肪</th>
+                            <td>{{ product.fat_per_100g }} g</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="reviews-tab" class="tab-content">
+                {% if user.is_authenticated %}
+                <!-- 評價表單 -->
+                <div class="review-form">
+                    {% if user_review %}
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> 您已經評價過此商品，可以修改或刪除您的評價
+                        <button class="btn btn-sm btn-outline-danger ms-2" onclick="deleteUserReview({{ user_review.id }})">
+                            <i class="bi bi-trash"></i> 刪除評價
+                        </button>
+                    </div>
+                    <h4>編輯我的評價</h4>
+                    {% else %}
+                    <h4>撰寫評價</h4>
+                    {% endif %}
+                    <form id="reviewForm" onsubmit="submitReview(event, {{ product.id }})">
+                        {% csrf_token %}
+                        <div class="rating-input">
+                            <span class="rating-star" onclick="setRating(1)" data-rating="1">★</span>
+                            <span class="rating-star" onclick="setRating(2)" data-rating="2">★</span>
+                            <span class="rating-star" onclick="setRating(3)" data-rating="3">★</span>
+                            <span class="rating-star" onclick="setRating(4)" data-rating="4">★</span>
+                            <span class="rating-star" onclick="setRating(5)" data-rating="5">★</span>
+                            <input type="hidden" id="ratingValue" name="rating" value="{% if user_review %}{{ user_review.rating }}{% else %}5{% endif %}" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="title" class="form-control" placeholder="評價標題" 
+                                   value="{% if user_review %}{{ user_review.title }}{% endif %}" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="content" class="form-control" rows="5" placeholder="分享您的使用心得..." required>{% if user_review %}{{ user_review.content }}{% endif %}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {% if user_review %}
+                            <i class="bi bi-pencil"></i> 更新評價
+                            {% else %}
+                            <i class="bi bi-check-circle"></i> 提交評價
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <a href="{% url 'login' %}?next={% url 'product_detail' product.id %}">請先登入</a> 以撰寫評價
+                </div>
+                {% endif %}
+
+                <!-- 評價列表 -->
+                <div class="reviews-list" style="margin-top: 30px;">
+                    {% for review in reviews %}
+                    <div class="review-item" style="padding: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px; {% if user.is_authenticated and review.user == user %}background: #f8f9fa; border-left: 3px solid #28a745;{% endif %}">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <strong>{{ review.user.first_name|default:review.user.username }}</strong>
+                                {% if user.is_authenticated and review.user == user %}
+                                <span class="badge bg-success ms-2">我的評價</span>
+                                {% endif %}
+                                <div class="stars" style="color: #ffc107;">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div>
+                                <small class="text-muted">{{ review.created_at|date:"Y-m-d" }}</small>
+                                {% if review.created_at != review.updated_at %}
+                                <small class="text-muted">（已編輯）</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <h5>{{ review.title }}</h5>
+                        <p>{{ review.content|linebreaks }}</p>
+                        <div style="margin-top: 10px;">
+                            {% if review.is_verified_purchase %}
+                            <span class="badge bg-success">已驗證購買</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">目前尚無評價</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 相關商品 -->
+        {% if related_products %}
+        <section class="related-products-section" style="margin-top: 60px;">
+            <h2 class="related-products-title" style="margin-bottom: 30px; font-size: 1.8rem; font-weight: 600; color: #333; position: relative; padding-bottom: 15px;">
+                <i class="bi bi-grid-3x3-gap" style="margin-right: 10px; color: #4CAF50;"></i>相關商品
+                <span style="position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: linear-gradient(90deg, #4CAF50, #45A049); border-radius: 2px;"></span>
+            </h2>
+            <div class="related-products-grid">
+                {% for related_product in related_products %}
+                <div class="related-product-card">
+                    <div class="related-product-image">
+                        <a href="{% url 'product_detail' related_product.id %}">
+                            {% if related_product.images.exists %}
+                                <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}" loading="lazy">
+                            {% else %}
+                                <img src="{% static 'img/products/default.png' %}" alt="{{ related_product.name }}" loading="lazy">
+                            {% endif %}
+                        </a>
+                        {% if related_product.is_featured %}
+                        <div class="related-product-badge">推薦</div>
+                        {% elif related_product.discount_percentage > 0 %}
+                        <div class="related-product-badge hot">-{{ related_product.discount_percentage }}%</div>
+                        {% endif %}
+                    </div>
+                    <div class="related-product-info">
+                        <div class="related-product-rating">
+                            {% if related_product.avg_rating and related_product.avg_rating > 0 %}
+                            <div class="stars" style="color: #ffc107; font-size: 14px;" data-rating="{{ related_product.avg_rating|floatformat:1 }}">
+                                <span class="rating-stars-placeholder"></span>
+                            </div>
+                            <span class="rating-count" style="color: #999; font-size: 12px;">({{ related_product.review_count|default:0 }})</span>
+                            {% else %}
+                            <div class="stars" style="color: #ddd; font-size: 14px;" data-rating="0">
+                                <span class="rating-stars-placeholder">☆☆☆☆☆</span>
+                            </div>
+                            <span class="rating-count text-muted" style="font-size: 12px;">(尚無評價)</span>
+                            {% endif %}
+                        </div>
+                        <h4 class="related-product-name">
+                            <a href="{% url 'product_detail' related_product.id %}" title="{{ related_product.name }}">{{ related_product.name|truncatechars:50 }}</a>
+                        </h4>
+                        <div class="related-product-price">
+                            {% if related_product.original_price and related_product.original_price > related_product.price %}
+                            <span class="related-original-price" data-price="{{ related_product.original_price }}">NT${{ related_product.original_price|floatformat:0 }}</span>
+                            {% endif %}
+                            <span class="related-current-price" data-price="{{ related_product.price }}">NT${{ related_product.price|floatformat:0 }}</span>
+                            {% if related_product.discount_percentage > 0 %}
+                            <span class="related-discount-badge">-{{ related_product.discount_percentage }}%</span>
+                            {% endif %}
+                        </div>
+                        <div class="related-product-stock">
+                            {% if related_product.stock_quantity > 10 %}
+                                <span class="stock-badge in-stock"><i class="bi bi-check-circle"></i> 現貨充足</span>
+                            {% elif related_product.stock_quantity > 0 %}
+                                <span class="stock-badge low-stock"><i class="bi bi-exclamation-triangle"></i> 僅剩 {{ related_product.stock_quantity }} 件</span>
+                            {% else %}
+                                <span class="stock-badge out-of-stock"><i class="bi bi-x-circle"></i> 暫時缺貨</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+function changeMainImage(url, element) {
+    document.getElementById('mainImage').src = url;
+    document.querySelectorAll('.thumbnail').forEach(thumb => thumb.classList.remove('active'));
+    element.classList.add('active');
+}
+
+function changeQuantity(delta) {
+    const input = document.getElementById('productQuantity');
+    if (!input) return;
+    
+    const current = parseInt(input.value) || 1;
+    const max = parseInt(input.getAttribute('max')) || parseInt(input.max) || {{ available_quantity|default:0 }};
+    const newValue = Math.max(1, Math.min(max, current + delta));
+    input.value = newValue;
+    
+    // 如果達到上限，顯示提示
+    if (newValue >= max && max > 0) {
+        showToast('已達可購買數量上限', 'info');
+    }
+}
+
+function addToCart(productId) {
+    const input = document.getElementById('productQuantity');
+    if (!input) {
+        showToast('無法找到數量輸入框', 'error');
+        return;
+    }
+    
+    // 檢查按鈕是否已被禁用
+    const addCartBtn = document.querySelector('.btn-add-cart');
+    if (addCartBtn && addCartBtn.disabled) {
+        showToast('商品已達購買上限，無法繼續加入購物車', 'error');
+        return;
+    }
+    
+    const quantity = parseInt(input.value) || 1;
+    const maxQuantity = parseInt(input.getAttribute('max')) || parseInt(input.max) || {{ available_quantity|default:0 }};
+    
+    if (maxQuantity <= 0) {
+        showToast('商品暫時缺貨或已達購買上限', 'error');
+        return;
+    }
+    
+    if (quantity > maxQuantity) {
+        showToast(`最多只能購買 ${maxQuantity} 件`, 'error');
+        input.value = maxQuantity;
+        return;
+    }
+    
+    if (quantity < 1) {
+        showToast('數量不能少於1', 'error');
+        input.value = 1;
+        return;
+    }
+    
+    fetch('{% url "api_add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}&quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            if (typeof updateCartCount === 'function') {
+                updateCartCount();
+            }
+            // 更新可購買數量顯示
+            const cartQuantity = data.cart_quantity || 0;
+            const availableQuantity = data.available_quantity !== undefined ? data.available_quantity : (data.stock_quantity || 0);
+            const stockQuantity = data.stock_quantity || {{ product.stock_quantity }};
+            
+            if (availableQuantity !== undefined) {
+                input.max = availableQuantity;
+                // 重置數量為預設值 1
+                input.value = 1;
+                // 更新顯示
+                updateAvailableQuantityDisplay(cartQuantity, availableQuantity, stockQuantity);
+                
+                // 如果可購買數量為 0，禁用按鈕
+                if (availableQuantity <= 0) {
+                    disableAddToCartButtons(cartQuantity);
+                }
+            }
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('加入購物車失敗，請稍後再試', 'error');
+    });
+}
+
+function updateAvailableQuantityDisplay(cartQuantity, availableQuantity, stockQuantity) {
+    const displayDiv = document.querySelector('.quantity-selector > div:last-child');
+    if (displayDiv) {
+        const totalStock = stockQuantity || {{ product.stock_quantity }};
+        if (cartQuantity > 0) {
+            displayDiv.innerHTML = `
+                <span style="color: #ffc107;">購物車中已有：${cartQuantity} 件</span><br>
+                <span>可購買：${availableQuantity} 件</span>
+                <span style="color: #666;">（總庫存：${totalStock} 件）</span>
+            `;
+        } else {
+            displayDiv.innerHTML = `
+                <span>可購買：${availableQuantity} 件</span>
+                <span style="color: #666;">（總庫存：${totalStock} 件）</span>
+            `;
+        }
+    }
+}
+
+function disableAddToCartButtons(cartQuantity) {
+    const addCartBtn = document.querySelector('.btn-add-cart');
+    const buyNowBtn = document.querySelector('.btn-buy-now');
+    const actionButtons = document.querySelector('.action-buttons');
+    
+    if (addCartBtn) {
+        addCartBtn.disabled = true;
+        addCartBtn.style.opacity = '0.6';
+        addCartBtn.style.cursor = 'not-allowed';
+        addCartBtn.innerHTML = '<i class="bi bi-cart-x"></i> 已達購買上限';
+        addCartBtn.onclick = null; // 移除點擊事件
+    }
+    
+    if (buyNowBtn) {
+        buyNowBtn.disabled = true;
+        buyNowBtn.style.opacity = '0.6';
+        buyNowBtn.style.cursor = 'not-allowed';
+        buyNowBtn.onclick = null; // 移除點擊事件
+    }
+    
+    // 檢查是否已經有警告訊息，如果沒有則添加
+    if (actionButtons && !actionButtons.querySelector('.alert-warning')) {
+        const warningDiv = document.createElement('div');
+        warningDiv.className = 'alert alert-warning';
+        warningDiv.style.cssText = 'margin-top: 10px; padding: 10px; font-size: 0.9rem;';
+        if (cartQuantity > 0) {
+            warningDiv.textContent = `購物車中已有 ${cartQuantity} 件，已達庫存上限`;
+        } else {
+            warningDiv.textContent = '暫時缺貨';
+        }
+        actionButtons.appendChild(warningDiv);
+    }
+}
+
+function buyNow(productId) {
+    const input = document.getElementById('productQuantity');
+    if (!input) {
+        showToast('無法找到數量輸入框', 'error');
+        return;
+    }
+    
+    const quantity = parseInt(input.value) || 1;
+    const maxQuantity = parseInt(input.getAttribute('max')) || parseInt(input.max) || {{ available_quantity|default:0 }};
+    
+    if (maxQuantity <= 0) {
+        showToast('商品暫時缺貨或已達購買上限', 'error');
+        return;
+    }
+    
+    if (quantity > maxQuantity) {
+        showToast(`最多只能購買 ${maxQuantity} 件`, 'error');
+        input.value = maxQuantity;
+        return;
+    }
+    
+    if (quantity < 1) {
+        showToast('數量不能少於1', 'error');
+        input.value = 1;
+        return;
+    }
+    
+    fetch('{% url "api_add_to_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `product_id=${productId}&quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '{% url "cart" %}';
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+// toggleWishlist 函數已移至 product-detail.js，此處移除以避免衝突
+
+function switchTab(tabName, event) {
+    // 移除所有活動狀態
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    // 添加活動狀態到點擊的按鈕
+    if (event && event.target) {
+        event.target.classList.add('active');
+    } else {
+        // 如果沒有 event，通過 tabName 找到對應的按鈕
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            if (btn.textContent.includes(tabName === 'description' ? '描述' : tabName === 'specs' ? '規格' : '評價')) {
+                btn.classList.add('active');
+            }
+        });
+    }
+    
+    // 顯示對應的內容
+    const targetTab = document.getElementById(tabName + '-tab');
+    if (targetTab) {
+        targetTab.classList.add('active');
+    }
+}
+
+function setRating(rating) {
+    document.getElementById('ratingValue').value = rating;
+    const stars = document.querySelectorAll('.rating-star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.style.color = '#ffc107';
+            star.classList.add('active');
+        } else {
+            star.style.color = '#ddd';
+            star.classList.remove('active');
+        }
+    });
+}
+
+// 初始化評分顯示（如果已有評價）和相關商品評分
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingValue = document.getElementById('ratingValue');
+    if (ratingValue && ratingValue.value) {
+        setRating(parseInt(ratingValue.value));
+    }
+    
+    // 渲染相關商品的評分星星
+    renderRelatedProductStars();
+    
+    // 渲染主商品的評分星星
+    const productRatingStars = document.getElementById('productRatingStars');
+    if (productRatingStars) {
+        const rating = parseFloat(productRatingStars.dataset.rating) || 0;
+        if (rating > 0) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = (rating - fullStars) >= 0.5;
+            let starsHtml = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                if (i <= fullStars) {
+                    starsHtml += '★';
+                } else if (i === fullStars + 1 && hasHalfStar) {
+                    starsHtml += '★';
+                } else {
+                    starsHtml += '☆';
+                }
+            }
+            
+            productRatingStars.innerHTML = starsHtml;
+        } else {
+            productRatingStars.innerHTML = '☆☆☆☆☆';
+        }
+    }
+});
+
+// 渲染相關商品的評分星星
+function renderRelatedProductStars() {
+    document.querySelectorAll('.related-product-rating .stars[data-rating]').forEach(starsDiv => {
+        const rating = parseFloat(starsDiv.dataset.rating);
+        if (rating && rating > 0) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = (rating - fullStars) >= 0.5;
+            let starsHtml = '';
+            
+            for (let i = 1; i <= 5; i++) {
+                if (i <= fullStars) {
+                    starsHtml += '★';
+                } else if (i === fullStars + 1 && hasHalfStar) {
+                    starsHtml += '★';
+                } else {
+                    starsHtml += '☆';
+                }
+            }
+            
+            const placeholder = starsDiv.querySelector('.rating-stars-placeholder');
+            if (placeholder) {
+                placeholder.outerHTML = starsHtml;
+            } else {
+                starsDiv.innerHTML = starsHtml;
+            }
+        } else {
+            const placeholder = starsDiv.querySelector('.rating-stars-placeholder');
+            if (placeholder) {
+                placeholder.outerHTML = '☆☆☆☆☆';
+            } else {
+                starsDiv.innerHTML = '☆☆☆☆☆';
+            }
+        }
+    });
+}
+
+// 刪除評價
+function deleteUserReview(reviewId) {
+    if (!confirm('確定要刪除此評價嗎？刪除後無法復原。')) {
+        return;
+    }
+    
+    fetch('{% url "delete_review" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `review_id=${reviewId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('刪除失敗，請稍後再試', 'error');
+    });
+}
+
+function submitReview(event, productId) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    formData.append('product_id', productId);
+    
+    fetch('{% url "submit_review" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('評價已提交，感謝您的回饋！', 'success');
+            event.target.reset();
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message || '提交失敗，請稍後再試', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('提交失敗，請稍後再試', 'error');
+    });
+}
+
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1060;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => toast.style.transform = 'translateX(0)', 100);
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function updateCartCount() {
+    fetch('{% url "cart_count_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.textContent = data.count || 0;
+                cartCount.style.display = data.count > 0 ? 'inline' : 'none';
+            }
+        });
+}
+
+</script>
+
+<!-- 圖片瀏覽視窗 (Lightbox) -->
+{% if product.images.exists %}
+<div id="productImageLightbox" class="image-lightbox" onclick="closeProductImageLightbox(event)">
+    <button class="lightbox-close" onclick="closeProductImageLightbox(event)">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    {% if product.images.count > 1 %}
+    <button class="lightbox-prev">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+    <button class="lightbox-next">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+    {% endif %}
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <img id="productLightboxImage" src="" alt="{{ product.name }}">
+        <div class="lightbox-counter">
+            <span id="productLightboxCurrent">1</span> / <span id="productLightboxTotal">{{ product.images.count }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

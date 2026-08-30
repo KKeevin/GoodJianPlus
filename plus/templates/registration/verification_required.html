@@ -1,0 +1,123 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}需要驗證電子郵件 - 好健健 GoodJian Plus{% endblock %}
+
+<!-- header區塊 -->
+{% block head %}
+<link href="{% static 'css/verification-required.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+<!-- 內容區塊 -->
+{% block content %}
+<section class="verification-required-section">
+    <div class="container">
+        <div class="verification-container">
+            <!-- 圖標和標題 -->
+            <div class="verification-header">
+                <div class="verification-icon">
+                    <i class="bi bi-envelope-check-fill"></i>
+                </div>
+                <h1 class="verification-title">需要驗證電子郵件</h1>
+                <p class="verification-subtitle">為了使用「{{ feature_name }}」功能，請先驗證您的電子郵件地址</p>
+            </div>
+
+            <!-- 主要內容卡片 -->
+            <div class="verification-card">
+                <div class="card-content">
+                    <div class="info-section">
+                        <div class="info-item">
+                            <i class="bi bi-shield-fill-check"></i>
+                            <div class="info-text">
+                                <h3>保護您的帳號安全</h3>
+                                <p>驗證電子郵件可以確保您的帳號安全，並防止未經授權的訪問</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-star-fill"></i>
+                            <div class="info-text">
+                                <h3>享受完整會員服務</h3>
+                                <p>驗證後即可使用目標管理、收藏功能等所有會員專屬服務</p>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-bell-fill"></i>
+                            <div class="info-text">
+                                <h3>接收重要通知</h3>
+                                <p>驗證後可接收訂單狀態、優惠活動等重要通知</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 驗證狀態 -->
+                    <div class="verification-status">
+                        <div class="status-item">
+                            <span class="status-label">您的電子郵件：</span>
+                            <span class="status-value">{{ user_email }}</span>
+                        </div>
+                        <div class="status-badge unverified">
+                            <i class="bi bi-x-circle-fill"></i>
+                            <span>尚未驗證</span>
+                        </div>
+                    </div>
+
+                    <!-- 操作按鈕 -->
+                    <div class="action-buttons">
+                        <a href="{% url 'resend_verification_email' %}" class="btn btn-primary btn-verify">
+                            <i class="bi bi-send-fill"></i>
+                            發送驗證郵件
+                        </a>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-person-fill"></i>
+                            前往個人資料
+                        </a>
+                    </div>
+
+                    <!-- 提示訊息 -->
+                    <div class="help-section">
+                        <div class="help-card">
+                            <i class="bi bi-question-circle-fill"></i>
+                            <div class="help-content">
+                                <h4>沒有收到驗證郵件？</h4>
+                                <ul>
+                                    <li>請檢查您的垃圾郵件資料夾</li>
+                                    <li>確認電子郵件地址是否正確：<strong>{{ user_email }}</strong></li>
+                                    <li>等待 1-2 分鐘（郵件可能有延遲）</li>
+                                    <li>點擊「發送驗證郵件」重新發送</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 返回按鈕 -->
+            <div class="back-section">
+                <a href="{% url 'home' %}" class="btn-back">
+                    <i class="bi bi-arrow-left"></i>
+                    返回首頁
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- 腳本區塊 -->
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 添加動畫效果
+    const card = document.querySelector('.verification-card');
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    }
+});
+</script>
+{% endblock %}
+

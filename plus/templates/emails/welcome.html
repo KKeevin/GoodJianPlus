@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歡迎加入好健健</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .feature-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .feature-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .feature-list li {
+            margin: 8px 0;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">好健健 GoodJian Plus</div>
+        </div>
+        
+        <div class="content">
+            <h2 class="title">歡迎加入好健健大家庭！</h2>
+            
+            <p>親愛的 {{ user.first_name|default:user.username }}，</p>
+            
+            <p>恭喜您成功註冊好健健 GoodJian Plus！您的帳戶已經建立完成。</p>
+            
+            <div class="feature-list">
+                <h3 style="margin-top: 0;">接下來您可以：</h3>
+                <ul>
+                    <li>✅ 瀏覽我們的健身器材和營養食品</li>
+                    <li>✅ 建立個人健身計畫和目標</li>
+                    <li>✅ 追蹤您的健康數據（體重、營養攝取等）</li>
+                    <li>✅ 享受會員專屬優惠和折扣</li>
+                    <li>✅ 收藏喜愛的商品到願望清單</li>
+                    <li>✅ 查看健康專欄文章</li>
+                </ul>
+            </div>
+            
+            <div class="button-container">
+                <a href="{{ site_url }}" class="button">立即開始購物</a>
+            </div>
+            
+            <p>如有任何問題，歡迎隨時聯繫我們的客服團隊：</p>
+            <ul>
+                <li>📧 客服信箱：service@goodjianplus.com</li>
+                <li>📞 客服電話：0800-892010</li>
+            </ul>
+            
+            <p>祝您健康快樂！</p>
+            <p><strong>好健健團隊</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p>此郵件由系統自動發送，請勿直接回覆。</p>
+            <p>&copy; 2025 好健健 GoodJian Plus. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

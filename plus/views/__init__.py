@@ -1,0 +1,107 @@
+from plus.views.articles import articles_list_view, article_detail_view
+from plus.views.catalog import index, products, search_products, product_detail_view, quick_view_product, submit_review, delete_review, get_categories_api
+from plus.views.auth import custom_login_view, custom_logout_view, ajax_login, check_login_status, validate_login_credentials
+from plus.views.registration import register_view, registration_success_view, quick_register_view, check_username_availability, check_email_availability, suggest_usernames, generate_username_suggestions
+from plus.views.phone_auth import send_phone_verification_code, phone_login, verify_phone_in_profile
+from plus.views.password import send_password_reset_email, set_password, change_password, password_reset_confirm
+from plus.views.email_verification import verify_email, resend_verification_email
+from plus.views.profile import user_profile_view, profile_completion_view, phone_profile_update_view, verify_email_change
+from plus.views.cart import cart_view, cart_count_api, add_to_cart, update_cart_item, remove_cart_item, cart_totals
+from plus.views.checkout import checkout, calculate_checkout_price
+from plus.views.payments import payment_view, process_payment, payment_success_view, payment_failed_view, linepay_confirm, linepay_cancel
+from plus.views.orders import order_list_view, order_detail_view
+from plus.views.wishlist import wishlist_view, toggle_wishlist
+from plus.views.notifications import notification_list_view, notification_detail_view, notification_toggle_read, notification_delete, notification_api, notification_unread_count_api, notification_mark_all_read, notification_batch_action, get_time_ago
+from plus.views.social import associate_by_email, social_auth_pipeline, google_login, facebook_login, line_login, google_callback, social_auth_error, social_auth_complete
+from plus.views.pages import privacy_policy_view, terms_of_service_view, delete_account_view, shipping_info_view, return_policy_view, faq_view, contact_us_view, newsletter_subscribe
+from plus.views.goals import goal_management_view, update_goal_view, add_weight_log_view, weight_log_api, food_search_api, add_nutrition_log_view, update_nutrition_log_view, delete_nutrition_log_view, nutrition_log_api
+
+__all__ = [
+    'articles_list_view',
+    'article_detail_view',
+    'index',
+    'products',
+    'search_products',
+    'product_detail_view',
+    'quick_view_product',
+    'submit_review',
+    'delete_review',
+    'get_categories_api',
+    'custom_login_view',
+    'custom_logout_view',
+    'ajax_login',
+    'check_login_status',
+    'validate_login_credentials',
+    'register_view',
+    'registration_success_view',
+    'quick_register_view',
+    'check_username_availability',
+    'check_email_availability',
+    'suggest_usernames',
+    'generate_username_suggestions',
+    'send_phone_verification_code',
+    'phone_login',
+    'verify_phone_in_profile',
+    'send_password_reset_email',
+    'set_password',
+    'change_password',
+    'password_reset_confirm',
+    'verify_email',
+    'resend_verification_email',
+    'user_profile_view',
+    'profile_completion_view',
+    'phone_profile_update_view',
+    'verify_email_change',
+    'cart_view',
+    'cart_count_api',
+    'add_to_cart',
+    'update_cart_item',
+    'remove_cart_item',
+    'cart_totals',
+    'checkout',
+    'calculate_checkout_price',
+    'payment_view',
+    'process_payment',
+    'payment_success_view',
+    'payment_failed_view',
+    'linepay_confirm',
+    'linepay_cancel',
+    'order_list_view',
+    'order_detail_view',
+    'wishlist_view',
+    'toggle_wishlist',
+    'notification_list_view',
+    'notification_detail_view',
+    'notification_toggle_read',
+    'notification_delete',
+    'notification_api',
+    'notification_unread_count_api',
+    'notification_mark_all_read',
+    'notification_batch_action',
+    'get_time_ago',
+    'associate_by_email',
+    'social_auth_pipeline',
+    'google_login',
+    'facebook_login',
+    'line_login',
+    'google_callback',
+    'social_auth_error',
+    'social_auth_complete',
+    'privacy_policy_view',
+    'terms_of_service_view',
+    'delete_account_view',
+    'shipping_info_view',
+    'return_policy_view',
+    'faq_view',
+    'contact_us_view',
+    'newsletter_subscribe',
+    'goal_management_view',
+    'update_goal_view',
+    'add_weight_log_view',
+    'weight_log_api',
+    'food_search_api',
+    'add_nutrition_log_view',
+    'update_nutrition_log_view',
+    'delete_nutrition_log_view',
+    'nutrition_log_api',
+]

@@ -1,0 +1,79 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}付款失敗 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<style>
+.failed-section {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.failed-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    padding: 50px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.failed-icon {
+    font-size: 80px;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.failed-title {
+    font-size: 2rem;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.action-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.action-buttons .btn {
+    padding: 12px 30px;
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="failed-section">
+    <div class="container">
+        <div class="failed-container">
+            <div class="failed-icon">
+                <i class="bi bi-x-circle-fill"></i>
+            </div>
+            <h1 class="failed-title">付款失敗</h1>
+            <p style="font-size: 1.1rem; color: #666; margin-bottom: 30px;">
+                很抱歉，您的付款處理失敗，請檢查您的付款資訊或稍後再試
+            </p>
+
+            <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                <p style="margin: 0; color: #721c24;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    如果問題持續發生，請聯繫客服人員協助處理
+                </p>
+            </div>
+
+            <div class="action-buttons">
+                <a href="{% url 'payment' order.id %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-clockwise"></i> 重新付款
+                </a>
+                <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-file-text"></i> 查看訂單詳情
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+

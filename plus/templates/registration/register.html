@@ -1,0 +1,414 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}會員註冊 - 好健健 GoodJian Plus{% endblock %}
+
+<!-- header區塊 -->
+{% block head %}
+<link href="{% static 'css/auth.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+<!-- 內容區塊 -->
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-header">
+                <img src="{% static 'img/common/Logo_white.png' %}" alt="好健健 Logo" class="auth-logo">
+                <h1 class="auth-title">加入好健健</h1>
+                <p class="auth-subtitle">開始您的健康生活之旅</p>
+            </div>
+
+            <!-- 註冊表單 -->
+            <form method="post" class="auth-form" id="registerForm">
+                {% csrf_token %}
+                
+                <!-- 顯示錯誤訊息 -->
+                {% if form.errors or error_message %}
+                <div class="alert alert-danger">
+                    {% if error_message %}
+                        <p>{{ error_message }}</p>
+                    {% endif %}
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- 顯示成功訊息 -->
+                {% if success_message %}
+                <div class="alert alert-success">
+                    <p>{{ success_message }}</p>
+                </div>
+                {% endif %}
+
+                <!-- 基本資訊 -->
+                <div class="form-section">
+                    <h3 class="section-title">基本資訊</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.username.id_for_label }}">
+                                <i class="fas fa-user"></i>
+                                使用者名稱 <span class="required">*</span>
+                            </label>
+                            {{ form.username }}
+                            <small class="form-text">3-20個字元，只能使用英文、數字和底線</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.email.id_for_label }}">
+                                <i class="fas fa-envelope"></i>
+                                電子郵件 <span class="required">*</span>
+                            </label>
+                            {{ form.email }}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.first_name.id_for_label }}">
+                                <i class="fas fa-id-card"></i>
+                                姓名 <span class="required">*</span>
+                            </label>
+                            {{ form.first_name }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.phone.id_for_label }}">
+                                <i class="fas fa-phone"></i>
+                                手機號碼 <span class="required">*</span>
+                            </label>
+                            {{ form.phone }}
+                            <small class="form-text">格式：09xxxxxxxx</small>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.password1.id_for_label }}">
+                                <i class="fas fa-lock"></i>
+                                密碼 <span class="required">*</span>
+                            </label>
+                            {{ form.password1 }}
+                            <div class="password-strength" id="passwordStrength">
+                                <div class="strength-bar">
+                                    <div class="strength-progress"></div>
+                                </div>
+                                <span class="strength-text">密碼強度：弱</span>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.password2.id_for_label }}">
+                                <i class="fas fa-lock"></i>
+                                確認密碼 <span class="required">*</span>
+                            </label>
+                            {{ form.password2 }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 個人資訊 -->
+                <div class="form-section">
+                    <h3 class="section-title">個人資訊 <span class="optional">(選填)</span></h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.birthday.id_for_label }}">
+                                <i class="fas fa-calendar"></i>
+                                生日
+                            </label>
+                            {{ form.birthday }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.gender.id_for_label }}">
+                                <i class="fas fa-venus-mars"></i>
+                                性別
+                            </label>
+                            {{ form.gender }}
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.height.id_for_label }}">
+                                <i class="fas fa-ruler-vertical"></i>
+                                身高 (cm)
+                            </label>
+                            {{ form.height }}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.weight.id_for_label }}">
+                                <i class="fas fa-weight"></i>
+                                體重 (kg)
+                            </label>
+                            {{ form.weight }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.address.id_for_label }}">
+                            <i class="fas fa-map-marker-alt"></i>
+                            地址
+                        </label>
+                        {{ form.address }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.fitness_goal.id_for_label }}">
+                            <i class="fas fa-bullseye"></i>
+                            健身目標
+                        </label>
+                        {{ form.fitness_goal }}
+                        <small class="form-text">例如：減重、增肌、提升體能等</small>
+                    </div>
+                </div>
+
+                <!-- 條款同意 -->
+                <div class="form-section">
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="terms_agreement" required>
+                            <span class="checkmark"></span>
+                            我已閱讀並同意 
+                            <a href="#" class="link">服務條款</a> 和 
+                            <a href="#" class="link">隱私權政策</a>
+                            <span class="required">*</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="newsletter_agreement">
+                            <span class="checkmark"></span>
+                            我願意收到好健健的最新優惠和健康資訊
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 提交按鈕 -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-register">
+                        <i class="fas fa-user-plus"></i>
+                        立即註冊
+                    </button>
+                    
+                    <div class="auth-links">
+                        <p>已經有帳戶了？ <a href="{% url 'login' %}" class="link">立即登入</a></p>
+                    </div>
+                </div>
+            </form>
+
+            <!-- 社群登入 -->
+            <div class="social-login">
+                <div class="divider">
+                    <span>或使用社群帳戶註冊</span>
+                </div>
+                
+                <div class="social-buttons">
+                    <button type="button" class="btn btn-social btn-google">
+                        <i class="fab fa-google"></i>
+                        Google
+                    </button>
+                    
+                    <button type="button" class="btn btn-social btn-facebook">
+                        <i class="fab fa-facebook-f"></i>
+                        Facebook
+                    </button>
+                    
+                    <button type="button" class="btn btn-social btn-line">
+                        <i class="fab fa-line"></i>
+                        LINE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- 腳本區塊 -->
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('registerForm');
+    const password1 = document.getElementById('{{ form.password1.id_for_label }}');
+    const password2 = document.getElementById('{{ form.password2.id_for_label }}');
+    const strengthIndicator = document.getElementById('passwordStrength');
+
+    // 密碼強度檢測
+    if (password1) {
+        password1.addEventListener('input', function() {
+            const password = this.value;
+            const strength = checkPasswordStrength(password);
+            updatePasswordStrengthUI(strength);
+        });
+    }
+
+    // 密碼確認檢測
+    if (password2) {
+        password2.addEventListener('input', function() {
+            checkPasswordMatch();
+        });
+    }
+
+    // 手機號碼格式驗證
+    const phoneInput = document.getElementById('{{ form.phone.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            validatePhoneNumber(this);
+        });
+    }
+
+    // 表單提交驗證
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        } else {
+            // 添加加載狀態
+            const submitBtn = form.querySelector('.btn-register');
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+        }
+    });
+
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const checks = {
+            length: password.length >= 8,
+            lowercase: /[a-z]/.test(password),
+            uppercase: /[A-Z]/.test(password),
+            numbers: /\d/.test(password),
+            special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+        };
+
+        strength = Object.values(checks).filter(Boolean).length;
+        return Math.min(strength, 4);
+    }
+
+    function updatePasswordStrengthUI(strength) {
+        const progressBar = strengthIndicator.querySelector('.strength-progress');
+        const strengthText = strengthIndicator.querySelector('.strength-text');
+        
+        const levels = ['很弱', '弱', '中等', '強', '很強'];
+        const colors = ['#ff4757', '#ff6b4a', '#ffa502', '#2ed573', '#1dd1a1'];
+        
+        progressBar.style.width = (strength * 25) + '%';
+        progressBar.style.backgroundColor = colors[strength];
+        strengthText.textContent = `密碼強度：${levels[strength]}`;
+        strengthText.style.color = colors[strength];
+    }
+
+    function checkPasswordMatch() {
+        const match = password1.value === password2.value;
+        const confirmGroup = password2.closest('.form-group');
+        
+        if (password2.value && !match) {
+            confirmGroup.classList.add('error');
+            if (!confirmGroup.querySelector('.error-message')) {
+                const errorMsg = document.createElement('small');
+                errorMsg.className = 'error-message';
+                errorMsg.textContent = '密碼不一致';
+                confirmGroup.appendChild(errorMsg);
+            }
+        } else {
+            confirmGroup.classList.remove('error');
+            const errorMsg = confirmGroup.querySelector('.error-message');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    }
+
+    function validatePhoneNumber(input) {
+        const phoneRegex = /^09\d{8}$/;
+        const isValid = phoneRegex.test(input.value);
+        const group = input.closest('.form-group');
+        
+        if (input.value && !isValid) {
+            group.classList.add('error');
+            if (!group.querySelector('.error-message')) {
+                const errorMsg = document.createElement('small');
+                errorMsg.className = 'error-message';
+                errorMsg.textContent = '請輸入正確的手機號碼格式';
+                group.appendChild(errorMsg);
+            }
+        } else {
+            group.classList.remove('error');
+            const errorMsg = group.querySelector('.error-message');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+    }
+
+    function validateForm() {
+        let isValid = true;
+
+        // 檢查必填欄位
+        const requiredFields = form.querySelectorAll('input[required], select[required]');
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                showFieldError(field, '此欄位為必填');
+                isValid = false;
+            }
+        });
+
+        // 檢查密碼強度
+        if (password1 && checkPasswordStrength(password1.value) < 2) {
+            showFieldError(password1, '密碼強度太弱');
+            isValid = false;
+        }
+
+        // 檢查密碼一致性
+        if (password1 && password2 && password1.value !== password2.value) {
+            showFieldError(password2, '密碼不一致');
+            isValid = false;
+        }
+
+        // 檢查條款同意
+        const termsCheckbox = form.querySelector('input[name="terms_agreement"]');
+        if (!termsCheckbox.checked) {
+            alert('請先同意服務條款和隱私權政策');
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    function showFieldError(field, message) {
+        const group = field.closest('.form-group');
+        group.classList.add('error');
+        
+        let errorMsg = group.querySelector('.error-message');
+        if (!errorMsg) {
+            errorMsg = document.createElement('small');
+            errorMsg.className = 'error-message';
+            group.appendChild(errorMsg);
+        }
+        errorMsg.textContent = message;
+    }
+
+    // 自動填入建議
+    const usernameInput = document.getElementById('{{ form.username.id_for_label }}');
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    
+    if (emailInput && usernameInput) {
+        emailInput.addEventListener('blur', function() {
+            if (this.value && !usernameInput.value) {
+                const suggestion = this.value.split('@')[0];
+                usernameInput.value = suggestion;
+                usernameInput.focus();
+            }
+        });
+    }
+});
+</script>
+
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}

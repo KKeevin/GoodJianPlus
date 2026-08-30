@@ -1,0 +1,152 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}隱私政策 - {{ site_name|default:"好健健 GoodJian Plus" }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="mb-4">隱私政策</h1>
+                    <p class="text-muted mb-4">最後更新日期：2025年12月31日</p>
+                    
+                    <section class="mb-5">
+                        <h2>1. 資料收集</h2>
+                        <p>好健健 GoodJian Plus（以下簡稱「我們」）致力於保護您的隱私。當您使用我們的服務時，我們可能會收集以下資訊：</p>
+                        <ul>
+                            <li><strong>個人識別資訊</strong>：姓名、電子郵件地址、電話號碼、地址等</li>
+                            <li><strong>帳號資訊</strong>：使用者名稱、密碼（加密儲存）、登入記錄等</li>
+                            <li><strong>交易資訊</strong>：訂單記錄、付款資訊、配送地址等</li>
+                            <li><strong>使用資訊</strong>：瀏覽記錄、購物車內容、偏好設定等</li>
+                            <li><strong>裝置資訊</strong>：IP 位址、瀏覽器類型、作業系統等</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>2. 資料使用目的</h2>
+                        <p>我們使用收集的資料用於以下目的：</p>
+                        <ul>
+                            <li>提供、維護和改善我們的服務</li>
+                            <li>處理您的訂單和付款</li>
+                            <li>與您溝通，包括訂單確認、客戶服務等</li>
+                            <li>發送行銷資訊（您可隨時取消訂閱）</li>
+                            <li>防範詐騙和確保服務安全</li>
+                            <li>遵守法律義務</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>3. 資料分享</h2>
+                        <p>我們不會出售您的個人資料。我們可能會在以下情況下分享您的資料：</p>
+                        <ul>
+                            <li><strong>服務供應商</strong>：與協助我們營運的第三方服務供應商（如物流公司、付款處理商）分享必要資訊</li>
+                            <li><strong>法律要求</strong>：當法律要求或為保護我們的權利時</li>
+                            <li><strong>業務轉讓</strong>：在合併、收購或資產出售的情況下</li>
+                            <li><strong>社交登入</strong>：當您使用 Facebook 或 Google 登入時，我們會取得您的姓名和電子郵件地址</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>4. 資料安全</h2>
+                        <p>我們採用業界標準的安全措施來保護您的個人資料，包括：</p>
+                        <ul>
+                            <li>使用 SSL/TLS 加密傳輸</li>
+                            <li>密碼加密儲存</li>
+                            <li>定期安全審查和更新</li>
+                            <li>限制資料存取權限</li>
+                        </ul>
+                        <p>儘管我們採取合理的安全措施，但無法保證資料傳輸和儲存的絕對安全。</p>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>5. Cookie 和追蹤技術</h2>
+                        <p>我們使用 Cookie 和類似技術來：</p>
+                        <ul>
+                            <li>記住您的登入狀態和偏好設定</li>
+                            <li>分析網站使用情況</li>
+                            <li>提供個人化體驗</li>
+                        </ul>
+                        <p>您可以透過瀏覽器設定管理 Cookie，但這可能會影響某些功能的使用。</p>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>6. 您的權利</h2>
+                        <p>您對個人資料享有以下權利：</p>
+                        <ul>
+                            <li><strong>存取權</strong>：要求查看我們持有的您的個人資料</li>
+                            <li><strong>更正權</strong>：要求更正不正確的個人資料</li>
+                            <li><strong>刪除權</strong>：要求刪除您的個人資料（請參閱<a href="{% url 'delete_account' %}">資料刪除說明</a>）</li>
+                            <li><strong>反對權</strong>：反對某些資料處理活動</li>
+                            <li><strong>資料可攜權</strong>：要求以結構化格式取得您的資料</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>7. 第三方服務</h2>
+                        <p>我們的服務可能包含第三方連結或服務，包括：</p>
+                        <ul>
+                            <li><strong>社交登入</strong>：Facebook、Google 等社交平台登入服務</li>
+                            <li><strong>付款處理</strong>：LINE Pay 等付款服務</li>
+                            <li><strong>分析工具</strong>：網站分析服務</li>
+                        </ul>
+                        <p>這些第三方服務有其自身的隱私政策，我們不對其資料處理行為負責。</p>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>8. 兒童隱私</h2>
+                        <p>我們的服務不針對 18 歲以下的兒童。我們不會故意收集兒童的個人資料。如果您是家長或監護人，發現您的孩子向我們提供了個人資料，請聯繫我們。</p>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>9. 政策變更</h2>
+                        <p>我們可能會不時更新本隱私政策。重大變更時，我們會透過電子郵件或網站公告通知您。繼續使用我們的服務即表示您接受更新後的政策。</p>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>10. 聯絡我們</h2>
+                        <p>如果您對本隱私政策有任何疑問或需要行使您的權利，請透過以下方式聯繫我們：</p>
+                        <ul>
+                            <li><strong>電子郵件</strong>：{{ contact_email|default:"service@goodjianplus.com" }}</li>
+                            <li><strong>電話</strong>：{{ contact_phone|default:"0800-892010" }}</li>
+                            <li><strong>地址</strong>：{{ contact_address|default:"台北市信義區健康路123號" }}</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 12px;
+}
+.card-body h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
+}
+.card-body h2 {
+    color: #34495e;
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+.card-body ul {
+    padding-left: 25px;
+}
+.card-body li {
+    margin-bottom: 10px;
+    line-height: 1.8;
+}
+.card-body p {
+    line-height: 1.8;
+    color: #555;
+}
+</style>
+{% endblock %}
+
+

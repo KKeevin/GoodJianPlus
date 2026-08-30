@@ -1,0 +1,155 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}完成資料設定 - 好健健 GoodJian Plus{% endblock %}
+
+<!-- header區塊 -->
+{% block head %}
+<link href="{% static 'css/auth.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+<!-- 內容區塊 -->
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-container login-container">
+            <div class="auth-header">
+                <img src="{% static 'img/common/Logo_white.png' %}" alt="好健健 Logo" class="auth-logo">
+                <h1 class="auth-title">歡迎使用好健健！</h1>
+                <p class="auth-subtitle">請設定您的電子郵件地址</p>
+            </div>
+
+            <!-- 更新表單 -->
+            <form method="post" class="auth-form" id="profileUpdateForm">
+                {% csrf_token %}
+                
+                <!-- 顯示錯誤訊息 -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if pending_request %}
+                <!-- 待驗證提示 -->
+                <div class="alert alert-warning" style="margin-bottom: 24px;">
+                    <i class="fas fa-envelope-open"></i>
+                    <div>
+                        <p style="margin: 0 0 8px 0; font-weight: 600;">驗證郵件已發送</p>
+                        <p style="margin: 0; font-size: 0.9rem;">我們已發送驗證郵件至 <strong>{{ pending_request.new_email }}</strong>，請檢查您的郵件並點擊確認連結以完成變更。</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 電子郵件 -->
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i>
+                        電子郵件 <span class="text-danger">*</span>
+                    </label>
+                    <input type="email" 
+                           name="email" 
+                           id="email"
+                           class="form-control" 
+                           placeholder="請輸入新的電子郵件地址"
+                           value="{% if pending_request %}{{ pending_request.new_email }}{% else %}{{ user.email }}{% endif %}"
+                           required
+                           autocomplete="email"
+                           {% if pending_request %}disabled{% endif %}>
+                    <small class="form-text">
+                        {% if pending_request %}
+                        請先完成當前待驗證的郵件變更，或等待驗證連結過期後重新申請
+                        {% else %}
+                        我們會發送驗證信到該信箱，確認後請點擊信中的連結<br/>（※請注意!! 更改信箱後無法變更，請謹慎操作）
+                        {% endif %}
+                    </small>
+                </div>
+
+                <!-- 提交按鈕 -->
+                <div class="form-actions">
+                    {% if pending_request %}
+                    <button type="button" class="btn btn-secondary btn-login" disabled>
+                        <i class="fas fa-hourglass-half"></i>
+                        等待郵件驗證中...
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-primary btn-login">
+                        <i class="fas fa-paper-plane"></i>
+                        發送驗證郵件
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-login" style="margin-top: 12px; display: block;">
+                        <i class="fas fa-clock"></i>
+                        下次再設定
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+<!-- 腳本區塊 -->
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('profileUpdateForm');
+    const emailInput = document.getElementById('email');
+    const submitBtn = form.querySelector('.btn-login');
+    
+    // 表單提交驗證
+    if (form && submitBtn && !submitBtn.disabled) {
+        form.addEventListener('submit', function(e) {
+            const email = emailInput.value.trim();
+            
+            if (!email || !email.includes('@')) {
+                e.preventDefault();
+                showAlert('請輸入有效的電子郵件', 'error');
+                return;
+            }
+            
+            // 添加加載狀態
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 發送中...';
+        });
+    }
+});
+
+function showAlert(message, type = 'info') {
+    // 移除現有的alert
+    const existingAlerts = document.querySelectorAll('.alert');
+    existingAlerts.forEach(alert => {
+        if (!alert.classList.contains('alert-info') || alert.querySelector('i.fa-info-circle')) {
+            // 保留提示訊息，只移除錯誤/成功訊息
+            if (!alert.querySelector('i.fa-info-circle')) {
+                alert.remove();
+            }
+        }
+    });
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.innerHTML = `
+        <p>${message}</p>
+        <button type="button" class="btn-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    const container = document.querySelector('.auth-form');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // 自動移除警告
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateY(-10px)';
+            setTimeout(() => alertDiv.remove(), 300);
+        }
+    }, 5000);
+}
+</script>
+
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+

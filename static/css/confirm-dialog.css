@@ -1,0 +1,304 @@
+/* 自訂確認對話框樣式 - 符合網站設計風格 */
+
+/* 對話框遮罩層 */
+.confirm-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 對話框容器 */
+.confirm-dialog {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 480px;
+    width: 100%;
+    overflow: hidden;
+    transform: scale(0.9) translateY(20px);
+    animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    position: relative;
+}
+
+@keyframes slideUp {
+    from {
+        transform: scale(0.9) translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 對話框標題區域 */
+.confirm-dialog-header {
+    background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+    padding: 24px 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.confirm-dialog-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #4CAF50, transparent);
+    opacity: 0.8;
+}
+
+.confirm-dialog-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 32px;
+    color: white;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+    }
+}
+
+.confirm-dialog-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    text-align: center;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 對話框內容區域 */
+.confirm-dialog-body {
+    padding: 30px;
+    text-align: center;
+}
+
+.confirm-dialog-message {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    font-weight: 500;
+}
+
+.confirm-dialog-message strong {
+    color: #2D5B69;
+    font-weight: 700;
+}
+
+/* 對話框按鈕區域 */
+.confirm-dialog-footer {
+    padding: 20px 30px 30px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.confirm-dialog-btn {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Noto Sans TC', sans-serif;
+    position: relative;
+    overflow: hidden;
+}
+
+.confirm-dialog-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.confirm-dialog-btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.confirm-dialog-btn span,
+.confirm-dialog-btn i {
+    position: relative;
+    z-index: 1;
+}
+
+/* 確認按鈕（主要操作） */
+.confirm-dialog-btn-confirm {
+    background: linear-gradient(135deg, #4CAF50, #45A049);
+    color: white;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.confirm-dialog-btn-confirm:hover {
+    background: linear-gradient(135deg, #45A049, #3d8e40);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+    color: white;
+}
+
+.confirm-dialog-btn-confirm:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+/* 取消按鈕（次要操作） */
+.confirm-dialog-btn-cancel {
+    background: white;
+    color: #666;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.confirm-dialog-btn-cancel:hover {
+    background: #f8f9fa;
+    border-color: #2D5B69;
+    color: #2D5B69;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.confirm-dialog-btn-cancel:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* 危險操作按鈕（刪除等） */
+.confirm-dialog-btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.confirm-dialog-btn-danger:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    color: white;
+}
+
+.confirm-dialog-btn-danger:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* 響應式設計 */
+@media (max-width: 480px) {
+    .confirm-dialog {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .confirm-dialog-header {
+        padding: 20px;
+    }
+    
+    .confirm-dialog-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+        margin-bottom: 12px;
+    }
+    
+    .confirm-dialog-title {
+        font-size: 20px;
+    }
+    
+    .confirm-dialog-body {
+        padding: 24px 20px;
+    }
+    
+    .confirm-dialog-message {
+        font-size: 15px;
+    }
+    
+    .confirm-dialog-footer {
+        padding: 16px 20px 24px;
+        flex-direction: column;
+    }
+    
+    .confirm-dialog-btn {
+        width: 100%;
+    }
+}
+
+/* 關閉動畫 */
+.confirm-dialog-overlay.closing {
+    animation: fadeOut 0.2s ease forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.confirm-dialog.closing {
+    animation: slideDown 0.2s ease forwards;
+}
+
+@keyframes slideDown {
+    from {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.9) translateY(20px);
+        opacity: 0;
+    }
+}
+

@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+env/
+ENV/
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+*.sqlite3
+*.sqlite3-journal
+/media/
+/staticfiles/
+
+# 環境變數與機密（.env.example 可公開）
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+secrets.json
+credentials.json
+*.secret
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Cursor 本機設定
+.cursor/
+
+# 測試與覆蓋率
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# 日誌（保留空目錄）
+logs/*
+!logs/.gitkeep
+
+# 備份與資料庫傾印
+*.bak
+*.backup
+*.sql
+*.dump
+backups/
+
+# 本機私有筆記（正式機 SSH、IP、帳號等）
+docs/*.local.md
+docs/operations.local.md
+
+# 臨時文件
+*.tmp
+*.temp
+*.orig

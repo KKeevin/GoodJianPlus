@@ -1,0 +1,155 @@
+/* 登入逾時視窗樣式 */
+.session-timeout-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.session-timeout-modal {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease-out;
+    position: relative;
+}
+
+.session-timeout-icon {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.session-timeout-icon i {
+    font-size: 64px;
+    color: #ff9800;
+    animation: pulse 2s infinite;
+}
+
+.session-timeout-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.session-timeout-message {
+    font-size: 16px;
+    color: #666;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.session-timeout-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.session-timeout-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.session-timeout-btn-login {
+    background: linear-gradient(135deg, #2D5B69 0%, #1a3d47 100%);
+    color: white;
+}
+
+.session-timeout-btn-login:hover {
+    background: linear-gradient(135deg, #1a3d47 0%, #2D5B69 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(45, 91, 105, 0.4);
+}
+
+.session-timeout-btn-stay {
+    background: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.session-timeout-btn-stay:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 576px) {
+    .session-timeout-modal {
+        padding: 20px;
+        margin: 20px;
+    }
+    
+    .session-timeout-title {
+        font-size: 20px;
+    }
+    
+    .session-timeout-message {
+        font-size: 14px;
+    }
+    
+    .session-timeout-actions {
+        flex-direction: column;
+    }
+    
+    .session-timeout-btn {
+        width: 100%;
+    }
+}
+

@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# 開發與測試
+django-debug-toolbar>=4.2.0
+pytest-django>=4.7.0

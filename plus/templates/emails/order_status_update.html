@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單狀態更新</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .status-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .order-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">訂單狀態更新</div>
+        </div>
+        
+        <div class="content">
+            <h2 class="title">您的訂單狀態已更新</h2>
+            
+            <p>親愛的 {{ user.first_name|default:user.username }}，</p>
+            
+            <div class="status-box">
+                <p style="margin: 0;"><strong>訂單編號：</strong>{{ order.order_number }}</p>
+                <p style="margin: 5px 0 0 0;"><strong>新狀態：</strong>{{ status_display }}</p>
+            </div>
+            
+            <div class="order-info">
+                <table style="width: 100%;">
+                    <tr>
+                        <td style="padding: 8px; width: 40%;"><strong>訂單日期：</strong></td>
+                        <td style="padding: 8px;">{{ order.created_at|date:"Y年m月d日 H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>訂單狀態：</strong></td>
+                        <td style="padding: 8px;">{{ status_display }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>付款狀態：</strong></td>
+                        <td style="padding: 8px;">{{ order.get_payment_status_display }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>訂單總額：</strong></td>
+                        <td style="padding: 8px;">NT$ {{ order.total_amount|floatformat:0 }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="button-container">
+                <a href="{{ order_url }}" class="button">查看訂單詳情</a>
+            </div>
+            
+            <p>如有任何問題，請隨時聯繫我們的客服團隊。</p>
+        </div>
+        
+        <div class="footer">
+            <p>此郵件由系統自動發送，請勿直接回覆。</p>
+            <p>客服信箱：service@goodjianplus.com | 客服電話：0800-892010</p>
+            <p>&copy; 2025 好健健 GoodJian Plus. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

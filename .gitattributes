@@ -1,0 +1,28 @@
+# 自動處理行尾符
+* text=auto
+
+# 明確聲明你希望始終為 LF 的文件
+*.py text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# 明確聲明你希望始終為 CRLF 的文件
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二進制文件
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.avif binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+

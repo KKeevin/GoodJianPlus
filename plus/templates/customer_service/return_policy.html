@@ -1,0 +1,136 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}退換貨政策 - {{ site_name|default:"好健健 GoodJian Plus" }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="mb-4">退換貨政策</h1>
+                    <p class="text-muted mb-4">最後更新日期：2025年12月31日</p>
+                    
+                    <section class="mb-5">
+                        <h2>1. 退換貨期限</h2>
+                        <p>根據消費者保護法規定，您享有以下權利：</p>
+                        <ul>
+                            <li><strong>7 天鑑賞期</strong>：自收到商品之日起 7 天內，可申請退換貨</li>
+                            <li><strong>退換貨條件</strong>：商品需保持全新未使用、包裝完整、配件齊全</li>
+                            <li><strong>特殊商品</strong>：生鮮食品、個人衛生用品等不適用 7 天鑑賞期</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>2. 可退換貨情況</h2>
+                        <p>以下情況可申請退換貨：</p>
+                        <ul>
+                            <li>商品有瑕疵或損壞</li>
+                            <li>商品與訂單不符</li>
+                            <li>商品數量錯誤</li>
+                            <li>非個人因素導致商品無法使用</li>
+                            <li>7 天鑑賞期內，商品保持全新狀態</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>3. 不可退換貨情況</h2>
+                        <p>以下情況恕不接受退換貨：</p>
+                        <ul>
+                            <li>超過 7 天鑑賞期</li>
+                            <li>商品已使用、拆封或損壞</li>
+                            <li>商品包裝不完整或遺失</li>
+                            <li>商品配件或贈品遺失</li>
+                            <li>個人因素（不喜歡、尺寸不合等）且商品已使用</li>
+                            <li>生鮮食品、個人衛生用品等特殊商品</li>
+                            <li>特價商品或清倉商品（除非有瑕疵）</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>4. 退換貨流程</h2>
+                        <ol>
+                            <li><strong>申請退換貨</strong>：請於「我的訂單」頁面點選「申請退換貨」，或聯繫客服</li>
+                            <li><strong>填寫退換貨原因</strong>：請詳細說明退換貨原因，並上傳商品照片</li>
+                            <li><strong>審核確認</strong>：我們將於 1-2 個工作天內審核您的申請</li>
+                            <li><strong>寄回商品</strong>：審核通過後，請將商品包裝完整寄回指定地址</li>
+                            <li><strong>退款/換貨處理</strong>：收到商品並確認無誤後，將於 3-5 個工作天內完成退款或換貨</li>
+                        </ol>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>5. 退款方式</h2>
+                        <p>退款將依原付款方式退回：</p>
+                        <ul>
+                            <li><strong>信用卡付款</strong>：退款將退回原信用卡，約 7-14 個工作天</li>
+                            <li><strong>LINE Pay</strong>：退款將退回原 LINE Pay 帳戶，約 3-5 個工作天</li>
+                            <li><strong>貨到付款</strong>：退款將匯入您指定的銀行帳戶，約 5-7 個工作天</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>6. 退換貨運費</h2>
+                        <ul>
+                            <li><strong>商品瑕疵或錯誤</strong>：由我們承擔退換貨運費</li>
+                            <li><strong>個人因素退換貨</strong>：退換貨運費由消費者自行負擔</li>
+                            <li><strong>換貨</strong>：新商品運費由我們承擔</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>7. 退換貨注意事項</h2>
+                        <ul>
+                            <li>請保持商品原包裝完整，包含所有配件、說明書、贈品等</li>
+                            <li>請使用原包裝或堅固的包裝材料寄回，避免商品在運送過程中損壞</li>
+                            <li>請勿在商品上書寫、標記或貼上任何標籤</li>
+                            <li>退換貨商品需為全新未使用狀態</li>
+                            <li>如因包裝不當導致商品損壞，我們將無法受理退換貨</li>
+                        </ul>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>8. 聯絡我們</h2>
+                        <p>如有任何退換貨相關問題，歡迎聯繫我們：</p>
+                        <ul>
+                            <li><strong>電子郵件</strong>：{{ contact_email|default:"service@goodjianplus.com" }}</li>
+                            <li><strong>電話</strong>：{{ contact_phone|default:"0800-892010" }}</li>
+                            <li><strong>服務時間</strong>：週一至週五 09:00-18:00（例假日除外）</li>
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 12px;
+}
+.card-body h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
+}
+.card-body h2 {
+    color: #34495e;
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+.card-body ul, .card-body ol {
+    padding-left: 25px;
+}
+.card-body li {
+    margin-bottom: 10px;
+    line-height: 1.8;
+}
+.card-body p {
+    line-height: 1.8;
+    color: #555;
+}
+</style>
+{% endblock %}
+

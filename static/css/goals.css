@@ -1,0 +1,475 @@
+/* 目標管理頁面樣式 */
+
+.goals-section {
+    padding: 40px 0 60px;
+    background: #f8f9fa;
+    min-height: calc(100vh - 200px);
+}
+
+.goals-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.breadcrumb-nav {
+    margin-bottom: 30px;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+.breadcrumb-item a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #666;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2D5B69;
+    margin-bottom: 30px;
+}
+
+.goal-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #2D5B69 0%, #4CAF50 100%);
+    color: white;
+    padding: 20px;
+}
+
+.card-header .form-control-sm {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.card-header .form-control-sm:focus {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+}
+
+.card-header .form-control-sm::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.card-header input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-body {
+    padding: 30px;
+}
+
+/* 目標設定樣式 */
+.goal-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2D5B69;
+}
+
+.calculation-results {
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 2px solid #eee;
+}
+
+.calculation-results h3 {
+    color: #2D5B69;
+    margin-bottom: 20px;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.result-item {
+    padding: 20px;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-radius: 12px;
+    border-left: 4px solid #4CAF50;
+}
+
+.result-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.result-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2D5B69;
+}
+
+.nutrition-targets {
+    margin-top: 30px;
+}
+
+.nutrition-targets h4 {
+    color: #2D5B69;
+    margin-bottom: 20px;
+}
+
+.target-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.target-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.target-label {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.target-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #4CAF50;
+}
+
+/* 營養攝取樣式 */
+.nutrition-summary {
+    margin-bottom: 30px;
+}
+
+.summary-item {
+    margin-bottom: 20px;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summary-value {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.summary-value .current {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2D5B69;
+}
+
+.summary-value .target {
+    font-size: 1rem;
+    color: #999;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50 0%, #45a049 100%);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.nutrition-logs h4 {
+    color: #2D5B69;
+    margin-bottom: 20px;
+}
+
+#nutritionLogsList {
+    max-height: 400px; /* 約5-6筆記錄的高度 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+    margin-right: -8px;
+}
+
+/* 自定義滾動條樣式 */
+#nutritionLogsList::-webkit-scrollbar {
+    width: 8px;
+}
+
+#nutritionLogsList::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+#nutritionLogsList::-webkit-scrollbar-thumb {
+    background: #4CAF50;
+    border-radius: 10px;
+}
+
+#nutritionLogsList::-webkit-scrollbar-thumb:hover {
+    background: #45a049;
+}
+
+.log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    min-height: 60px; /* 確保每筆記錄有固定高度 */
+}
+
+.log-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.log-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.log-info {
+    flex: 1;
+}
+
+.log-food {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.log-details {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* 體重記錄樣式 */
+.weight-chart-container {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.weight-logs-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.weight-log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.log-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.log-weight {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2D5B69;
+}
+
+.log-body-fat,
+.log-muscle {
+    font-size: 0.85rem;
+    color: #999;
+    margin-left: 15px;
+}
+
+/* 表單樣式 */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    width: 45%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* 食物搜尋樣式 */
+.food-search {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.food-search input {
+    flex: 1;
+}
+
+.food-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.food-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.food-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.food-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.food-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.food-info {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* 空狀態 */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .goals-section {
+        padding: 20px 0 40px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .goal-stats,
+    .result-grid,
+    .target-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .food-search {
+        flex-direction: column;
+    }
+}
+

@@ -1,0 +1,147 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}聯絡客服 - {{ site_name|default:"好健健 GoodJian Plus" }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="mb-4">聯絡客服</h1>
+                    <p class="text-muted mb-4">我們很樂意為您提供協助，請選擇最適合的聯絡方式</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="contact-card h-100 p-4 border rounded">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-envelope-fill text-primary" style="font-size: 3rem;"></i>
+                                </div>
+                                <h3 class="text-center mb-3">電子郵件</h3>
+                                <p class="text-center mb-3">透過電子郵件聯繫我們，我們會在 24 小時內回覆</p>
+                                <div class="text-center">
+                                    <a href="mailto:{{ contact_email|default:'service@goodjianplus.com' }}" class="btn btn-primary">
+                                        {{ contact_email|default:"service@goodjianplus.com" }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="contact-card h-100 p-4 border rounded">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-telephone-fill text-success" style="font-size: 3rem;"></i>
+                                </div>
+                                <h3 class="text-center mb-3">電話客服</h3>
+                                <p class="text-center mb-3">週一至週五 09:00-18:00<br>（例假日除外）</p>
+                                <div class="text-center">
+                                    <a href="tel:{{ contact_phone|default:'0800-892010' }}" class="btn btn-success">
+                                        {{ contact_phone|default:"0800-892010" }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="contact-info-card p-4 bg-light rounded">
+                                <h3 class="mb-3">服務資訊</h3>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <h5><i class="bi bi-clock"></i> 服務時間</h5>
+                                        <p>週一至週五：09:00 - 18:00<br>週六、週日及例假日：休息</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <h5><i class="bi bi-geo-alt"></i> 地址</h5>
+                                        <p>{{ contact_address|default:"高雄市大豐二路107號5F" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="quick-links p-4 bg-light rounded">
+                                <h3 class="mb-3">快速連結</h3>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'shipping_info' %}" class="text-decoration-none">
+                                            <i class="bi bi-truck"></i> 配送資訊
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'return_policy' %}" class="text-decoration-none">
+                                            <i class="bi bi-arrow-repeat"></i> 退換貨政策
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'faq' %}" class="text-decoration-none">
+                                            <i class="bi bi-question-circle"></i> 常見問題
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <a href="{% url 'order_list' %}" class="text-decoration-none">
+                                            <i class="bi bi-list-ul"></i> 我的訂單
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h5><i class="bi bi-info-circle"></i> 聯絡前準備</h5>
+                                <p class="mb-0">為了更快速地為您服務，建議您準備以下資訊：</p>
+                                <ul class="mb-0 mt-2">
+                                    <li>訂單編號（如有）</li>
+                                    <li>問題描述及相關截圖</li>
+                                    <li>您的帳號資訊（電子郵件或手機號碼）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 12px;
+}
+.card-body h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
+}
+.contact-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.contact-info-card h5 {
+    color: #34495e;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.quick-links a {
+    color: #3498db;
+    display: block;
+    padding: 8px 0;
+}
+.quick-links a:hover {
+    color: #2980b9;
+    text-decoration: underline !important;
+}
+</style>
+{% endblock %}
+

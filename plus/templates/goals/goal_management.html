@@ -1,0 +1,601 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% load math_filters %}
+{% block title %}目標管理 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/goals.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="goals-section">
+    <div class="container">
+        <div class="goals-container">
+            <!-- 麵包屑導航 -->
+            <nav aria-label="breadcrumb" class="breadcrumb-nav">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">首頁</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'profile' %}">我的帳戶</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">目標管理</li>
+                </ol>
+            </nav>
+
+            <h1 class="page-title">目標管理</h1>
+
+            <!-- 目標設定卡片 -->
+            <div class="goal-card">
+                <div class="card-header">
+                    <h2><i class="bi bi-bullseye"></i> 目標設定</h2>
+                    <button class="btn btn-sm btn-light mt-1" onclick="editGoal()">
+                        <i class="bi bi-pencil"></i> 編輯
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form id="goalForm" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目標類型</label>
+                                    <select name="goal_type" class="form-control" required>
+                                        <option value="lose_weight" {% if goal.goal_type == 'lose_weight' %}selected{% endif %}>減重</option>
+                                        <option value="maintain" {% if goal.goal_type == 'maintain' %}selected{% endif %}>維持體重</option>
+                                        <option value="gain_weight" {% if goal.goal_type == 'gain_weight' %}selected{% endif %}>增重</option>
+                                        <option value="build_muscle" {% if goal.goal_type == 'build_muscle' %}selected{% endif %}>增肌</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>活動強度</label>
+                                    <select name="activity_level" class="form-control" required>
+                                        <option value="sedentary" {% if goal.activity_level == 'sedentary' %}selected{% endif %}>久坐不動（幾乎不運動）</option>
+                                        <option value="light" {% if goal.activity_level == 'light' %}selected{% endif %}>輕度活動（每週1-3天運動）</option>
+                                        <option value="moderate" {% if goal.activity_level == 'moderate' %}selected{% endif %}>中度活動（每週3-5天運動）</option>
+                                        <option value="active" {% if goal.activity_level == 'active' %}selected{% endif %}>高度活動（每週6-7天運動）</option>
+                                        <option value="very_active" {% if goal.activity_level == 'very_active' %}selected{% endif %}>極高度活動（每天劇烈運動）</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>目前體重（kg）</label>
+                                    <input type="number" name="current_weight" class="form-control" step="0.1" value="{% if goal.current_weight %}{{ goal.current_weight|floatformat:1 }}{% endif %}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>目標體重（kg）</label>
+                                    <input type="number" name="target_weight" class="form-control" step="0.1" value="{% if goal.target_weight %}{{ goal.target_weight|floatformat:1 }}{% elif goal.current_weight %}{{ goal.current_weight|floatformat:1 }}{% endif %}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>身高（cm）</label>
+                                    <input type="number" name="height" class="form-control" step="0.1" value="{% if goal.height %}{{ goal.height|floatformat:1 }}{% endif %}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>年齡</label>
+                                    <input type="number" name="age" class="form-control" value="{{ goal.age|default:'' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>性別</label>
+                                    <select name="gender" class="form-control" required>
+                                        <option value="">請選擇</option>
+                                        <option value="male" {% if goal.gender == 'male' %}selected{% endif %}>男性</option>
+                                        <option value="female" {% if goal.gender == 'female' %}selected{% endif %}>女性</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <h4 style="margin-top: 20px; margin-bottom: 15px; color: #2D5B69;">身體組成目標</h4>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目前肌肉比例（%）</label>
+                                    <input type="number" name="current_muscle_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.current_muscle_percentage|default:'' }}" placeholder="例如：40">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目標肌肉比例（%）</label>
+                                    <input type="number" name="target_muscle_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.target_muscle_percentage|default:'' }}" placeholder="例如：45（提升5%）">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目前脂肪比例（%）</label>
+                                    <input type="number" name="current_fat_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.current_fat_percentage|default:'' }}" placeholder="例如：20">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目標脂肪比例（%）</label>
+                                    <input type="number" name="target_fat_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.target_fat_percentage|default:'' }}" placeholder="例如：15（降低5%）">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目前骨骼比例（%）</label>
+                                    <input type="number" name="current_bone_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.current_bone_percentage|default:'' }}" placeholder="例如：15">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目標骨骼比例（%）</label>
+                                    <input type="number" name="target_bone_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.target_bone_percentage|default:'' }}" placeholder="例如：16">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目前水分比例（%）</label>
+                                    <input type="number" name="current_water_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.current_water_percentage|default:'' }}" placeholder="例如：60">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>目標水分比例（%）</label>
+                                    <input type="number" name="target_water_percentage" class="form-control" step="0.1" min="0" max="100" value="{{ goal.target_water_percentage|default:'' }}" placeholder="例如：62">
+                                    <small class="text-muted">佔體重的百分比</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">儲存</button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelEditGoal()">取消</button>
+                        </div>
+                    </form>
+                    <div id="goalDisplay">
+                        <div class="goal-stats">
+                            <div class="stat-item">
+                                <div class="stat-label">目標類型</div>
+                                <div class="stat-value">{{ goal.get_goal_type_display|default:"未設定" }}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">目前體重</div>
+                                <div class="stat-value">{% if goal.current_weight %}{{ goal.current_weight|floatformat:1 }} kg{% else %}未設定{% endif %}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">目標體重</div>
+                                <div class="stat-value">{% if goal.target_weight %}{{ goal.target_weight|floatformat:1 }} kg{% else %}未設定{% endif %}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">活動強度</div>
+                                <div class="stat-value">{{ goal.get_activity_level_display|default:"未設定" }}</div>
+                            </div>
+                        </div>
+                        {% if goal.current_muscle_percentage or goal.target_muscle_percentage or goal.current_fat_percentage or goal.target_fat_percentage or goal.current_bone_percentage or goal.target_bone_percentage or goal.current_water_percentage or goal.target_water_percentage %}
+                        <div class="body-composition-section" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #eee;">
+                            <h3 style="color: #2D5B69; margin-bottom: 20px;">身體組成目標</h3>
+                            <div class="composition-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                                {% if goal.current_muscle_percentage or goal.target_muscle_percentage %}
+                                <div class="composition-item" style="padding: 20px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-radius: 12px; border-left: 4px solid #4CAF50;">
+                                    <div class="composition-label" style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">肌肉比例</div>
+                                    <div class="composition-current" style="font-size: 1.2rem; font-weight: 600; color: #2D5B69;">
+                                        目前: {{ goal.current_muscle_percentage|default:"未設定" }}{% if goal.current_muscle_percentage %}%{% endif %}
+                                        {% if goal.current_muscle_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.current_muscle_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    <div class="composition-target" style="font-size: 1.2rem; font-weight: 600; color: #4CAF50; margin-top: 5px;">
+                                        目標: {{ goal.target_muscle_percentage|default:"未設定" }}{% if goal.target_muscle_percentage %}%{% endif %}
+                                        {% if goal.target_muscle_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.target_muscle_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    {% if goal.current_muscle_percentage and goal.target_muscle_percentage %}
+                                    <div class="composition-change" style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                                        {% if goal.target_muscle_percentage > goal.current_muscle_percentage %}
+                                        <span style="color: #4CAF50;">↑ 提升 {{ goal.target_muscle_percentage|sub:goal.current_muscle_percentage|floatformat:1 }}%</span>
+                                        {% elif goal.target_muscle_percentage < goal.current_muscle_percentage %}
+                                        <span style="color: #f44336;">↓ 降低 {{ goal.current_muscle_percentage|sub:goal.target_muscle_percentage|floatformat:1 }}%</span>
+                                        {% else %}
+                                        <span>維持</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% if goal.current_fat_percentage or goal.target_fat_percentage %}
+                                <div class="composition-item" style="padding: 20px; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 12px; border-left: 4px solid #ff9800;">
+                                    <div class="composition-label" style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">脂肪比例</div>
+                                    <div class="composition-current" style="font-size: 1.2rem; font-weight: 600; color: #2D5B69;">
+                                        目前: {{ goal.current_fat_percentage|default:"未設定" }}{% if goal.current_fat_percentage %}%{% endif %}
+                                        {% if goal.current_fat_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.current_fat_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    <div class="composition-target" style="font-size: 1.2rem; font-weight: 600; color: #ff9800; margin-top: 5px;">
+                                        目標: {{ goal.target_fat_percentage|default:"未設定" }}{% if goal.target_fat_percentage %}%{% endif %}
+                                        {% if goal.target_fat_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.target_fat_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    {% if goal.current_fat_percentage and goal.target_fat_percentage %}
+                                    <div class="composition-change" style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                                        {% if goal.target_fat_percentage < goal.current_fat_percentage %}
+                                        <span style="color: #4CAF50;">↓ 降低 {{ goal.current_fat_percentage|sub:goal.target_fat_percentage|floatformat:1 }}%</span>
+                                        {% elif goal.target_fat_percentage > goal.current_fat_percentage %}
+                                        <span style="color: #f44336;">↑ 增加 {{ goal.target_fat_percentage|sub:goal.current_fat_percentage|floatformat:1 }}%</span>
+                                        {% else %}
+                                        <span>維持</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% if goal.current_bone_percentage or goal.target_bone_percentage %}
+                                <div class="composition-item" style="padding: 20px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 12px; border-left: 4px solid #2196f3;">
+                                    <div class="composition-label" style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">骨骼比例</div>
+                                    <div class="composition-current" style="font-size: 1.2rem; font-weight: 600; color: #2D5B69;">
+                                        目前: {{ goal.current_bone_percentage|default:"未設定" }}{% if goal.current_bone_percentage %}%{% endif %}
+                                        {% if goal.current_bone_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.current_bone_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    <div class="composition-target" style="font-size: 1.2rem; font-weight: 600; color: #2196f3; margin-top: 5px;">
+                                        目標: {{ goal.target_bone_percentage|default:"未設定" }}{% if goal.target_bone_percentage %}%{% endif %}
+                                        {% if goal.target_bone_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.target_bone_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    {% if goal.current_bone_percentage and goal.target_bone_percentage %}
+                                    <div class="composition-change" style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                                        {% if goal.target_bone_percentage > goal.current_bone_percentage %}
+                                        <span style="color: #4CAF50;">↑ 提升 {{ goal.target_bone_percentage|sub:goal.current_bone_percentage|floatformat:1 }}%</span>
+                                        {% elif goal.target_bone_percentage < goal.current_bone_percentage %}
+                                        <span style="color: #f44336;">↓ 降低 {{ goal.current_bone_percentage|sub:goal.target_bone_percentage|floatformat:1 }}%</span>
+                                        {% else %}
+                                        <span>維持</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                {% if goal.current_water_percentage or goal.target_water_percentage %}
+                                <div class="composition-item" style="padding: 20px; background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%); border-radius: 12px; border-left: 4px solid #009688;">
+                                    <div class="composition-label" style="font-size: 0.9rem; color: #666; margin-bottom: 8px;">水分比例</div>
+                                    <div class="composition-current" style="font-size: 1.2rem; font-weight: 600; color: #2D5B69;">
+                                        目前: {{ goal.current_water_percentage|default:"未設定" }}{% if goal.current_water_percentage %}%{% endif %}
+                                        {% if goal.current_water_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.current_water_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    <div class="composition-target" style="font-size: 1.2rem; font-weight: 600; color: #009688; margin-top: 5px;">
+                                        目標: {{ goal.target_water_percentage|default:"未設定" }}{% if goal.target_water_percentage %}%{% endif %}
+                                        {% if goal.target_water_weight %}<span style="font-size: 0.9rem; color: #666; margin-left: 8px;">({{ goal.target_water_weight|floatformat:1 }} kg)</span>{% endif %}
+                                    </div>
+                                    {% if goal.current_water_percentage and goal.target_water_percentage %}
+                                    <div class="composition-change" style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                                        {% if goal.target_water_percentage > goal.current_water_percentage %}
+                                        <span style="color: #4CAF50;">↑ 提升 {{ goal.target_water_percentage|sub:goal.current_water_percentage|floatformat:1 }}%</span>
+                                        {% elif goal.target_water_percentage < goal.current_water_percentage %}
+                                        <span style="color: #f44336;">↓ 降低 {{ goal.current_water_percentage|sub:goal.target_water_percentage|floatformat:1 }}%</span>
+                                        {% else %}
+                                        <span>維持</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if goal.bmr %}
+                        <div class="calculation-results">
+                            <h3>計算結果</h3>
+                            <div class="result-grid">
+                                <div class="result-item">
+                                    <div class="result-label">基礎代謝率（BMR）</div>
+                                    <div class="result-value">{{ goal.bmr|floatformat:0 }} 大卡</div>
+                                </div>
+                                <div class="result-item">
+                                    <div class="result-label">總每日能量消耗（TDEE）</div>
+                                    <div class="result-value">{{ goal.tdee|floatformat:0 }} 大卡</div>
+                                </div>
+                            </div>
+                            {% if goal.target_calories %}
+                            <div class="nutrition-targets">
+                                <h4>每日營養目標</h4>
+                                <div class="target-grid">
+                                    <div class="target-item">
+                                        <div class="target-label">目標熱量</div>
+                                        <div class="target-value">{{ goal.target_calories|floatformat:0 }} 大卡</div>
+                                    </div>
+                                    <div class="target-item">
+                                        <div class="target-label">蛋白質</div>
+                                        <div class="target-value">{{ goal.target_protein|floatformat:1 }} g</div>
+                                    </div>
+                                    <div class="target-item">
+                                        <div class="target-label">碳水化合物</div>
+                                        <div class="target-value">{{ goal.target_carbs|floatformat:1 }} g</div>
+                                    </div>
+                                    <div class="target-item">
+                                        <div class="target-label">脂肪</div>
+                                        <div class="target-value">{{ goal.target_fat|floatformat:1 }} g</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 今日營養攝取卡片 -->
+            <div class="goal-card">
+                <div class="card-header">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <h2 style="margin: 0;"><i class="bi bi-calendar-check"></i> <span id="nutritionDateTitle">今日營養攝取</span></h2>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="date" id="nutritionDatePicker" class="form-control form-control-sm date-input-enhanced" style="width: 160px;" onchange="loadNutritionByDate(this.value)">
+                                <button class="btn btn-sm btn-outline-light" onclick="resetNutritionDate()" title="回到今天">
+                                    <i class="bi bi-calendar-day"></i> 今天
+                                </button>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="showAddFoodModal()">
+                            <i class="bi bi-plus-circle"></i> 添加食物
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="nutrition-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">熱量</div>
+                            <div class="summary-value">
+                                <span class="current" id="nutritionCaloriesCurrent">{{ today_totals.calories|floatformat:0 }}</span>
+                                <span class="target" id="nutritionCaloriesTarget">/ {% if today_target and today_target.target_calories %}{{ today_target.target_calories|floatformat:0 }}{% else %}{{ goal.target_calories|floatformat:0|default:"0" }}{% endif %} 大卡</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="nutritionCaloriesProgress" style="width: {% if today_target and today_target.target_calories %}{{ today_totals.calories|mul:100|div:today_target.target_calories|floatformat:0 }}{% elif goal.target_calories %}{{ today_totals.calories|mul:100|div:goal.target_calories|floatformat:0 }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">蛋白質</div>
+                            <div class="summary-value">
+                                <span class="current" id="nutritionProteinCurrent">{{ today_totals.protein|floatformat:1 }}</span>
+                                <span class="target" id="nutritionProteinTarget">/ {% if today_target and today_target.target_protein %}{{ today_target.target_protein|floatformat:1 }}{% else %}{{ goal.target_protein|floatformat:1|default:"0" }}{% endif %} g</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="nutritionProteinProgress" style="width: {% if today_target and today_target.target_protein %}{{ today_totals.protein|mul:100|div:today_target.target_protein|floatformat:0 }}{% elif goal.target_protein %}{{ today_totals.protein|mul:100|div:goal.target_protein|floatformat:0 }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">碳水化合物</div>
+                            <div class="summary-value">
+                                <span class="current" id="nutritionCarbsCurrent">{{ today_totals.carbs|floatformat:1 }}</span>
+                                <span class="target" id="nutritionCarbsTarget">/ {% if today_target and today_target.target_carbs %}{{ today_target.target_carbs|floatformat:1 }}{% else %}{{ goal.target_carbs|floatformat:1|default:"0" }}{% endif %} g</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="nutritionCarbsProgress" style="width: {% if today_target and today_target.target_carbs %}{{ today_totals.carbs|mul:100|div:today_target.target_carbs|floatformat:0 }}{% elif goal.target_carbs %}{{ today_totals.carbs|mul:100|div:goal.target_carbs|floatformat:0 }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">脂肪</div>
+                            <div class="summary-value">
+                                <span class="current" id="nutritionFatCurrent">{{ today_totals.fat|floatformat:1 }}</span>
+                                <span class="target" id="nutritionFatTarget">/ {% if today_target and today_target.target_fat %}{{ today_target.target_fat|floatformat:1 }}{% else %}{{ goal.target_fat|floatformat:1|default:"0" }}{% endif %} g</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="nutritionFatProgress" style="width: {% if today_target and today_target.target_fat %}{{ today_totals.fat|mul:100|div:today_target.target_fat|floatformat:0 }}{% elif goal.target_fat %}{{ today_totals.fat|mul:100|div:goal.target_fat|floatformat:0 }}{% else %}0{% endif %}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="nutrition-logs">
+                        <h4 id="nutritionLogsTitle">今日飲食記錄</h4>
+                        <div id="nutritionLogsList">
+                            {% for log in today_nutrition_logs %}
+                            <div class="log-item" data-log-id="{{ log.id }}">
+                                <div class="log-info">
+                                    <div class="log-food">{{ log.food.name }}</div>
+                                    <div class="log-details">
+                                        <span>{{ log.quantity }} 份</span> · 
+                                        <span>{{ log.get_meal_type_display }}</span> · 
+                                        <span>{{ log.total_calories|floatformat:0 }} 大卡</span>
+                                    </div>
+                                </div>
+                                <div class="log-actions">
+                                    <button class="btn btn-sm btn-primary" onclick="editNutritionLog({{ log.id }}, '{{ log.food.name|escapejs }}', {{ log.quantity }}, '{{ log.meal_type }}', '{{ log.notes|default:""|escapejs }}')" title="編輯">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteNutritionLog({{ log.id }})" title="刪除">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>今天還沒有記錄任何食物</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 體重記錄卡片 -->
+            <div class="goal-card">
+                <div class="card-header">
+                    <h2><i class="bi bi-graph-up"></i> 體重記錄</h2>
+                    <button class="btn btn-sm btn-primary mt-1" onclick="showAddWeightModal()">
+                        <i class="bi bi-plus-circle"></i> 記錄體重
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="weight-chart-container">
+                        <div class="chart-controls" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <button id="btnOlderWeight" class="btn btn-sm btn-outline-secondary" onclick="loadOlderWeightLogs()" style="display: none;">
+                                <i class="bi bi-chevron-left"></i> 往左更舊記錄
+                            </button>
+                            <span id="weightLogInfo" style="color: #666; font-size: 0.9rem;"></span>
+                            <button id="btnNewerWeight" class="btn btn-sm btn-outline-secondary" onclick="loadNewerWeightLogs()" style="display: none;">
+                                往右更新記錄 <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                        <canvas id="weightChart"></canvas>
+                    </div>
+                    <div class="weight-logs-list">
+                        {% for log in recent_weight_logs %}
+                        <div class="weight-log-item">
+                            <div class="log-date">{{ log.recorded_at|date:"Y-m-d H:i" }}</div>
+                            <div class="log-weight">{{ log.weight|floatformat:1 }} kg</div>
+                            {% if log.body_fat %}<div class="log-body-fat">體脂率: {{ log.body_fat|floatformat:1 }}%</div>{% endif %}
+                            {% if log.muscle_mass %}<div class="log-muscle">肌肉量: {{ log.muscle_mass|floatformat:1 }} kg</div>{% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>還沒有體重記錄</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 添加食物模態框 -->
+<div class="modal fade" id="addFoodModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加食物</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="food-search">
+                    <input type="text" id="foodSearchInput" class="form-control" placeholder="搜尋食物...">
+                    <select id="foodCategoryFilter" class="form-control">
+                        <option value="">全部分類</option>
+                        <option value="grains">穀物類</option>
+                        <option value="vegetables">蔬菜類</option>
+                        <option value="fruits">水果類</option>
+                        <option value="meat">肉類</option>
+                        <option value="seafood">海鮮類</option>
+                        <option value="dairy">乳製品</option>
+                        <option value="nuts">堅果類</option>
+                        <option value="beverages">飲品</option>
+                        <option value="snacks">零食</option>
+                        <option value="others">其他</option>
+                    </select>
+                </div>
+                <div id="foodSearchResults" class="food-results"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加體重模態框 -->
+<div class="modal fade" id="addWeightModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">記錄體重</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="weightLogForm">
+                    <div class="form-group">
+                        <label>體重（kg）*</label>
+                        <input type="number" name="weight" id="weightInput" class="form-control" step="0.1" value="{{ goal.current_weight|default:'' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>身高（cm）</label>
+                        <input type="number" name="height" id="heightInput" class="form-control" step="0.1" value="{{ goal.height|default:'' }}" readonly style="background-color: #f5f5f5;">
+                        <small class="form-text text-muted">身高資料來自目標設定</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>體脂率（%）</label>
+                                <input type="number" name="body_fat" id="bodyFatInput" class="form-control" step="0.1" min="0" max="100" value="{{ goal.current_fat_percentage|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>肌肉量（kg）</label>
+                                <input type="number" name="muscle_mass" id="muscleMassInput" class="form-control" step="0.1" min="0">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 style="margin-top: 15px; margin-bottom: 15px; color: #2D5B69; font-size: 1rem;">身體組成（佔體重的百分比）</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>肌肉比例（%）</label>
+                                <input type="number" name="muscle_percentage" id="musclePercentageInput" class="form-control" step="0.1" min="0" max="100" placeholder="例如：40" value="{{ goal.current_muscle_percentage|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>脂肪比例（%）</label>
+                                <input type="number" name="fat_percentage" id="fatPercentageInput" class="form-control" step="0.1" min="0" max="100" placeholder="例如：20" value="{{ goal.current_fat_percentage|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>骨骼比例（%）</label>
+                                <input type="number" name="bone_percentage" id="bonePercentageInput" class="form-control" step="0.1" min="0" max="100" placeholder="例如：15" value="{{ goal.current_bone_percentage|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>水分比例（%）</label>
+                                <input type="number" name="water_percentage" id="waterPercentageInput" class="form-control" step="0.1" min="0" max="100" placeholder="例如：60" value="{{ goal.current_water_percentage|default:'' }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>備註</label>
+                        <textarea name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">儲存</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+window.GOALS_CONFIG = {
+    updateGoalUrl: '{% url "update_goal" %}',
+    foodSearchApiUrl: '{% url "food_search_api" %}',
+    addNutritionLogUrl: '{% url "add_nutrition_log" %}',
+    nutritionLogApiUrl: '{% url "nutrition_log_api" %}',
+    addWeightLogUrl: '{% url "add_weight_log" %}',
+    updateNutritionLogUrlTemplate: '{% url "update_nutrition_log" 0 %}',
+    deleteNutritionLogUrlTemplate: '{% url "delete_nutrition_log" 0 %}',
+    weightLogApiUrl: '{% url "weight_log_api" %}',
+    csrfToken: '{{ csrf_token }}'
+};
+</script>
+<script src="{% static 'js/goals.js' %}?v={{ static_version }}"></script>
+{% endblock %}
+

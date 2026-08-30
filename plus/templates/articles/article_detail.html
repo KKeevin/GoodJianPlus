@@ -1,0 +1,189 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}{{ article.title }} - {{ site_name|default:"好健健 GoodJian Plus" }}{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/articles.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/lightbox.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="article-detail-section">
+    <div class="container">
+        <div class="article-detail-layout">
+            <!-- 主內容 -->
+            <main class="article-detail-main">
+                <!-- 文章標題區 -->
+                <div class="article-detail-header">
+                    <div class="article-breadcrumb">
+                        <a href="{% url 'home' %}">首頁</a>
+                        <span>></span>
+                        <a href="{% url 'articles_list' %}">健康專欄</a>
+                        <span>></span>
+                        <a href="{% url 'articles_list' %}?category={{ article.category.slug }}">{{ article.category.name }}</a>
+                        <span>></span>
+                        <span>{{ article.title }}</span>
+                    </div>
+                    
+                    <div class="article-meta-top">
+                        <span class="article-category">
+                            <i class="bi bi-folder"></i> {{ article.category.name }}
+                        </span>
+                        {% if article.is_featured %}
+                        <span class="article-badge featured">精選文章</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h1 class="article-detail-title">{{ article.title }}</h1>
+                    
+                    <div class="article-meta-info">
+                        <div class="meta-item">
+                            <i class="bi bi-person"></i>
+                            <span>{{ article.display_author }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-calendar"></i>
+                            <span>{{ article.published_at|date:"Y年m月d日" }}</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-eye"></i>
+                            <span>{{ article.view_count }} 次瀏覽</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 封面圖片 -->
+                {% if article.cover_image %}
+                <div class="article-cover-image">
+                    <img src="{{ article.cover_image.url }}" alt="{{ article.title }}">
+                </div>
+                {% endif %}
+
+                <!-- 文章內容 -->
+                <div class="article-detail-content">
+                    {{ article.content|safe }}
+                </div>
+
+                <!-- 相關圖片 -->
+                {% if article.images.exists %}
+                <div class="article-related-images">
+                    <h3><i class="bi bi-images"></i> 相關圖片</h3>
+                    <div class="related-images-grid">
+                        {% for image in article.images.all %}
+                        <div class="related-image-item" onclick="openImageLightbox({{ forloop.counter0 }})">
+                            <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:article.title }}" loading="lazy">
+                            {% if image.caption %}
+                            <p class="image-caption">{{ image.caption }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- 文章標籤和分享 -->
+                <div class="article-actions">
+                    <div class="article-tags">
+                        <i class="bi bi-tags"></i>
+                        <span>標籤：</span>
+                        {% if article.category %}
+                        <a href="{% url 'articles_list' %}?category={{ article.category.slug }}" class="tag">{{ article.category.name }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </main>
+
+            <!-- 側邊欄 -->
+            <aside class="article-detail-sidebar">
+                <!-- 相關文章 -->
+                {% if related_articles %}
+                <div class="sidebar-card">
+                    <h3><i class="bi bi-journal-text"></i> 相關文章</h3>
+                    <ul class="related-articles-list">
+                        {% for related in related_articles %}
+                        <li>
+                            <a href="{% url 'article_detail' related.slug %}">
+                                {% if related.cover_image %}
+                                <img src="{{ related.cover_image.url }}" alt="{{ related.title }}" class="related-article-thumb">
+                                {% endif %}
+                                <div class="related-article-info">
+                                    <h4>{{ related.title }}</h4>
+                                    <span class="related-article-date">{{ related.published_at|date:"Y/m/d" }}</span>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- 分類列表 -->
+                <div class="sidebar-card">
+                    <h3><i class="bi bi-list-ul"></i> 文章分類</h3>
+                    <ul class="category-list">
+                        {% for category in categories %}
+                        <li>
+                            <a href="{% url 'articles_list' %}?category={{ category.slug }}">
+                                <i class="bi bi-circle-fill"></i> {{ category.name }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+<!-- 圖片瀏覽視窗 (Lightbox) -->
+{% if article.images.exists %}
+<div id="imageLightbox" class="image-lightbox" onclick="closeImageLightbox(event)">
+    <button class="lightbox-close" onclick="closeImageLightbox(event)">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <button class="lightbox-prev" onclick="changeLightboxImage(-1, event)">
+        <i class="bi bi-chevron-left"></i>
+    </button>
+    <button class="lightbox-next" onclick="changeLightboxImage(1, event)">
+        <i class="bi bi-chevron-right"></i>
+    </button>
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <img id="lightboxImage" src="" alt="">
+        <div class="lightbox-caption" id="lightboxCaption"></div>
+        <div class="lightbox-counter">
+            <span id="lightboxCurrent">1</span> / <span id="lightboxTotal">{{ article.images.count }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'js/lightbox.js' %}?v={{ static_version }}"></script>
+<script>
+// 初始化 Lightbox - 需要從 Django 模板傳入圖片數據
+const articleImages = [
+    {% for image in article.images.all %}
+    {
+        url: "{{ image.image.url }}",
+        alt: "{{ image.alt_text|default:article.title|escapejs }}",
+        caption: "{{ image.caption|default:''|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// 將函數暴露到全局，供 HTML 中的 onclick 使用
+window.openImageLightbox = openImageLightbox;
+window.closeImageLightbox = closeImageLightbox;
+window.changeLightboxImage = changeLightboxImage;
+
+// 初始化
+document.addEventListener('DOMContentLoaded', function() {
+    if (articleImages.length > 0) {
+        initLightbox(articleImages);
+    }
+});
+</script>
+{% endblock %}
+

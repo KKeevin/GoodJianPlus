@@ -1,0 +1,381 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}結帳 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/cart.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/checkout.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="checkout-section">
+    <div class="container">
+        <div class="checkout-header" style="margin-bottom: 30px;">
+            <h1><i class="bi bi-cart-check"></i> 結帳</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">首頁</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'cart' %}">購物車</a></li>
+                    <li class="breadcrumb-item active">結帳</li>
+                </ol>
+            </nav>
+        </div>
+
+        <form method="post" id="checkoutForm">
+            {% csrf_token %}
+            <div class="checkout-container">
+                <!-- 左側：表單 -->
+                <div class="checkout-form">
+                    <!-- 收件人資訊 -->
+                    <div class="form-section">
+                        <h3 class="section-title">收件人資訊</h3>
+                        <div class="form-group">
+                            <label for="shipping_name">收件人姓名 <span style="color: red;">*</span></label>
+                            <input type="text" id="shipping_name" name="shipping_name" 
+                                   value="{{ user.first_name|default:user.username }}" required>
+                        </div>
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label for="shipping_phone">聯絡電話 <span style="color: red;">*</span></label>
+                                <input type="tel" id="shipping_phone" name="shipping_phone" 
+                                       value="{{ user.phone }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipping_email">電子郵件 <span style="color: red;">*</span></label>
+                                <input type="email" id="shipping_email" name="shipping_email" 
+                                       value="{{ user.email }}" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping_address">收件地址 <span style="color: red;">*</span></label>
+                            <textarea id="shipping_address" name="shipping_address" required>{{ user.address }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping_notes">配送備註（選填）</label>
+                            <textarea id="shipping_notes" name="shipping_notes" 
+                                      placeholder="例如：請在指定時間配送、放置於管理室等"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 配送方式 -->
+                    <div class="form-section">
+                        <h3 class="section-title">配送方式</h3>
+                        {% for method in shipping_methods %}
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="shipping_method" value="{{ method.id }}" 
+                                       {% if forloop.first %}checked{% endif %} required>
+                                <strong>{{ method.name }}</strong> - 
+                                {% if method.price > 0 %}
+                                    <span data-price="{{ method.price }}">NT${{ method.price|floatformat:0 }}</span>
+                                {% else %}
+                                    免運費
+                                {% endif %}
+                                <small class="text-muted">（約 {{ method.estimated_days }} 天送達）</small>
+                            </label>
+                            {% if method.description %}
+                            <p style="margin-left: 25px; color: #666; font-size: 0.9rem;">{{ method.description }}</p>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">目前無可用配送方式</p>
+                        {% endfor %}
+                    </div>
+
+                    <!-- 付款方式 -->
+                    <div class="form-section">
+                        <h3 class="section-title">付款方式</h3>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="payment_method" value="cod" required>
+                                <strong>貨到付款</strong>
+                                <small class="text-muted">（現金付款，收到商品時付款）</small>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="payment_method" value="test_payment" checked required>
+                                <strong>線上付款（測試）</strong>
+                                <small class="text-muted">（模擬支付，立即完成付款）</small>
+                            </label>
+                        </div>
+                        <!-- 未來可以添加其他支付方式 -->
+                        <!-- 
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="payment_method" value="ecpay">
+                                <strong>綠界科技 ECPay</strong>
+                                <small class="text-muted">（信用卡、ATM、超商代碼）</small>
+                            </label>
+                        </div>
+                        -->
+                    </div>
+                </div>
+
+                <!-- 右側：訂單摘要 -->
+                <div class="order-summary">
+                    <h3 class="section-title">訂單摘要</h3>
+                    
+                    <!-- 訂單商品 -->
+                    <div class="order-items">
+                        {% for item in items %}
+                        <div class="order-item">
+                            <img src="{% if item.product.images.exists %}{{ item.product.images.first.image.url }}{% else %}{% static 'img/products/default.png' %}{% endif %}" 
+                                 alt="{{ item.product.name }}" 
+                                 class="order-item-image">
+                            <div class="order-item-info">
+                                <div class="order-item-name">{{ item.product.name }}</div>
+                                <div class="order-item-meta">數量：{{ item.quantity }} × <span data-price="{{ item.product.price }}">NT${{ item.product.price|floatformat:0 }}</span></div>
+                            </div>
+                            <div class="order-item-price"><span data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- 優惠券 -->
+                    <div class="coupon-section">
+                        <label for="coupon_code" style="display: block; margin-bottom: 10px; font-weight: 600;">優惠券</label>
+                        <div class="coupon-input-group">
+                            <input type="text" id="coupon_code" name="coupon_code" placeholder="輸入優惠碼">
+                            <button type="button" onclick="applyCoupon()">使用</button>
+                        </div>
+                        <div id="coupon-message" style="margin-top: 10px; font-size: 0.9rem;"></div>
+                    </div>
+
+                    <!-- 金額明細 -->
+                    <div class="summary-item">
+                        <span>商品小計</span>
+                        <span data-price="{{ subtotal }}">NT${{ subtotal|floatformat:0 }}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>運費</span>
+                        <span id="shipping-display">
+                            {% if shipping_fee > 0 %}
+                                <span data-price="{{ shipping_fee }}">NT${{ shipping_fee|floatformat:0 }}</span>
+                            {% else %}
+                                免運費
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="summary-item">
+                        <span>稅額（5%）</span>
+                        <span data-price="{{ tax_amount }}">NT${{ tax_amount|floatformat:0 }}</span>
+                    </div>
+                    <div class="summary-item" id="discount-row" style="display: none;">
+                        <span style="color: #28a745;">折扣</span>
+                        <span style="color: #28a745;" id="discount-amount" data-price="0">-NT$0</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>總計</span>
+                        <span id="total-display" data-price="{{ total_amount }}">NT${{ total_amount|floatformat:0 }}</span>
+                    </div>
+
+                    <!-- 提交按鈕 -->
+                    <button type="submit" class="submit-order-btn" id="submitBtn">
+                        <i class="bi bi-check-circle"></i> 確認訂單
+                    </button>
+                    
+                    <p style="margin-top: 15px; font-size: 0.85rem; color: #666; text-align: center;">
+                        點擊確認訂單即表示您同意我們的服務條款
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+let appliedCoupon = null;
+let originalSubtotal = {{ subtotal }};
+let originalShipping = {{ shipping_fee }};
+let originalTax = {{ tax_amount }};
+let originalTotal = {{ total_amount }};
+
+// 格式化價格顯示
+function formatPrice(amount) {
+    return 'NT$' + Math.round(amount).toLocaleString('zh-TW');
+}
+
+// 更新價格顯示
+function updatePrices(data) {
+    // 更新運費
+    const shippingDisplay = document.getElementById('shipping-display');
+    if (data.shipping_fee > 0) {
+        shippingDisplay.innerHTML = '<span data-price="' + data.shipping_fee + '">' + formatPrice(data.shipping_fee) + '</span>';
+    } else {
+        shippingDisplay.textContent = '免運費';
+    }
+    
+    // 更新稅額
+    const taxElement = document.querySelector('.summary-item:nth-child(3) span:last-child');
+    if (taxElement) {
+        taxElement.setAttribute('data-price', data.tax_amount);
+        taxElement.textContent = formatPrice(data.tax_amount);
+    }
+    
+    // 更新折扣
+    const discountRow = document.getElementById('discount-row');
+    const discountAmount = document.getElementById('discount-amount');
+    if (data.discount_amount > 0) {
+        discountRow.style.display = 'flex';
+        discountAmount.setAttribute('data-price', data.discount_amount);
+        discountAmount.textContent = '-NT$' + Math.round(data.discount_amount).toLocaleString('zh-TW');
+    } else {
+        discountRow.style.display = 'none';
+        discountAmount.setAttribute('data-price', 0);
+        discountAmount.textContent = '-NT$0';
+    }
+    
+    // 更新總計
+    const totalDisplay = document.getElementById('total-display');
+    totalDisplay.setAttribute('data-price', data.total_amount);
+    totalDisplay.textContent = formatPrice(data.total_amount);
+}
+
+// 計算價格（優惠券和配送方式）
+function calculatePrice(showCouponMessage = false) {
+    const couponCode = document.getElementById('coupon_code').value.trim();
+    const shippingMethod = document.querySelector('input[name="shipping_method"]:checked');
+    const shippingMethodId = shippingMethod ? shippingMethod.value : null;
+    const messageDiv = document.getElementById('coupon-message');
+    
+    const formData = new FormData();
+    if (couponCode) {
+        formData.append('coupon_code', couponCode);
+    }
+    if (shippingMethodId) {
+        formData.append('shipping_method', shippingMethodId);
+    }
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    
+    fetch('{% url "calculate_checkout_price" %}', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updatePrices(data);
+            if (data.coupon) {
+                appliedCoupon = data.coupon.code;
+                if (showCouponMessage) {
+                    messageDiv.textContent = '優惠碼已套用';
+                    messageDiv.style.color = '#28a745';
+                }
+            } else {
+                appliedCoupon = null;
+                if (showCouponMessage && couponCode) {
+                    messageDiv.textContent = '優惠碼無效或不符合使用條件';
+                    messageDiv.style.color = '#dc3545';
+                }
+            }
+        } else {
+            appliedCoupon = null;
+            if (showCouponMessage) {
+                messageDiv.textContent = data.message;
+                messageDiv.style.color = '#dc3545';
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(data.message, 'error');
+                } else {
+                    alert(data.message);
+                }
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        appliedCoupon = null;
+        if (showCouponMessage) {
+            messageDiv.textContent = '計算價格時發生錯誤，請稍後再試';
+            messageDiv.style.color = '#dc3545';
+        } else {
+            if (typeof showToast === 'function') {
+                showToast('計算價格時發生錯誤，請稍後再試', 'error');
+            } else {
+                alert('計算價格時發生錯誤，請稍後再試');
+            }
+        }
+    });
+}
+
+// 優惠券驗證和應用
+function applyCoupon() {
+    const code = document.getElementById('coupon_code').value.trim();
+    const messageDiv = document.getElementById('coupon-message');
+    
+    if (!code) {
+        messageDiv.textContent = '請輸入優惠碼';
+        messageDiv.style.color = '#dc3545';
+        return;
+    }
+    
+    messageDiv.textContent = '優惠碼驗證中...';
+    messageDiv.style.color = '#17a2b8';
+    
+    // 計算價格（包含優惠券），並顯示優惠券訊息
+    calculatePrice(true);
+}
+
+// 配送方式改變時重新計算價格
+document.addEventListener('DOMContentLoaded', function() {
+    const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
+    shippingMethods.forEach(method => {
+        method.addEventListener('change', function() {
+            calculatePrice();
+        });
+    });
+    
+    // 優惠券輸入框按 Enter 時應用
+    const couponInput = document.getElementById('coupon_code');
+    if (couponInput) {
+        couponInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applyCoupon();
+            }
+        });
+    }
+});
+
+// 表單提交處理
+document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> 處理中...';
+    
+    // 表單會正常提交
+});
+
+// 表單驗證
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.style.borderColor = '#dc3545';
+            } else {
+                field.style.borderColor = '#ddd';
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('請填寫所有必填欄位');
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-check-circle"></i> 確認訂單';
+        }
+    });
+});
+</script>
+{% endblock %}
+

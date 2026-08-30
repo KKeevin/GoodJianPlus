@@ -1,0 +1,898 @@
+/* ========== 訂單頁面專用樣式 ========== */
+
+/* 訂單列表頁面 */
+.orders-section {
+    padding: 40px 0;
+    background: #f8f9fa;
+    min-height: 60vh;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.orders-header {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.orders-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.orders-header h1 i {
+    color: #4CAF50;
+    font-size: 1.2em;
+}
+
+.orders-breadcrumb {
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.orders-breadcrumb a {
+    color: #4CAF50;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.orders-breadcrumb a:hover {
+    color: #45A049;
+    text-decoration: underline;
+}
+
+.orders-breadcrumb span {
+    color: #999;
+}
+
+.order-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.order-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.order-header-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.order-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-header-right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.order-items {
+    margin-bottom: 20px;
+}
+
+.order-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.order-item:last-child {
+    margin-bottom: 0;
+}
+
+.order-item-image {
+    width: 80px;
+    height: 80px;
+    min-width: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.order-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-item-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+    font-size: 15px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.order-item-name a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.order-item-name a:hover {
+    color: #4CAF50;
+}
+
+.order-item-meta {
+    font-size: 0.9rem;
+    color: #666;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.order-item-price {
+    font-weight: 600;
+    color: #4CAF50;
+    font-size: 16px;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.order-footer-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-shipping-info {
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #666;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.order-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #4CAF50;
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.order-actions .btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.order-actions .btn-outline-primary {
+    background: white;
+    color: #4CAF50;
+    border: 2px solid #4CAF50;
+}
+
+.order-actions .btn-outline-primary:hover {
+    background: #4CAF50;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+}
+
+.order-actions .btn-primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.order-actions .btn-primary:hover {
+    background: #45A049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.order-actions .btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.order-actions .btn-success:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* 訂單詳情頁面 */
+.order-detail-section {
+    padding: 40px 0;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.order-detail-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.order-detail-card .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.order-detail-card .order-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.order-status {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pending { background: #ffc107; color: #333; }
+.status-confirmed { background: #17a2b8; color: white; }
+.status-processing { background: #007bff; color: white; }
+.status-shipped { background: #6c757d; color: white; }
+.status-delivered { background: #28a745; color: white; }
+.status-completed { background: #28a745; color: white; }
+.status-cancelled { background: #dc3545; color: white; }
+.status-refunded { background: #6c757d; color: white; }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.info-section h4 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.info-item {
+    margin-bottom: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #666;
+    margin-right: 10px;
+}
+
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+    overflow-x: auto;
+    display: block;
+}
+
+.order-items-table thead,
+.order-items-table tbody {
+    display: table;
+    width: 100%;
+}
+
+.order-items-table th,
+.order-items-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.order-items-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.order-items-table img {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.order-items-table .product-cell {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.order-items-table .product-cell > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.order-items-table .product-cell .product-link {
+    font-size: 0.9rem;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.order-items-table .product-cell .product-link:hover {
+    text-decoration: underline;
+}
+
+.price-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.price-row.total {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #e74c3c;
+    padding-top: 15px;
+    margin-top: 15px;
+    border-top: 2px solid #333;
+}
+
+.order-detail-card .order-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.order-detail-card .order-actions .btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.order-detail-card .order-actions .btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.order-detail-card .order-actions .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.order-detail-card .order-actions .btn-primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.order-detail-card .order-actions .btn-primary:hover {
+    background: #45A049;
+    transform: translateY(-2px);
+}
+
+.order-detail-card .order-actions .btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.order-detail-card .order-actions .btn-success:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+/* ========== 響應式設計 ========== */
+
+/* 平板設備 (768px - 992px) */
+@media (max-width: 992px) {
+    .orders-section,
+    .order-detail-section {
+        padding: 30px 0;
+    }
+
+    .orders-header,
+    .order-detail-card {
+        padding: 25px;
+    }
+
+    .order-card {
+        padding: 20px;
+    }
+
+    .info-grid {
+        gap: 25px;
+    }
+}
+
+/* 手機設備 (< 768px) */
+@media (max-width: 768px) {
+    .orders-section,
+    .order-detail-section {
+        padding: 20px 0;
+    }
+
+    .orders-header {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .orders-header h1 {
+        font-size: 1.6rem;
+        margin-bottom: 12px;
+    }
+
+    .orders-breadcrumb {
+        font-size: 0.85rem;
+    }
+
+    .order-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .order-header-right {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .order-number {
+        font-size: 1.1rem;
+    }
+
+    .order-item {
+        padding: 12px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .order-item-image {
+        width: 60px;
+        height: 60px;
+        min-width: 60px;
+    }
+
+    .order-item-info {
+        flex: 1 1 calc(100% - 80px);
+        min-width: 0;
+    }
+
+    .order-item-price {
+        flex: 1 1 100%;
+        margin-left: 0;
+        margin-top: 8px;
+        text-align: right;
+    }
+
+    .order-item-meta {
+        font-size: 0.85rem;
+    }
+
+    .order-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .order-footer-left {
+        width: 100%;
+    }
+
+    .order-total {
+        font-size: 1.2rem;
+    }
+
+    .order-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .order-actions .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+
+    /* 訂單詳情頁面 */
+    .order-detail-card {
+        padding: 20px;
+    }
+
+    .order-detail-card .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .order-detail-card .order-number {
+        font-size: 1.2rem;
+    }
+
+    .order-status {
+        padding: 6px 16px;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .info-section h4 {
+        font-size: 1rem;
+    }
+
+    .order-items-table {
+        font-size: 0.9rem;
+    }
+
+    .order-items-table th,
+    .order-items-table td {
+        padding: 10px 8px;
+    }
+
+    .order-items-table img {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+    }
+
+    .price-summary {
+        padding: 15px;
+    }
+
+    .price-row {
+        font-size: 0.95rem;
+    }
+
+    .price-row.total {
+        font-size: 1.2rem;
+    }
+
+    .order-detail-card .order-actions {
+        flex-direction: column;
+    }
+
+    .order-detail-card .order-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* 小手機設備 (< 480px) */
+@media (max-width: 480px) {
+    .orders-section,
+    .order-detail-section {
+        padding: 15px 0;
+    }
+
+    .orders-header {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .orders-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .orders-breadcrumb {
+        font-size: 0.8rem;
+        gap: 5px;
+    }
+
+    .order-card {
+        padding: 12px;
+        border-radius: 8px;
+    }
+
+    .order-header {
+        margin-bottom: 15px;
+        padding-bottom: 12px;
+    }
+
+    .order-number {
+        font-size: 1rem;
+    }
+
+    .order-date {
+        font-size: 0.85rem;
+    }
+
+    .order-item {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .order-item-image {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+    }
+
+    .order-item-name {
+        font-size: 0.9rem;
+    }
+
+    .order-item-meta {
+        font-size: 0.8rem;
+    }
+
+    .order-item-price {
+        font-size: 0.95rem;
+    }
+
+    .order-footer {
+        padding-top: 12px;
+        gap: 10px;
+    }
+
+    .order-shipping-info {
+        font-size: 0.85rem;
+    }
+
+    .order-total {
+        font-size: 1.1rem;
+    }
+
+    .order-actions .btn {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    /* 訂單詳情頁面 */
+    .order-detail-card {
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .order-detail-card .order-header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+
+    .order-detail-card .order-number {
+        font-size: 1.1rem;
+    }
+
+    .order-status {
+        padding: 5px 12px;
+        font-size: 0.85rem;
+    }
+
+    .info-grid {
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .info-section h4 {
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+    }
+
+    .info-item {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+    }
+
+    .order-items-table {
+        font-size: 0.85rem;
+    }
+
+    .order-items-table th,
+    .order-items-table td {
+        padding: 8px 5px;
+    }
+
+    .order-items-table th {
+        font-size: 0.85rem;
+    }
+
+    .order-items-table img {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+    }
+
+    .order-items-table .product-cell {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .order-items-table .product-cell > div {
+        flex: 1 1 100%;
+    }
+
+    .order-items-table .product-cell .product-link {
+        font-size: 0.8rem;
+    }
+
+    /* 在小手機上，將表格改為卡片式顯示 */
+    .order-items-table thead {
+        display: none;
+    }
+
+    .order-items-table tbody {
+        display: block;
+    }
+
+    .order-items-table tr {
+        display: block;
+        margin-bottom: 15px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+
+    .order-items-table td {
+        display: block;
+        padding: 8px 0;
+        text-align: left;
+        border-bottom: none;
+    }
+
+    .order-items-table td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #666;
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.85rem;
+    }
+
+    .order-items-table td:first-child {
+        padding-top: 0;
+    }
+
+    .order-items-table .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .order-items-table .product-cell:before {
+        display: none;
+    }
+
+    .price-summary {
+        padding: 12px;
+    }
+
+    .price-row {
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+    }
+
+    .price-row.total {
+        font-size: 1.1rem;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .order-detail-card .order-actions {
+        margin-top: 20px;
+        padding-top: 15px;
+        gap: 10px;
+    }
+
+    .order-detail-card .order-actions .btn {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}
+

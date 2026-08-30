@@ -1,0 +1,148 @@
+/* 日期輸入框優化樣式 */
+/* 讓整個 input 框都可以點擊，而不只是圖標 */
+
+input[type="date"],
+input.date-input-enhanced {
+    position: relative;
+    cursor: pointer !important;
+    padding-right: 40px !important; /* 為日曆圖標留出空間 */
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    appearance: none;
+    touch-action: manipulation; /* 優化觸控響應 */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1); /* 觸控反饋 */
+    pointer-events: auto !important; /* 確保可以點擊 */
+    z-index: 1;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+/* 移除默認的日曆圖標（如果有的話），使用自定義樣式 */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input.date-input-enhanced::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: 0.6;
+    width: 24px;
+    height: 24px;
+    z-index: 2;
+    pointer-events: auto;
+    touch-action: manipulation;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input.date-input-enhanced::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* 確保整個 input 框都可以點擊 - 移除可能阻擋的偽元素 */
+input[type="date"]::before,
+input.date-input-enhanced::before {
+    display: none; /* 移除可能阻擋點擊的偽元素 */
+}
+
+/* 確保 input 框本身可以接收點擊事件 */
+input[type="date"]:active,
+input.date-input-enhanced:active {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 優化日期輸入框的視覺效果 */
+input[type="date"]:focus {
+    border-color: #2D5B69;
+    box-shadow: 0 0 0 0.2rem rgba(45, 91, 105, 0.25);
+    outline: 0;
+}
+
+/* 自定義日曆圖標（可選） */
+input[type="date"] + .date-icon,
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.date-input-wrapper input[type="date"] {
+    width: 100%;
+}
+
+/* 針對不同尺寸的日期輸入框 */
+input[type="date"].form-control-sm {
+    padding-right: 35px !important;
+    font-size: 0.875rem;
+}
+
+input[type="date"].form-control-lg {
+    padding-right: 45px !important;
+    font-size: 1.25rem;
+}
+
+/* 響應式優化 */
+@media (max-width: 576px) {
+    input[type="date"],
+    input.date-input-enhanced {
+        padding-right: 35px !important;
+        font-size: 16px !important; /* 防止 iOS 自動縮放 */
+        min-height: 44px !important; /* iOS 推薦的最小觸控目標 */
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+        line-height: 1.5 !important;
+    }
+}
+
+/* 平板優化 */
+@media (min-width: 577px) and (max-width: 992px) {
+    input[type="date"],
+    input.date-input-enhanced {
+        min-height: 40px !important;
+        font-size: 16px !important;
+    }
+}
+
+/* 確保在表單中的日期輸入框也有良好的體驗 */
+.form-group input[type="date"],
+.form-control[type="date"] {
+    width: 100%;
+    min-width: 160px;
+}
+
+/* 針對目標管理頁面的日期選擇器特殊樣式 */
+#nutritionDatePicker {
+    cursor: pointer;
+    position: relative;
+}
+
+#nutritionDatePicker:focus {
+    border-color: #fff;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+/* 確保日期輸入框在各種情況下都能正常顯示 */
+input[type="date"]:invalid {
+    color: #666;
+}
+
+input[type="date"]:valid {
+    color: #333;
+}
+
+/* 針對 Firefox 瀏覽器 */
+@-moz-document url-prefix() {
+    input[type="date"] {
+        padding-right: 8px !important;
+    }
+    
+    input[type="date"]::-moz-calendar-picker-indicator {
+        cursor: pointer;
+        opacity: 0.6;
+    }
+    
+    input[type="date"]::-moz-calendar-picker-indicator:hover {
+        opacity: 1;
+    }
+}
+

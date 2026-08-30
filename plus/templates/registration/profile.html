@@ -1,0 +1,593 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% load math_filters %}
+{% block title %}我的帳戶 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/profile.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<script src="{% static 'js/profile.js' %}?v={{ static_version }}"></script>
+<script>
+    // 配置個人資料頁面 URLs
+    window.PROFILE_CONFIG = {
+        changePasswordUrl: '{% url "change_password" %}',
+        setPasswordUrl: '{% url "set_password" %}'
+    };
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="profile-section">
+    <div class="container">
+        <div class="profile-container">
+            <!-- 個人資料頭部 -->
+            <div class="profile-header">
+                <div class="profile-header-content">
+                    <div class="profile-avatar-wrapper">
+                        {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" alt="頭像" class="profile-avatar">
+                        {% else %}
+                        <div class="profile-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        {% endif %}
+                        <div class="verification-badge {% if user.is_verified %}verified{% else %}unverified{% endif %}">
+                            {% if user.is_verified %}
+                            <i class="bi bi-check-lg"></i>
+                            {% else %}
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <h1>{{ user.first_name|default:user.username }}</h1>
+                        <div class="profile-info-meta">
+                            <div class="profile-info-meta-item">
+                                <i class="bi bi-envelope"></i>
+                                <span>{{ user.email }}</span>
+                            </div>
+                            {% if user.phone %}
+                            <div class="profile-info-meta-item">
+                                <i class="bi bi-telephone"></i>
+                                <span>{{ user.phone }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="profile-info-meta-item">
+                                <i class="bi bi-calendar3"></i>
+                                <span>會員自 {{ user.date_joined|date:"Y年m月" }}</span>
+                            </div>
+                        </div>
+                        {% if not user.is_verified %}
+                        <div class="verification-status-card unverified">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span>帳號未驗證</span>
+                            <a href="{% url 'resend_verification_email' %}" style="margin-left: 10px; color: white; text-decoration: underline;">立即驗證</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 統計卡片 -->
+            <div class="stats-grid">
+                <a href="{% url 'order_list' %}" class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-bag-check"></i>
+                    </div>
+                    <div class="stat-value">{{ orders_count|default:0 }}</div>
+                    <div class="stat-label">總訂單數</div>
+                </a>
+                <a href="{% url 'wishlist' %}" class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-heart-fill"></i>
+                    </div>
+                    <div class="stat-value">{{ wishlist_count|default:0 }}</div>
+                    <div class="stat-label">收藏商品</div>
+                </a>
+                <a href="{% url 'notification_list' %}" class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-bell-fill"></i>
+                    </div>
+                    <div class="stat-value">{{ unread_notifications_count|default:0 }}</div>
+                    <div class="stat-label">未讀通知</div>
+                </a>
+                {% if has_goal %}
+                <a href="{% url 'goal_management' %}" class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-graph-up-arrow"></i>
+                    </div>
+                    <div class="stat-value">{{ weight_logs_count|default:0 }}</div>
+                    <div class="stat-label">體重記錄</div>
+                </a>
+                {% else %}
+                <a href="{% url 'goal_management' %}" class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="bi bi-plus-circle-fill"></i>
+                    </div>
+                    <div class="stat-value">建立</div>
+                    <div class="stat-label">目標管理</div>
+                </a>
+                {% endif %}
+            </div>
+
+
+            <!-- 標籤頁容器（包含滾動箭頭） -->
+            <div class="profile-tabs-wrapper">
+                <button class="tab-scroll-btn tab-scroll-left" id="tabScrollLeft" aria-label="向左滾動">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <div class="profile-tabs" id="profileTabs">
+                    <button class="tab-button active" onclick="switchTab(event, 'info')">
+                        <i class="bi bi-person-fill"></i>
+                        基本資料
+                    </button>
+                    <button class="tab-button" onclick="switchTab(event, 'fitness')">
+                        <i class="bi bi-activity"></i>
+                        健身資料
+                    </button>
+                    <button class="tab-button" onclick="switchTab(event, 'orders')">
+                        <i class="bi bi-bag-check"></i>
+                        我的訂單
+                    </button>
+                    <button class="tab-button" onclick="switchTab(event, 'security')">
+                        <i class="bi bi-shield-lock-fill"></i>
+                        帳戶安全
+                    </button>
+                </div>
+                <button class="tab-scroll-btn tab-scroll-right" id="tabScrollRight" aria-label="向右滾動">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <!-- 基本資料標籤頁 -->
+            <div id="info-tab" class="tab-content active">
+                <h3 style="margin-bottom: 25px; color: #2c3e50;">基本資料</h3>
+                
+                {% if needs_profile_update %}
+                <!-- 資料更新提示 -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin-bottom: 25px; color: white; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i class="bi bi-exclamation-circle-fill" style="font-size: 1.5rem;"></i>
+                                <h4 style="margin: 0; font-size: 1.1rem; font-weight: 600;">完成資料設定</h4>
+                            </div>
+                            <p style="margin: 0; font-size: 0.95rem; opacity: 0.95; line-height: 1.5;">
+                                您還有一次機會可以更新電子郵件，我們會發送驗證郵件到您填寫的新郵件地址，請點擊郵件中的確認連結以完成變更。
+                            </p>
+                        </div>
+                        <a href="{% url 'phone_profile_update' %}" class="btn" style="background: white; color: #667eea; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; white-space: nowrap;">
+                            <i class="bi bi-pencil-square"></i>
+                            立即更新
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <form method="post" action="{% url 'profile' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-person-badge"></i>
+                            使用者名稱
+                        </label>
+                        <input type="text" value="{{ user.username }}" disabled>
+                        <div class="form-help-text">
+                            <i class="bi bi-info-circle"></i>
+                            使用者名稱無法修改
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-envelope"></i>
+                            電子郵件
+                            {% if user.email_verified %}
+                            <span class="verification-badge" alt="電子郵件已認證">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            {% endif %}
+                        </label>
+                        <input type="email" value="{{ user.email }}" disabled>
+                        <div class="form-help-text">
+                            <i class="bi bi-info-circle"></i>
+                            {% if needs_profile_update %}
+                            您還有一次機會可以更新電子郵件，請點擊上方的「立即更新」按鈕
+                            {% else %}
+                            如需修改電子郵件，請聯繫客服
+                            {% endif %}
+                        </div>
+                        {% if not user.email_verified and user.email and '@temp.goodjian.shop' not in user.email %}
+                        <div style="margin-top: 10px;">
+                            <a href="{% url 'resend_verification_email' %}" class="btn btn-sm btn-outline-primary" style="padding: 6px 12px; font-size: 0.85rem;">
+                                <i class="bi bi-envelope-paper"></i> 發送驗證郵件
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-person"></i>
+                            姓名
+                        </label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="請輸入您的姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-telephone"></i>
+                            手機號碼
+                            {% if user.phone_verified %}
+                            <span class="verification-badge" alt="手機號碼已認證">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            {% endif %}
+                        </label>
+                        <input type="tel" name="phone" id="phone-input" value="{{ user.phone }}" placeholder="請輸入手機號碼" disabled>
+                        <div class="form-help-text">
+                            <i class="bi bi-info-circle"></i>
+                            <span id="phone-edit-hint" style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="enablePhoneEdit()">如需更新手機號碼，請點選我</span>
+                        </div>
+                        {% if not user.phone_verified and user.phone %}
+                        <div class="phone-verification-section" style="margin-top: 10px;">
+                            <button type="button" id="send-phone-code-btn" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-send"></i> 發送驗證碼
+                            </button>
+                            <div id="phone-verification-input" style="display: none; margin-top: 10px;">
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="text" id="phone-verification-code" placeholder="請輸入6位數驗證碼" maxlength="6" style="width: 150px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;">
+                                    <button type="button" id="verify-phone-btn" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-check-circle"></i> 驗證
+                                    </button>
+                                </div>
+                                <small class="text-muted" style="display: block; margin-top: 5px;">驗證碼已發送至您的手機，請在10分鐘內完成驗證</small>
+                            </div>
+                        </div>
+                        {% elif not user.phone %}
+                        <small class="form-text" style="display: block; margin-top: 5px; color: #6c757d;">請先填寫手機號碼並保存，然後點擊「發送驗證碼」進行驗證</small>
+                        {% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-calendar3"></i>
+                            生日
+                        </label>
+                        <input type="date" name="birthday" class="date-input-enhanced" value="{{ user.birthday|date:'Y-m-d' }}">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-geo-alt"></i>
+                            地址
+                        </label>
+                        <textarea name="address" rows="3" placeholder="請輸入您的地址">{{ user.address }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle-fill"></i>
+                        儲存變更
+                    </button>
+                </form>
+            </div>
+
+            <!-- 健身資料標籤頁 -->
+            <div id="fitness-tab" class="tab-content">
+                <h3 style="margin-bottom: 25px; color: #2c3e50;">健身資料</h3>
+                <form method="post" action="{% url 'profile_complete' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-gender-ambiguous"></i>
+                            性別
+                        </label>
+                        <select name="gender">
+                            <option value="">請選擇</option>
+                            <option value="M" {% if profile.gender == 'M' %}selected{% endif %}>男性</option>
+                            <option value="F" {% if profile.gender == 'F' %}selected{% endif %}>女性</option>
+                            <option value="O" {% if profile.gender == 'O' %}selected{% endif %}>其他</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <i class="bi bi-rulers"></i>
+                                身高 (cm)
+                            </label>
+                            <input type="number" name="height" value="{% if profile.height %}{{ profile.height|floatformat:1 }}{% endif %}" step="0.1" min="100" max="250" placeholder="例如：170.0">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <i class="bi bi-speedometer2"></i>
+                                體重 (kg)
+                            </label>
+                            <input type="number" name="weight" value="{% if profile.weight %}{{ profile.weight|floatformat:1 }}{% endif %}" step="0.1" min="30" max="300" placeholder="例如：65.5">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-bullseye"></i>
+                            健身目標
+                        </label>
+                        <input type="text" name="fitness_goal" value="{{ profile.fitness_goal }}" placeholder="例如：減重10公斤、增肌、提升體能等">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-shield-exclamation"></i>
+                            飲食限制
+                        </label>
+                        <textarea name="dietary_restrictions" rows="3" placeholder="例如：素食、無麩質、低鈉等">{{ profile.dietary_restrictions }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle-fill"></i>
+                        儲存變更
+                    </button>
+                </form>
+            </div>
+
+            <!-- 我的訂單標籤頁 -->
+            <div id="orders-tab" class="tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h3 style="margin: 0; color: #2c3e50;">我的訂單</h3>
+                    <a href="{% url 'order_list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-right"></i>
+                        查看全部訂單
+                    </a>
+                </div>
+                {% if recent_orders %}
+                <div class="orders-list-container">
+                    <ul class="recent-orders-list">
+                        {% for order in recent_orders %}
+                        <li class="recent-order-item order-item-clickable" onclick="window.location.href='{% url 'order_detail' order.id %}'">
+                            <div class="recent-order-info">
+                                <div class="recent-order-number">訂單 #{{ order.order_number }}</div>
+                                <div class="recent-order-date">{{ order.created_at|date:"Y年m月d日 H:i" }}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <span class="recent-order-status {{ order.payment_status }}">{{ order.get_payment_status_display }}</span>
+                                <div class="recent-order-amount" data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</div>
+                                <i class="bi bi-chevron-right" style="color: #6c757d; font-size: 1.2rem;"></i>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <div class="empty-state" style="padding: 60px 20px; text-align: center;">
+                    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
+                    <p style="font-size: 1.1rem; color: #6c757d; margin-bottom: 20px;">尚無訂單記錄</p>
+                    <!-- <a href="{% url 'products' %}" class="btn btn-primary">
+                        <i class="bi bi-cart-plus"></i>
+                        開始購物
+                    </a> -->
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 帳戶安全標籤頁 -->
+            <div id="security-tab" class="tab-content">
+                <h3 style="margin-bottom: 25px; color: #2c3e50;">帳戶安全</h3>
+                
+                <!-- 驗證狀態 -->
+                <div class="form-group">
+                    <label>
+                        <i class="bi bi-shield-check"></i>
+                        驗證狀態
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: {% if user.is_verified %}#d4edda{% else %}#fff3cd{% endif %}; border-radius: 12px; border: 2px solid {% if user.is_verified %}#28a745{% else %}#ffc107{% endif %};">
+                        {% if user.is_verified %}
+                        <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: #28a745;"></i>
+                        <div>
+                            <div style="font-weight: 600; color: #155724; margin-bottom: 5px;">已驗證</div>
+                            <div style="font-size: 0.9rem; color: #155724;">您的帳號已通過驗證</div>
+                        </div>
+                        {% else %}
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem; color: #ffc107;"></i>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #856404; margin-bottom: 5px;">未驗證</div>
+                            <div style="font-size: 0.9rem; color: #856404; margin-bottom: 10px;">請驗證您的電子郵件地址以享受完整服務</div>
+                            <a href="{% url 'resend_verification_email' %}" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.9rem;">
+                                <i class="bi bi-send-fill"></i>
+                                發送驗證郵件
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 密碼管理 -->
+                <div class="form-group">
+                    <label>
+                        <i class="bi bi-key-fill"></i>
+                        密碼管理
+                    </label>
+                    {% if not user.has_usable_password %}
+                    <!-- 沒有密碼的用戶：顯示設定密碼按鈕，點擊後才顯示表單 -->
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e0e0e0;">
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">目前密碼</div>
+                            <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 10px;">您目前尚未設定密碼</div>
+                            <div style="font-size: 0.85rem; color: #6c757d; font-style: italic;">手機登入/三方登入用戶可以選擇不設定密碼，如需設定請點選下方按鈕設定密碼</div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" onclick="showSetPasswordForm()" id="showSetPasswordBtn">
+                            <i class="bi bi-lock-fill"></i>
+                            設定密碼
+                        </button>
+                        <!-- 密碼設定表單（預設隱藏） -->
+                        <div id="setPasswordFormContainer" style="display: none; margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 12px; border: 2px solid #ffc107;">
+                            <form id="setPasswordForm">
+                                {% csrf_token %}
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label for="new_password_set" style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block;">
+                                        新密碼 <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           name="new_password" 
+                                           id="new_password_set"
+                                           class="form-control" 
+                                           placeholder="請輸入新密碼（至少8個字元）"
+                                           minlength="8"
+                                           required
+                                           autocomplete="new-password"
+                                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                                    <small class="form-text" style="display: block; margin-top: 5px; color: #6c757d; font-size: 0.85rem;">
+                                        密碼長度至少需要8個字元
+                                    </small>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 15px;">
+                                    <label for="confirm_password_set" style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block;">
+                                        確認密碼 <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="password" 
+                                           name="confirm_password" 
+                                           id="confirm_password_set"
+                                           class="form-control" 
+                                           placeholder="請再次輸入密碼"
+                                           minlength="8"
+                                           required
+                                           autocomplete="new-password"
+                                           style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;">
+                                    <small class="form-text" style="display: block; margin-top: 5px; color: #6c757d; font-size: 0.85rem;">
+                                        請再次輸入密碼以確認
+                                    </small>
+                                </div>
+                                <div id="setPasswordError" style="display: none; margin-bottom: 15px; padding: 10px; background: #f8d7da; color: #721c24; border-radius: 6px; font-size: 0.9rem;"></div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" class="btn btn-primary" onclick="submitSetPassword()" id="setPasswordBtn">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        確認設定
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="hideSetPasswordForm()">
+                                        <i class="bi bi-x-circle"></i>
+                                        取消
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- 已有密碼的用戶：顯示重設密碼按鈕 -->
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e0e0e0;">
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">目前密碼</div>
+                            <div style="font-size: 0.9rem; color: #6c757d;">密碼已加密儲存，無法查看</div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" onclick="openChangePasswordModal()">
+                            <i class="bi bi-arrow-repeat"></i>
+                            重設密碼
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 帳戶資訊 -->
+                <div class="form-group">
+                    <label>
+                        <i class="bi bi-info-circle"></i>
+                        帳戶資訊
+                    </label>
+                    <div style="padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e0e0e0;">
+                        <div style="display: grid; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #6c757d;">註冊時間：</span>
+                                <span style="font-weight: 600; color: #2c3e50;">{{ user.date_joined|date:"Y年m月d日" }}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #6c757d;">最後登入：</span>
+                                <span style="font-weight: 600; color: #2c3e50;">{{ user.last_login|date:"Y年m月d日 H:i"|default:"從未登入" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 密碼變更模態視窗 -->
+<div class="modal-overlay" id="changePasswordModal" onclick="if(event.target.id === 'changePasswordModal') closeChangePasswordModal(event)">
+    <div class="modal-dialog" onclick="event.stopPropagation()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="bi bi-key-fill"></i>
+                    變更密碼
+                </h3>
+                <button type="button" class="modal-close" onclick="closeChangePasswordModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-lock-fill"></i>
+                            原始密碼
+                        </label>
+                        <div class="password-input">
+                            <input type="password" 
+                                   id="old_password" 
+                                   name="old_password" 
+                                   class="form-control" 
+                                   placeholder="請輸入您的原始密碼"
+                                   required
+                                   autocomplete="current-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('old_password', 'oldPasswordIcon')">
+                                <i class="bi bi-eye" id="oldPasswordIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-lock-fill"></i>
+                            新密碼
+                        </label>
+                        <div class="password-input">
+                            <input type="password" 
+                                   id="new_password_modal" 
+                                   name="new_password" 
+                                   class="form-control" 
+                                   placeholder="請輸入新密碼（至少8個字元）"
+                                   required 
+                                   minlength="8"
+                                   autocomplete="new-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('new_password_modal', 'newPasswordModalIcon')">
+                                <i class="bi bi-eye" id="newPasswordModalIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-help-text">
+                            <i class="bi bi-info-circle"></i>
+                            密碼長度至少需要 8 個字元
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <i class="bi bi-lock-fill"></i>
+                            確認新密碼
+                        </label>
+                        <div class="password-input">
+                            <input type="password" 
+                                   id="confirm_password_modal" 
+                                   name="confirm_password" 
+                                   class="form-control" 
+                                   placeholder="請再次輸入新密碼"
+                                   required 
+                                   minlength="8"
+                                   autocomplete="new-password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirm_password_modal', 'confirmPasswordModalIcon')">
+                                <i class="bi bi-eye" id="confirmPasswordModalIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="passwordChangeError" class="alert alert-danger" style="display: none; margin-top: 15px;"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeChangePasswordModal()">
+                    <i class="bi bi-x-circle"></i>
+                    取消
+                </button>
+                <button type="button" class="btn btn-primary" id="submitChangePasswordBtn" onclick="submitChangePassword(event)">
+                    <i class="bi bi-check-circle-fill"></i>
+                    確認變更
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

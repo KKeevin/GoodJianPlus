@@ -1,0 +1,171 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}訂單詳情 - {{ order.order_number }} - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/account-pages.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/orders.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="order-detail-section">
+    <div class="container">
+        <div style="margin-bottom: 30px;">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">首頁</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'order_list' %}">我的訂單</a></li>
+                    <li class="breadcrumb-item active">訂單詳情</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="order-detail-card">
+            <div class="order-header">
+                <div>
+                    <div class="order-number">訂單編號：{{ order.order_number }}</div>
+                    <div style="color: #666; margin-top: 5px;">
+                        下單時間：{{ order.created_at|date:"Y年m月d日 H:i" }}
+                    </div>
+                </div>
+                <div>
+                    <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+                    {% if order.payment_status == 'pending' %}
+                    <span class="order-status" style="background: #ffc107; color: #333; margin-left: 10px; display: block; margin-top: 10px;">待付款</span>
+                    {% elif order.payment_status == 'paid' %}
+                    <span class="order-status" style="background: #28a745; color: white; margin-left: 10px; display: block; margin-top: 10px;">已付款</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-section">
+                    <h4><i class="bi bi-person"></i> 收件人資訊</h4>
+                    <div class="info-item">
+                        <span class="info-label">姓名：</span>{{ order.shipping_name }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">電話：</span>{{ order.shipping_phone }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">信箱：</span>{{ order.shipping_email }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">地址：</span>{{ order.shipping_address|linebreaks }}
+                    </div>
+                    {% if order.shipping_notes %}
+                    <div class="info-item">
+                        <span class="info-label">備註：</span>{{ order.shipping_notes }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="info-section">
+                    <h4><i class="bi bi-info-circle"></i> 訂單資訊</h4>
+                    <div class="info-item">
+                        <span class="info-label">訂單狀態：</span>{{ order.get_status_display }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">付款狀態：</span>{{ order.get_payment_status_display }}
+                    </div>
+                    {% if order.shipped_at %}
+                    <div class="info-item">
+                        <span class="info-label">出貨時間：</span>{{ order.shipped_at|date:"Y年m月d日 H:i" }}
+                    </div>
+                    {% endif %}
+                    {% if order.delivered_at %}
+                    <div class="info-item">
+                        <span class="info-label">送達時間：</span>{{ order.delivered_at|date:"Y年m月d日 H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 20px;"><i class="bi bi-cart"></i> 訂單商品</h4>
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>商品</th>
+                        <th>商品編號</th>
+                        <th>單價</th>
+                        <th>數量</th>
+                        <th>小計</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items.all %}
+                    <tr>
+                        <td data-label="商品" class="product-cell">
+                            <img src="{% if item.product.images.exists %}{{ item.product.images.first.image.url }}{% else %}{% static 'img/products/default.png' %}{% endif %}" 
+                                 alt="{{ item.product_name }}">
+                            <div>
+                                <div style="font-weight: 600;">{{ item.product_name }}</div>
+                                <a href="{% url 'product_detail' item.product.id %}" class="product-link">查看商品</a>
+                            </div>
+                        </td>
+                        <td data-label="商品編號">{{ item.product_sku }}</td>
+                        <td data-label="單價"><span data-price="{{ item.unit_price }}">NT${{ item.unit_price|floatformat:0 }}</span></td>
+                        <td data-label="數量">{{ item.quantity }}</td>
+                        <td data-label="小計" style="font-weight: 600; color: #e74c3c;"><span data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="price-summary">
+                <div class="price-row">
+                    <span>商品小計</span>
+                    <span data-price="{{ order.subtotal }}">NT${{ order.subtotal|floatformat:0 }}</span>
+                </div>
+                <div class="price-row">
+                    <span>運費</span>
+                    <span>{% if order.shipping_fee > 0 %}<span data-price="{{ order.shipping_fee }}">NT${{ order.shipping_fee|floatformat:0 }}</span>{% else %}免運費{% endif %}</span>
+                </div>
+                <div class="price-row">
+                    <span>稅額</span>
+                    <span data-price="{{ order.tax_amount }}">NT${{ order.tax_amount|floatformat:0 }}</span>
+                </div>
+                {% if order.discount_amount > 0 %}
+                <div class="price-row" style="color: #28a745;">
+                    <span>折扣</span>
+                    <span data-price="{{ order.discount_amount }}">-NT${{ order.discount_amount|floatformat:0 }}</span>
+                </div>
+                {% endif %}
+                <div class="price-row total">
+                    <span>總計</span>
+                    <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                </div>
+            </div>
+
+            <div class="order-actions">
+                <a href="{% url 'order_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回訂單列表
+                </a>
+                {% if order.status == 'pending' and order.payment_status == 'pending' %}
+                <a href="{% url 'payment' order.id %}" class="btn btn-primary">
+                    <i class="bi bi-credit-card"></i> 前往付款
+                </a>
+                {% endif %}
+                {% if order.status == 'delivered' %}
+                <button class="btn btn-success" onclick="confirmReceipt({{ order.id }})">
+                    <i class="bi bi-check-circle"></i> 確認收貨
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+function confirmReceipt(orderId) {
+    if (confirm('確認已收到商品？')) {
+        // 這裡可以發送AJAX請求更新訂單狀態
+        alert('功能開發中...');
+    }
+}
+</script>
+{% endblock %}
+
+

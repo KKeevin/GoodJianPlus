@@ -1,0 +1,565 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}我的通知 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<style>
+.notification-page {
+    padding: 40px 0;
+    background: #f8f9fa;
+    min-height: 70vh;
+}
+
+.notification-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.notification-page-header {
+    padding: 30px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.notification-breadcrumb {
+    width: 100%;
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.notification-breadcrumb-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-breadcrumb-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-breadcrumb a {
+    color: #4CAF50;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.notification-breadcrumb a:hover {
+    color: #45A049;
+    text-decoration: underline;
+}
+
+.notification-breadcrumb span {
+    color: #999;
+}
+
+.notification-page-header h2 {
+    margin: 0;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+.notification-actions-header {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-mark-all-read-page {
+    padding: 8px 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-mark-all-read-page:hover {
+    background: #45A049;
+}
+
+.notification-list-page {
+    padding: 0;
+}
+
+.notification-item-page {
+    padding: 20px 30px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.3s ease;
+    position: relative;
+}
+
+.notification-item-page:hover {
+    background: #f8f9fa;
+}
+
+.notification-item-page.unread {
+    background: #f0f8ff;
+    border-left: 4px solid #4CAF50;
+}
+
+.notification-item-page.read {
+    opacity: 0.7;
+}
+
+.notification-icon-page {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.notification-item-page.unread .notification-icon-page {
+    background: #4CAF50;
+    color: white;
+}
+
+.notification-item-page.read .notification-icon-page {
+    background: #e0e0e0;
+    color: #666;
+}
+
+.notification-content-page {
+    flex: 1;
+}
+
+.notification-title-page {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.notification-message-page {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+.notification-time-page {
+    font-size: 12px;
+    color: #999;
+}
+
+.notification-actions-page {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.btn-action-page {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    background: transparent;
+    color: #666;
+}
+
+.btn-action-page:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.btn-delete-page:hover {
+    background: #fee;
+    color: #dc3545;
+}
+
+.empty-notifications {
+    padding: 80px 20px;
+    text-align: center;
+    color: #999;
+}
+
+.empty-notifications i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+/* 篩選標籤 */
+.notification-filters {
+    padding: 20px 30px;
+    border-bottom: 1px solid #eee;
+    background: #f8f9fa;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-tab {
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    background: white;
+    border: 2px solid transparent;
+}
+
+.filter-tab:hover {
+    background: #e8f5e9;
+    color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.filter-tab.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.filter-tab.active .filter-count {
+    color: white;
+}
+
+.filter-count {
+    font-size: 12px;
+    color: #999;
+    font-weight: 600;
+}
+
+.filter-count.unread-badge {
+    color: #dc3545;
+}
+
+.filter-tab.active .filter-count.unread-badge {
+    color: white;
+}
+
+/* 批量操作工具欄 */
+.batch-actions-toolbar {
+    padding: 15px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.batch-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.select-all-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+}
+
+.select-all-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: white;
+}
+
+.selected-count {
+    color: white;
+    font-size: 14px;
+}
+
+.selected-count strong {
+    color: #ffd700;
+    font-weight: 700;
+}
+
+.batch-actions-right {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-batch-action {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+}
+
+.btn-batch-read {
+    background: rgba(255,255,255,0.2);
+}
+
+.btn-batch-read:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.btn-batch-unread {
+    background: rgba(255,255,255,0.2);
+}
+
+.btn-batch-unread:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.btn-batch-delete {
+    background: rgba(220,53,69,0.8);
+}
+
+.btn-batch-delete:hover {
+    background: rgba(220,53,69,1);
+}
+
+/* 通知項複選框 */
+.notification-checkbox-wrapper {
+    flex-shrink: 0;
+    padding-right: 10px;
+}
+
+.notification-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #4CAF50;
+}
+
+.notification-content-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+/* 選中狀態 */
+.notification-item-page:has(.notification-checkbox:checked) {
+    background: #e8f5e9 !important;
+}
+
+.notification-item-page:has(.notification-checkbox:checked).unread {
+    border-left: 4px solid #4CAF50;
+}
+
+.notification-item-page:has(.notification-checkbox:checked).read {
+    border-left: 4px solid #4CAF50;
+}
+
+.pagination {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="notification-page">
+    <div class="container">
+        <div class="notification-container">
+            <div class="notification-page-header">
+                <div style="width: 100%;">
+                    <h2><i class="bi bi-bell me-2"></i>我的通知</h2>
+                    <div class="notification-breadcrumb">
+                        <div class="notification-breadcrumb-left">
+                            <a href="{% url 'home' %}">首頁</a>
+                            <span>></span>
+                            <a href="{% url 'profile' %}">我的帳戶</a>
+                            <span>></span>
+                            <span>我的通知</span>
+                        </div>
+                        <div class="notification-breadcrumb-right">
+                            <button class="btn-mark-all-read-page" id="markAllReadPageBtn">
+                                <i class="bi bi-check-all me-1"></i>標記全部為已讀
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 篩選標籤 -->
+            <div class="notification-filters">
+                <div class="filter-tabs">
+                    <a href="?filter=all{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" 
+                       class="filter-tab {% if filter_type == 'all' %}active{% endif %}">
+                        <i class="bi bi-list-ul"></i>
+                        <span>全部</span>
+                        <span class="filter-count">({{ total_count }})</span>
+                    </a>
+                    <a href="?filter=unread{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" 
+                       class="filter-tab {% if filter_type == 'unread' %}active{% endif %}">
+                        <i class="bi bi-envelope-open"></i>
+                        <span>未讀</span>
+                        <span class="filter-count unread-badge">({{ unread_count }})</span>
+                    </a>
+                    <a href="?filter=read{% if request.GET.page %}&page={{ request.GET.page }}{% endif %}" 
+                       class="filter-tab {% if filter_type == 'read' %}active{% endif %}">
+                        <i class="bi bi-envelope"></i>
+                        <span>已讀</span>
+                        <span class="filter-count">({{ read_count }})</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 批量操作工具欄 -->
+            <div class="batch-actions-toolbar" id="batchActionsToolbar" style="display: none;">
+                <div class="batch-actions-left">
+                    <label class="select-all-checkbox">
+                        <input type="checkbox" id="selectAllCheckbox">
+                        <span>全選</span>
+                    </label>
+                    <span class="selected-count" id="selectedCount">已選擇 <strong>0</strong> 項</span>
+                </div>
+                <div class="batch-actions-right">
+                    <button class="btn-batch-action btn-batch-read" id="batchMarkReadBtn" title="標記為已讀">
+                        <i class="bi bi-envelope"></i> 標記為已讀
+                    </button>
+                    <button class="btn-batch-action btn-batch-unread" id="batchMarkUnreadBtn" title="標記為未讀">
+                        <i class="bi bi-envelope-open"></i> 標記為未讀
+                    </button>
+                    <button class="btn-batch-action btn-batch-delete" id="batchDeleteBtn" title="刪除">
+                        <i class="bi bi-trash"></i> 刪除
+                    </button>
+                </div>
+            </div>
+            
+            <div class="notification-list-page">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                    <div class="notification-item-page {% if not notification.is_read %}unread{% else %}read{% endif %}" 
+                         data-notification-id="{{ notification.id }}">
+                        <div class="notification-checkbox-wrapper" onclick="event.stopPropagation();">
+                            <input type="checkbox" class="notification-checkbox" data-notification-id="{{ notification.id }}">
+                        </div>
+                        <div class="notification-content-wrapper" onclick="window.location.href='{% url 'notification_detail' notification.id %}'">
+                        <div class="notification-icon-page">
+                            {% if notification.type == 'order' %}
+                                <i class="bi bi-box"></i>
+                            {% elif notification.type == 'promotion' %}
+                                <i class="bi bi-tag"></i>
+                            {% elif notification.type == 'system' %}
+                                <i class="bi bi-info-circle"></i>
+                            {% elif notification.type == 'review' %}
+                                <i class="bi bi-star"></i>
+                            {% else %}
+                                <i class="bi bi-bell"></i>
+                            {% endif %}
+                        </div>
+                        <div class="notification-content-page">
+                            <div class="notification-title-page">{{ notification.title }}</div>
+                            <div class="notification-message-page">{{ notification.message }}</div>
+                            <div class="notification-time-page">{{ notification.created_at|date:"Y年m月d日 H:i" }}</div>
+                        </div>
+                        </div>
+                        <div class="notification-actions-page" onclick="event.stopPropagation();">
+                            <button class="btn-action-page btn-toggle-read-page" 
+                                    data-notification-id="{{ notification.id }}"
+                                    title="{% if notification.is_read %}標記為未讀{% else %}標記為已讀{% endif %}">
+                                <i class="bi {% if notification.is_read %}bi-envelope{% else %}bi-envelope-open{% endif %}"></i>
+                            </button>
+                            <button class="btn-action-page btn-delete-page" 
+                                    data-notification-id="{{ notification.id }}"
+                                    title="刪除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-notifications">
+                        <i class="bi bi-bell-slash"></i>
+                        <p>目前沒有通知</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            {% if is_paginated %}
+            <div class="pagination">
+                <nav aria-label="通知分頁">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?filter={{ filter_type }}&page=1">首頁</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?filter={{ filter_type }}&page={{ page_obj.previous_page_number }}">上一頁</a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?filter={{ filter_type }}&page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?filter={{ filter_type }}&page={{ page_obj.next_page_number }}">下一頁</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?filter={{ filter_type }}&page={{ page_obj.paginator.num_pages }}">末頁</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block script %}
+<script>
+window.NOTIFICATIONS_PAGE_CONFIG = {
+    batchActionUrl: '{% url "notification_batch_action" %}',
+    markAllReadUrl: '{% url "notification_mark_all_read" %}',
+    csrfToken: '{{ csrf_token }}'
+};
+</script>
+<script src="{% static 'js/notifications-page.js' %}?v={{ static_version }}"></script>
+{% endblock %}
+

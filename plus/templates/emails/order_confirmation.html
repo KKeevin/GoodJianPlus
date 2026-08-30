@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單確認</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .order-info {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .order-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .order-info td {
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-info td:first-child {
+            font-weight: bold;
+            width: 40%;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .items-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .total-row {
+            font-weight: bold;
+            font-size: 18px;
+            color: #28a745;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">✓ 訂單確認</div>
+        </div>
+        
+        <div class="content">
+            <h2 class="title">感謝您的訂購！</h2>
+            
+            <p>親愛的 {{ user.first_name|default:user.username }}，</p>
+            
+            <p>您的訂單已成功建立，我們已收到您的訂單資訊。訂單詳情如下：</p>
+            
+            <div class="order-info">
+                <table>
+                    <tr>
+                        <td>訂單編號：</td>
+                        <td>{{ order.order_number }}</td>
+                    </tr>
+                    <tr>
+                        <td>訂單日期：</td>
+                        <td>{{ order.created_at|date:"Y年m月d日 H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td>訂單狀態：</td>
+                        <td>{{ order.get_status_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>付款狀態：</td>
+                        <td>{{ order.get_payment_status_display }}</td>
+                    </tr>
+                    <tr>
+                        <td>付款方式：</td>
+                        <td>{{ order.get_payment_method_display }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <h3>訂單商品：</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>商品名稱</th>
+                        <th>數量</th>
+                        <th>單價</th>
+                        <th>小計</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>NT$ {{ item.price|floatformat:0 }}</td>
+                        <td>NT$ {{ item.subtotal|floatformat:0 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right;">運費：</td>
+                        <td>NT$ {{ order.shipping_fee|floatformat:0 }}</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right;">總計：</td>
+                        <td>NT$ {{ order.total_amount|floatformat:0 }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <h3>配送資訊：</h3>
+            <div class="order-info">
+                <p><strong>收件人：</strong>{{ order.shipping_name }}</p>
+                <p><strong>電話：</strong>{{ order.shipping_phone }}</p>
+                <p><strong>地址：</strong>{{ order.shipping_address }}</p>
+            </div>
+            
+            <div class="button-container">
+                <a href="{{ order_url }}" class="button">查看訂單詳情</a>
+            </div>
+            
+            <p>我們將盡快為您處理訂單。如有任何問題，請隨時聯繫我們的客服團隊。</p>
+        </div>
+        
+        <div class="footer">
+            <p>此郵件由系統自動發送，請勿直接回覆。</p>
+            <p>客服信箱：service@goodjianplus.com | 客服電話：0800-892010</p>
+            <p>&copy; 2025 好健健 GoodJian Plus. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

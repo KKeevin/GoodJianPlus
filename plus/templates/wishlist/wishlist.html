@@ -1,0 +1,140 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}我的收藏 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/products.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/account-pages.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<script src="{% static 'js/wishlist.js' %}?v={{ static_version }}"></script>
+<script src="{% static 'js/products.js' %}?v={{ static_version }}"></script>
+{% endblock %}
+
+{% block content %}
+<section class="account-page-section">
+    <div class="container">
+        <div class="account-page-header">
+            <h1><i class="bi bi-heart-fill"></i> 我的收藏</h1>
+            <div class="account-page-breadcrumb">
+                <a href="{% url 'home' %}">首頁</a>
+                <span>></span>
+                <a href="{% url 'profile' %}">我的帳戶</a>
+                <span>></span>
+                <span>我的收藏</span>
+            </div>
+        </div>
+
+        {% if products %}
+        <div class="account-card" style="padding: 30px;">
+            <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card" data-product-id="{{ product.id }}">
+                {% if product.is_featured %}
+                <div class="product-badge">推薦</div>
+                {% elif product.discount_percentage > 0 %}
+                <div class="product-badge hot">限時優惠</div>
+                {% endif %}
+
+                <div class="product-image">
+                    <a href="{% url 'product_detail' product.id %}">
+                        {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                    <div class="product-overlay">
+                        <button class="quick-view-btn" data-product-id="{{ product.id }}">快速預覽</button>
+                    </div>
+                </div>
+
+                <div class="product-info">
+                    <h3 class="product-name">
+                        <a href="{% url 'product_detail' product.id %}">{{ product.name }}</a>
+                    </h3>
+
+                    <div class="price-stock-wrapper">
+                        <div class="price-stock-left">
+                            <div class="product-price">
+                                {% if product.original_price and product.original_price > product.price %}
+                                <span class="original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                                {% endif %}
+                                <span class="current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                            </div>
+
+                            <div class="stock-status">
+                                {% if product.stock_quantity > 10 %}
+                                    <span class="in-stock"><i class="bi bi-check-circle"></i> 現貨充足</span>
+                                {% elif product.stock_quantity > 0 %}
+                                    <span class="low-stock"><i class="bi bi-exclamation-triangle"></i> 僅剩 {{ product.stock_quantity }} 件</span>
+                                {% else %}
+                                    <span class="out-of-stock"><i class="bi bi-x-circle"></i> 暫時缺貨</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="wishlist-remove-btn-wrapper">
+                            <button class="wishlist-remove-btn" 
+                                    data-product-id="{{ product.id }}" 
+                                    onclick="toggleWishlist({{ product.id }})"
+                                    title="移除收藏">
+                                <i class="bi bi-x-circle"></i>
+                                <span>移除收藏</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="product-actions">
+                        {% if product.stock_quantity > 0 %}
+                        <button class="add-to-cart" data-product-id="{{ product.id }}">
+                            <i class="bi bi-cart-plus"></i>加入購物車
+                        </button>
+                        {% else %}
+                        <button class="add-to-cart disabled" disabled>
+                            <i class="bi bi-x-circle"></i>暫時缺貨
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="account-empty-state">
+            <i class="bi bi-heart"></i>
+            <h3>您的收藏清單是空的</h3>
+            <p>還沒有收藏任何商品，快去逛逛吧！</p>
+            <a href="{% url 'products' %}" class="account-btn-primary">
+                <i class="bi bi-bag-check"></i>
+                <span>瀏覽商品</span>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- 快速預覽 Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickViewModalLabel">商品快速預覽</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="quickViewContent">
+                <!-- 快速預覽內容將透過AJAX載入 -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+// 配置收藏功能 URL
+window.WISHLIST_CONFIG = {
+    toggleUrl: '{% url "api_toggle_wishlist" %}'
+};
+</script>
+{% endblock %}
+
+

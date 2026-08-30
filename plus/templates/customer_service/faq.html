@@ -1,0 +1,182 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}常見問題 - {{ site_name|default:"好健健 GoodJian Plus" }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-5">
+                    <h1 class="mb-4">常見問題</h1>
+                    <p class="text-muted mb-4">最後更新日期：2025年12月31日</p>
+                    
+                    <section class="mb-5">
+                        <h2>1. 訂單相關</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 如何查詢訂單狀態？</h4>
+                            <p class="ms-3">A: 請登入您的帳號，前往「我的訂單」頁面即可查看所有訂單狀態及物流追蹤資訊。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 可以修改或取消訂單嗎？</h4>
+                            <p class="ms-3">A: 訂單成立後，如尚未出貨，可聯繫客服協助修改或取消。如已出貨，則需依退換貨流程處理。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 訂單成立後多久會出貨？</h4>
+                            <p class="ms-3">A: 一般訂單將於 1-2 個工作天內出貨，出貨後會發送通知簡訊及電子郵件。</p>
+                        </div>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>2. 付款相關</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 有哪些付款方式？</h4>
+                            <p class="ms-3">A: 我們支援信用卡付款、LINE Pay、貨到付款等方式。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 付款後多久會收到退款？</h4>
+                            <p class="ms-3">A: 退款將依原付款方式退回，信用卡約 7-14 個工作天，LINE Pay 約 3-5 個工作天。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 可以使用分期付款嗎？</h4>
+                            <p class="ms-3">A: 目前僅支援信用卡一次付清，分期付款功能正在規劃中。</p>
+                        </div>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>3. 配送相關</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 運費如何計算？</h4>
+                            <p class="ms-3">A: 單筆訂單滿 {{ free_shipping_threshold|default:1000 }} 元即可免運，未達門檻宅配運費 100 元，超商取貨 60 元。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 可以指定配送時間嗎？</h4>
+                            <p class="ms-3">A: 目前無法指定特定時段，但可於備註欄位註明希望配送的時間，我們會盡量配合。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 離島地區可以配送嗎？</h4>
+                            <p class="ms-3">A: 可以，但配送時間可能較長，運費可能有所不同，詳情請聯繫客服。</p>
+                        </div>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>4. 退換貨相關</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 退換貨期限是多久？</h4>
+                            <p class="ms-3">A: 根據消費者保護法，您享有 7 天鑑賞期，自收到商品之日起計算。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 退換貨需要負擔運費嗎？</h4>
+                            <p class="ms-3">A: 如因商品瑕疵或錯誤，運費由我們承擔；如為個人因素，運費需由消費者自行負擔。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 如何申請退換貨？</h4>
+                            <p class="ms-3">A: 請於「我的訂單」頁面點選「申請退換貨」，或直接聯繫客服，我們會協助您處理。</p>
+                        </div>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>5. 帳號相關</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 忘記密碼怎麼辦？</h4>
+                            <p class="ms-3">A: 請於登入頁面點選「忘記密碼」，輸入註冊時使用的電子郵件，我們會發送重設密碼連結至您的信箱。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 可以使用社群帳號登入嗎？</h4>
+                            <p class="ms-3">A: 可以，我們支援 Google、Facebook、LINE 等社群帳號登入。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 如何修改個人資料？</h4>
+                            <p class="ms-3">A: 請登入後前往「個人資料」頁面，即可修改您的個人資訊。</p>
+                        </div>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>6. 商品相關</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 商品有現貨嗎？</h4>
+                            <p class="ms-3">A: 商品頁面會顯示庫存狀態，如顯示「現貨」即可立即出貨，如顯示「預購」則需等待較長時間。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 可以預訂缺貨商品嗎？</h4>
+                            <p class="ms-3">A: 部分商品可接受預訂，請聯繫客服確認預訂時間及付款方式。</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 商品有保固嗎？</h4>
+                            <p class="ms-3">A: 不同商品有不同的保固期限，詳情請參考商品頁面的保固說明，或聯繫客服詢問。</p>
+                        </div>
+                    </section>
+
+                    <section class="mb-5">
+                        <h2>7. 其他問題</h2>
+                        
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 如何聯繫客服？</h4>
+                            <p class="ms-3">A: 您可以透過以下方式聯繫我們：<br>
+                                • 電子郵件：{{ contact_email|default:"service@goodjianplus.com" }}<br>
+                                • 電話：{{ contact_phone|default:"0800-892010" }}<br>
+                                • 服務時間：週一至週五 09:00-18:00（例假日除外）</p>
+                        </div>
+
+                        <div class="faq-item mb-4">
+                            <h4 class="text-primary">Q: 有實體門市嗎？</h4>
+                            <p class="ms-3">A: 目前我們主要為線上購物平台，部分地區設有合作門市可提供自取服務，詳情請聯繫客服。</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 12px;
+}
+.card-body h1 {
+    color: #2c3e50;
+    font-weight: 700;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
+}
+.card-body h2 {
+    color: #34495e;
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+.card-body h4 {
+    color: #3498db;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.faq-item {
+    border-left: 3px solid #3498db;
+    padding-left: 15px;
+}
+.card-body p {
+    line-height: 1.8;
+    color: #555;
+}
+</style>
+{% endblock %}
+

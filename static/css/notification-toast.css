@@ -1,0 +1,347 @@
+/* ============================================
+   通知彈出系統 (類似 Facebook)
+   ============================================ */
+
+.notification-toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 10000;
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+    max-width: 400px;
+    width: calc(100% - 40px);
+    min-height: 0;
+}
+
+.notification-toast {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    overflow: hidden;
+    border-left: 4px solid #4CAF50;
+    animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1), fadeIn 0.4s ease;
+    transition: all 0.3s ease;
+    transform-origin: right center;
+}
+
+.notification-toast:hover {
+    transform: translateX(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.notification-toast.closing {
+    animation: slideOutRight 0.3s ease, fadeOut 0.3s ease;
+}
+
+/* 通知類型顏色 */
+.notification-toast.type-order {
+    border-left-color: #17a2b8;
+}
+
+.notification-toast.type-promotion {
+    border-left-color: #ff9800;
+}
+
+.notification-toast.type-system {
+    border-left-color: #6c757d;
+}
+
+.notification-toast.type-review {
+    border-left-color: #ffc107;
+}
+
+.notification-toast.type-cart {
+    border-left-color: #ff5722;
+}
+
+.notification-toast.type-wishlist {
+    border-left-color: #e91e63;
+}
+
+.notification-toast.type-goal {
+    border-left-color: #9c27b0;
+}
+
+.notification-toast.type-stock {
+    border-left-color: #00bcd4;
+}
+
+/* 通知圖標 */
+.notification-toast-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #4CAF50, #45A049);
+    color: white;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.notification-toast.type-order .notification-toast-icon {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+.notification-toast.type-promotion .notification-toast-icon {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.notification-toast.type-system .notification-toast-icon {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.notification-toast.type-review .notification-toast-icon {
+    background: linear-gradient(135deg, #ffc107, #ffb300);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.notification-toast.type-cart .notification-toast-icon {
+    background: linear-gradient(135deg, #ff5722, #e64a19);
+    box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+}
+
+.notification-toast.type-wishlist .notification-toast-icon {
+    background: linear-gradient(135deg, #e91e63, #c2185b);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+}
+
+.notification-toast.type-goal .notification-toast-icon {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.3);
+}
+
+.notification-toast.type-stock .notification-toast-icon {
+    background: linear-gradient(135deg, #00bcd4, #0097a7);
+    box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+}
+
+/* 通知內容 */
+.notification-toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-toast-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-toast-message {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.notification-toast-time {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
+}
+
+/* 關閉按鈕 */
+.notification-toast-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    color: #666;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    flex-shrink: 0;
+}
+
+.notification-toast:hover .notification-toast-close {
+    opacity: 1;
+}
+
+.notification-toast-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #333;
+    transform: rotate(90deg);
+}
+
+/* 進度條（自動消失指示） */
+.notification-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4CAF50, #45A049);
+    width: 100%;
+    transform-origin: left;
+    animation: progressShrink 5s linear;
+}
+
+.notification-toast.type-order .notification-toast-progress {
+    background: linear-gradient(90deg, #17a2b8, #138496);
+}
+
+.notification-toast.type-promotion .notification-toast-progress {
+    background: linear-gradient(90deg, #ff9800, #f57c00);
+}
+
+.notification-toast.type-system .notification-toast-progress {
+    background: linear-gradient(90deg, #6c757d, #5a6268);
+}
+
+.notification-toast.type-review .notification-toast-progress {
+    background: linear-gradient(90deg, #ffc107, #ffb300);
+}
+
+.notification-toast.type-cart .notification-toast-progress {
+    background: linear-gradient(90deg, #ff5722, #e64a19);
+}
+
+.notification-toast.type-wishlist .notification-toast-progress {
+    background: linear-gradient(90deg, #e91e63, #c2185b);
+}
+
+.notification-toast.type-goal .notification-toast-progress {
+    background: linear-gradient(90deg, #9c27b0, #7b1fa2);
+}
+
+.notification-toast.type-stock .notification-toast-progress {
+    background: linear-gradient(90deg, #00bcd4, #0097a7);
+}
+
+/* 動畫 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes progressShrink {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .notification-toast-container {
+        top: 70px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        width: auto;
+    }
+    
+    .notification-toast {
+        padding: 14px;
+    }
+    
+    .notification-toast-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+    
+    .notification-toast-title {
+        font-size: 14px;
+    }
+    
+    .notification-toast-message {
+        font-size: 12px;
+    }
+}
+
+/* 未讀指示點 */
+.notification-toast.unread::before {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e74c3c;
+    box-shadow: 0 0 0 2px white;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>驗證您的電子郵件</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .email-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 20px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .button:hover {
+            background-color: #218838;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">好健健 GoodJian Plus</div>
+        </div>
+        
+        <div class="content">
+            <h2 class="title">請驗證您的電子郵件地址</h2>
+            
+            <p>親愛的 {{ user.first_name|default:user.username }}，</p>
+            
+            <p>感謝您註冊好健健 GoodJian Plus！</p>
+            
+            <p>請點擊下方按鈕驗證您的電子郵件地址，以完成註冊流程：</p>
+            
+            <div class="button-container">
+                <a href="{{ verification_url }}" class="button">驗證電子郵件</a>
+            </div>
+            
+            <p>如果按鈕無法點擊，請複製以下連結到瀏覽器：</p>
+            <p style="word-break: break-all; color: #0066cc;">{{ verification_url }}</p>
+            
+            <div class="warning">
+                <strong>⚠️ 重要提醒：</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>此驗證連結將在 <strong>48 小時</strong> 後過期</li>
+                    <li>如果您沒有註冊此帳號，請忽略此郵件</li>
+                    <li>驗證後即可享受完整的會員服務</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>此郵件由系統自動發送，請勿直接回覆。</p>
+            <p>如有任何問題，請聯繫客服：service@goodjianplus.com</p>
+            <p>&copy; 2025 好健健 GoodJian Plus. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

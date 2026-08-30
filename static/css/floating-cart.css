@@ -1,0 +1,148 @@
+/* ========== 懸浮購物車按鈕（平板和手機版） ========== */
+
+.floating-cart-btn {
+    position: fixed;
+    bottom: 80px;
+    left: 20px; /* 改為左下角 */
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #7b7170, #c0392b);
+    color: white;
+    border-radius: 25%;
+    display: none; /* 預設隱藏，只在平板和手機版顯示 */
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
+    z-index: 999;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 24px;
+}
+
+.floating-cart-btn:hover,
+.floating-cart-btn:focus {
+    background: linear-gradient(72deg, #ff2812, #992c23);
+    color: white;
+    text-decoration: none;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(231, 76, 60, 0.5);
+}
+
+.floating-cart-btn:active {
+    transform: scale(0.95);
+}
+
+.floating-cart-btn i {
+    font-size: 24px;
+}
+
+.floating-cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ffc107;
+    color: #333;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 當購物車為空時隱藏按鈕 */
+.floating-cart-btn.hidden {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* 平板設備 (768px - 992px) */
+@media (max-width: 992px) {
+    .floating-cart-btn {
+        display: flex;
+        /* 與回到頂部按鈕齊高 */
+        bottom: 30px;
+        left: 30px; /* 左下角，與回到頂部按鈕對稱 */
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
+    }
+
+    .floating-cart-btn i {
+        font-size: 22px;
+    }
+
+    .floating-cart-count {
+        width: 22px;
+        height: 22px;
+        font-size: 11px;
+        top: -4px;
+        right: -4px;
+    }
+}
+
+/* 手機設備 (< 768px) */
+@media (max-width: 768px) {
+    .floating-cart-btn {
+        display: flex;
+        /* 與回到頂部按鈕齊高 */
+        bottom: 20px;
+        left: 20px; /* 左下角，與回到頂部按鈕對稱 */
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+        /* 確保不會被瀏覽器底部導航欄遮擋 */
+        bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 20px));
+    }
+
+    .floating-cart-btn i {
+        font-size: 20px;
+    }
+
+    .floating-cart-count {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+        top: -3px;
+        right: -3px;
+    }
+}
+
+/* 小手機設備 (< 480px) */
+@media (max-width: 480px) {
+    .floating-cart-btn {
+        /* 與回到頂部按鈕齊高 */
+        bottom: 15px;
+        left: 15px; /* 左下角，與回到頂部按鈕對稱 */
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+        /* 確保不會被瀏覽器底部導航欄遮擋 */
+        bottom: max(15px, calc(env(safe-area-inset-bottom, 0px) + 15px));
+    }
+
+    .floating-cart-btn i {
+        font-size: 18px;
+    }
+
+    .floating-cart-count {
+        width: 18px;
+        height: 18px;
+        font-size: 9px;
+        top: -3px;
+        right: -3px;
+    }
+}
+
+/* 確保在購物車頁面時不顯示懸浮按鈕 */
+body.cart-page .floating-cart-btn {
+    display: none !important;
+}
+
