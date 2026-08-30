@@ -77,17 +77,35 @@
                         <a href="{% url 'payment' order.id %}" class="btn btn-primary">
                             <i class="bi bi-credit-card"></i> 前往付款
                         </a>
+                        <form method="post" action="{% url 'cancel_order' order.id %}" style="display:inline;" onsubmit="return confirm('確定取消此訂單？庫存將釋出。');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger">取消訂單</button>
+                        </form>
                         {% endif %}
-                        {% if order.status == 'delivered' %}
-                        <button class="btn btn-success" onclick="confirmReceipt({{ order.id }})">
-                            <i class="bi bi-check-circle"></i> 確認收貨
-                        </button>
+                        {% if order.status == 'shipped' or order.status == 'delivered' %}
+                        <form method="post" action="{% url 'confirm_receipt' order.id %}" style="display:inline;" onsubmit="return confirm('確認已收到商品？');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">確認收貨</button>
+                        </form>
                         {% endif %}
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+        {% if is_paginated %}
+        <nav class="mt-4" aria-label="訂單分頁">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">上一頁</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 頁</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">下一頁</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
         {% else %}
         <div class="account-empty-state">
             <i class="bi bi-inbox"></i>
@@ -101,17 +119,6 @@
         {% endif %}
     </div>
 </section>
-{% endblock %}
-
-{% block script %}
-<script>
-function confirmReceipt(orderId) {
-    if (confirm('確認已收到商品？')) {
-        // 這裡可以發送AJAX請求更新訂單狀態
-        alert('功能開發中...');
-    }
-}
-</script>
 {% endblock %}
 
 

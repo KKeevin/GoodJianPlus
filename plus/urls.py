@@ -16,7 +16,7 @@ from plus.views import (
     cart_view, cart_count_api, add_to_cart, update_cart_item, remove_cart_item, cart_totals, checkout, calculate_checkout_price,
     payment_view, process_payment, payment_success_view, payment_failed_view,
     linepay_confirm, linepay_cancel,
-    order_list_view, order_detail_view,
+    order_list_view, order_detail_view, cancel_order_view, confirm_receipt_view,
     wishlist_view, toggle_wishlist,
     notification_list_view, notification_detail_view, notification_toggle_read,
     notification_delete, notification_api, notification_unread_count_api, notification_mark_all_read,
@@ -77,6 +77,8 @@ urlpatterns = [
 
     path('orders/', order_list_view, name='order_list'),
     path('orders/<int:order_id>/', order_detail_view, name='order_detail'),
+    path('orders/<int:order_id>/cancel/', cancel_order_view, name='cancel_order'),
+    path('orders/<int:order_id>/confirm-receipt/', confirm_receipt_view, name='confirm_receipt'),
 
     path('wishlist/', wishlist_view, name='wishlist'),
 
