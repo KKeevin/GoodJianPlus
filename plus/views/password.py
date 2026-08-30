@@ -43,9 +43,11 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.utils.ratelimit import ratelimit
 
 logger = logging.getLogger(__name__)
 
+@ratelimit(limit=5, window=600)
 @require_http_methods(["POST"])
 def send_password_reset_email(request):
     """發送密碼重設郵件"""

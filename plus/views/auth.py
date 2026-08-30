@@ -43,9 +43,12 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.utils.http import safe_redirect_url
+from plus.utils.ratelimit import ratelimit
 
 logger = logging.getLogger(__name__)
 
+@ratelimit(limit=8, window=60)
 def custom_login_view(request):
     """登入頁面"""
     if request.user.is_authenticated:
@@ -65,7 +68,10 @@ def custom_login_view(request):
                 else:
                     request.session.set_expiry(0)
                 logger.info(f'User logged in: {user.username}')
-                next_url = request.POST.get('next') or request.GET.get('next', 'home')
+                next_url = safe_redirect_url(
+                    request,
+                    request.POST.get('next') or request.GET.get('next'),
+                )
                 messages.success(request, f'歡迎回來，{user.first_name or user.username}！')
                 return redirect(next_url)
             else:
@@ -94,6 +100,7 @@ def custom_logout_view(request):
     return redirect('home')
 
 
+@ratelimit(limit=8, window=60)
 @require_http_methods(["POST"])
 def ajax_login(request):
     """AJAX 登入"""
@@ -145,6 +152,7 @@ def check_login_status(request):
         return JsonResponse({'logged_in': False})
 
 
+@ratelimit(limit=8, window=60)
 @require_http_methods(["POST"])
 def validate_login_credentials(request):
     """驗證登入憑證（不實際登入）"""

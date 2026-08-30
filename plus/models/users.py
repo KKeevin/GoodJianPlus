@@ -87,8 +87,8 @@ class PhoneVerificationCode(models.Model):
     @classmethod
     def generate_code(cls):
         """生成6位數驗證碼"""
-        import random
-        return str(random.randint(100000, 999999))
+        import secrets
+        return f'{secrets.randbelow(900000) + 100000}'
 
 
 class EmailChangeRequest(models.Model):

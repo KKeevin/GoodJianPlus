@@ -43,9 +43,12 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.utils.http import safe_redirect_url
+from plus.utils.ratelimit import ratelimit
 
 logger = logging.getLogger(__name__)
 
+@ratelimit(limit=5, window=600)
 @require_http_methods(["POST"])
 def send_phone_verification_code(request):
     """發送手機驗證碼"""
@@ -135,6 +138,7 @@ def send_phone_verification_code(request):
         }, status=500)
 
 
+@ratelimit(limit=8, window=60)
 @require_http_methods(["POST"])
 def phone_login(request):
     """手機號碼登入/註冊"""
@@ -247,22 +251,9 @@ def phone_login(request):
             from django.urls import reverse
             redirect_url = reverse('phone_profile_update')
         elif not next_url:
-            # 如果沒有指定 next，跳轉到首頁
             redirect_url = '/'
-        elif next_url.startswith('/'):
-            # 已經是絕對路徑
-            redirect_url = next_url
-        elif next_url.startswith('http://') or next_url.startswith('https://'):
-            # 完整 URL
-            redirect_url = next_url
         else:
-            # 嘗試使用 Django 的 reverse 來解析 URL name
-            try:
-                from django.urls import reverse
-                redirect_url = reverse(next_url)
-            except Exception:
-                # 如果無法解析，使用首頁
-                redirect_url = '/'
+            redirect_url = safe_redirect_url(request, next_url, fallback='/')
         
         return JsonResponse({
             'success': True,

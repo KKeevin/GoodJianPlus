@@ -43,6 +43,8 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.utils.http import safe_redirect_url
+from social_core.exceptions import AuthForbidden
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +71,11 @@ def associate_by_email(strategy, details, backend, user=None, social=None, *args
             # 查找是否有現有用戶使用此 email
             existing_user = CustomUser.objects.filter(email=email).first()
             if existing_user:
-                # 關聯到現有用戶，標記為不是新用戶
-                # 保存原始姓名，以便後續恢復（防止 user.user_details 覆蓋）
+                if not existing_user.email_verified:
+                    logger.warning(
+                        f'{backend_name} OAuth: refused to bind unverified email {email}'
+                    )
+                    raise AuthForbidden(backend)
                 logger.info(f'{backend_name} OAuth: Email {email} already exists, associating with user {existing_user.username}')
                 # 重新從資料庫載入用戶，確保獲取最新的資料
                 existing_user.refresh_from_db()
@@ -82,6 +87,8 @@ def associate_by_email(strategy, details, backend, user=None, social=None, *args
                 logger.info(f'{backend_name} OAuth: Saved original name - first_name: "{kwargs["original_first_name"]}", last_name: "{kwargs["original_last_name"]}"')
                 # 確保後續步驟知道用戶已存在，不會創建新用戶
                 return kwargs
+        except AuthForbidden:
+            raise
         except Exception as e:
             logger.error(f'Error checking existing email in {backend_name} OAuth: {str(e)}')
     
@@ -170,7 +177,7 @@ def google_login(request):
     """Google 登入入口 - 重定向到 social_django 的認證流程"""
     from django.urls import reverse
     # 保存 next 參數到 session
-    next_url = request.GET.get('next', '/')
+    next_url = safe_redirect_url(request, request.GET.get('next'), fallback='/')
     if next_url:
         request.session['next_url'] = next_url
     
@@ -182,7 +189,7 @@ def facebook_login(request):
     """Facebook 登入入口 - 重定向到 social_django 的認證流程"""
     from django.urls import reverse
     # 保存 next 參數到 session
-    next_url = request.GET.get('next', '/')
+    next_url = safe_redirect_url(request, request.GET.get('next'), fallback='/')
     if next_url:
         request.session['next_url'] = next_url
     
@@ -194,7 +201,7 @@ def line_login(request):
     """LINE 登入入口 - 重定向到 social_django 的認證流程"""
     from django.urls import reverse
     # 保存 next 參數到 session
-    next_url = request.GET.get('next', '/')
+    next_url = safe_redirect_url(request, request.GET.get('next'), fallback='/')
     if next_url:
         request.session['next_url'] = next_url
     
@@ -206,7 +213,7 @@ def line_login(request):
 def google_callback(request):
     """Google 登入回調處理 - 這個函數實際上不會被直接調用，因為 social_django 會自動處理"""
     # social_django 會自動處理回調，這個函數只是作為備用
-    next_url = request.session.pop('next_url', '/')
+    next_url = safe_redirect_url(request, request.session.pop('next_url', '/'), fallback='/')
     messages.success(request, f'歡迎回來，{request.user.first_name or request.user.username}！')
     return redirect(next_url)
 

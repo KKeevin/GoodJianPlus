@@ -43,6 +43,7 @@ from plus.services.checkout import (
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
+from plus.utils.http import safe_redirect_url
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +84,7 @@ def register_view(request):
                             message='感謝您註冊成為好健健會員！我們已發送驗證郵件至您的信箱，請驗證您的電子郵件地址以享受完整服務。'
                         )
                         messages.success(request, f'歡迎加入好健健，{user.first_name}！我們已發送驗證郵件至您的信箱，請驗證您的電子郵件地址。')
-                        next_url = request.GET.get('next', 'home')
+                        next_url = safe_redirect_url(request, request.GET.get('next'))
                         return redirect(next_url)
                     else:
                         messages.success(request, '註冊成功！我們已發送驗證郵件至您的信箱，請驗證後重新登入。')
