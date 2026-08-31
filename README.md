@@ -1,10 +1,19 @@
-<p align="center">
-  <img src="static/img/common/Logo.png" alt="好健健 GoodJian Plus" width="180">
-</p>
+<div align="center">
+<img src="static/img/common/Logo.png" alt="好健健 GoodJian Plus" width="180">
 
 # 好健健 GoodJian Plus - 電商平台系統
 
-健身用品與營養餐食電商，Django 5.2。
+[![Site](https://img.shields.io/badge/site-goodjian.shop-16d3b4?style=flat-square)](https://goodjian.shop)
+[![Django](https://img.shields.io/badge/Django-5.2-092E20?style=flat-square&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![zh-TW](https://img.shields.io/badge/lang-zh--TW-red?style=flat-square)](#)
+
+[![SQLite](https://img.shields.io/badge/dev-SQLite-003B57?style=flat-square)](#本機啟動)
+[![MySQL](https://img.shields.io/badge/prod-MySQL-4479A1?style=flat-square)](docs/operations.md)
+[![License](https://img.shields.io/badge/License-Non--Commercial%20Educational-yellow?style=flat-square)](LICENSE)
+
+健身用品與營養餐食電商。教材／作品集原始碼，禁止商用與正式上線。
+</div>
 
 ## 本機啟動
 
