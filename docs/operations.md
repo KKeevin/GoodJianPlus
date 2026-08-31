@@ -2,6 +2,8 @@
 
 本文件只說明如何在本機跑、以及正式環境的**一般做法**。真實伺服器帳號、IP、SSH、資料庫密碼請放在本機的 `docs/operations.local.md`（已列入 `.gitignore`，不會進公開倉庫）。
 
+日常 **SSH 登入、git pull、重啟 Gunicorn** 逐步說明見 [deploy.md](deploy.md)。
+
 ## 本機
 
 見根目錄 [README.md](../README.md)。憑證只放 `.env`，從 `.env.example` 複製後自行填入。
@@ -30,3 +32,15 @@ python manage.py migrate
 - 靜態檔：`python manage.py collectstatic`
 
 請勿把正式機的 `.env`、SSH 私鑰、資料庫傾印提交到 Git。
+
+## Oracle Cloud（Always Free）
+
+目前東京區 **A1.Flex 常常沒容量**，先用暫時小機把站裝起來。之後有位子要換成這台：
+
+- Shape：**VM.Standard.A1.Flex**（Always Free、Ampere ARM）
+- 規格：**2 OCPU / 12 GB**（Always Free 上限是 4 OCPU / 24 GB，先開一半）
+- Image：Canonical Ubuntu 24.04
+- 區域：Japan East (Tokyo)；此區只有 **1 個 Availability Domain**，無法換 AD 搶位
+- Always Free 只能開在註冊時的 Home Region，不能改去大阪
+
+換機時：Compute → Create instance，選上述 shape。舊的 E2.1.Micro 確認新機 SSH 通、資料搬完再 Terminate。IP、VCN、SSH 檔名等寫在本機的 `docs/operations.local.md`。

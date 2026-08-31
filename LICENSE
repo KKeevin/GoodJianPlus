@@ -1,0 +1,38 @@
+GoodJianPlus Non-Commercial Educational License
+Copyright (c) 2026 KKeevin
+
+This license covers original source code and documentation in this
+repository (the "Software"). Third-party packages (including Django)
+remain under their own licenses. The copyright holder is not bound by
+the restrictions below when using their own Software.
+
+Permission is granted, free of charge, to any person obtaining a copy
+of the Software to download, copy, modify, and run it solely for
+non-commercial academic or educational purposes, including study,
+teaching, homework, research, local development, and classroom
+demonstration. Redistribution is allowed only if this license and the
+copyright notice are included.
+
+You may not:
+
+1. Use the Software commercially, including selling it, charging for
+   access or services, or using it in a for-profit project for a
+   company or client.
+
+2. Deploy the Software as a production or publicly live website or
+   shop, including accepting real orders, payments, members, or
+   operating as a public business, whether or not you charge money.
+
+3. Remove or alter this copyright notice and license.
+
+Temporary classroom demonstration (for example running the site on
+localhost during a lecture) is not production use. If you are unsure,
+obtain written permission from the copyright holder first.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
