@@ -38,6 +38,38 @@ allowed_hosts_str = os.getenv('ALLOWED_HOSTS', '').strip()
 ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_str.split(',') if host.strip()] if allowed_hosts_str else []
 
 
+def _csrf_trusted_origins():
+    raw = os.getenv('CSRF_TRUSTED_ORIGINS', '').strip()
+    if raw:
+        return [origin.strip() for origin in raw.split(',') if origin.strip()]
+    scheme = 'http' if DEBUG else 'https'
+    origins = []
+    if DEBUG:
+        origins.extend(['http://localhost:8000', 'http://127.0.0.1:8000'])
+    hosts = []
+    if SITE_DOMAIN:
+        hosts.append(SITE_DOMAIN.split('/')[0].strip())
+    hosts.extend(ALLOWED_HOSTS)
+    for host in hosts:
+        if not host or host in ('*',):
+            continue
+        origins.append(f'{scheme}://{host}')
+        if host.startswith('www.'):
+            origins.append(f'{scheme}://{host[4:]}')
+        elif '.' in host and not host.startswith('localhost') and not host.replace('.', '').isdigit():
+            origins.append(f'{scheme}://www.{host}')
+    seen = set()
+    unique = []
+    for origin in origins:
+        if origin not in seen:
+            seen.add(origin)
+            unique.append(origin)
+    return unique
+
+
+CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins()
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -228,7 +260,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 收集靜態文件的目�
 
 # 靜態文件版本號（用於強制刷新緩存）
 # 每次更新 CSS/JS 時，請更新此版本號
-STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.4')
+STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.5')
 
 # 在檔案最後加入
 MEDIA_URL = '/media/'
@@ -398,6 +430,16 @@ SESSION_COOKIE_HTTPONLY = True  # 防止 XSS 攻擊
 LINE_PAY_CHANNEL_ID = os.getenv('LINE_PAY_CHANNEL_ID', '')
 LINE_PAY_CHANNEL_SECRET = os.getenv('LINE_PAY_CHANNEL_SECRET', '')
 LINE_PAY_SANDBOX = os.getenv('LINE_PAY_SANDBOX', 'True').lower() == 'true'  # 預設使用沙盒環境
+
+# ========== 綠界科技 ECPay ==========
+ECPAY_MERCHANT_ID = os.getenv('ECPAY_MERCHANT_ID', '')
+ECPAY_HASH_KEY = os.getenv('ECPAY_HASH_KEY', '')
+ECPAY_HASH_IV = os.getenv('ECPAY_HASH_IV', '')
+ECPAY_SANDBOX = os.getenv('ECPAY_SANDBOX', 'True').lower() == 'true'
+
+# ========== OpenAI（後台商品文案，可選） ==========
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
 
 # ========== HTTPS 安全設定 ==========
 # 生產環境 HTTPS 設定（當 DEBUG=False 時啟用）
