@@ -199,6 +199,16 @@
                         </label>
                     </div>
                     
+                    <div class="payment-method" onclick="selectPaymentMethod('ecpay')">
+                        <label class="payment-method-label">
+                            <input type="radio" name="payment_method" value="ecpay">
+                            <div>
+                                <div><i class="bi bi-credit-card"></i> 綠界科技 ECPay</div>
+                                <div class="payment-method-desc">信用卡、ATM 虛擬帳號、超商代碼。申請金鑰後貼到 .env 即可使用。</div>
+                            </div>
+                        </label>
+                    </div>
+                    
                     {% if allow_test_payment %}
                     <!-- 測試支付（僅開發環境） -->
                     <div class="payment-method active" onclick="selectPaymentMethod('test_payment')">

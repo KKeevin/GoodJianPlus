@@ -16,7 +16,9 @@ from plus.views import (
     cart_view, cart_count_api, add_to_cart, update_cart_item, remove_cart_item, cart_totals, checkout, calculate_checkout_price,
     payment_view, process_payment, payment_success_view, payment_failed_view,
     linepay_confirm, linepay_cancel,
+    ecpay_checkout, ecpay_return, ecpay_result,
     order_list_view, order_detail_view, cancel_order_view, confirm_receipt_view,
+    request_return_view, cancel_return_view,
     wishlist_view, toggle_wishlist,
     notification_list_view, notification_detail_view, notification_toggle_read,
     notification_delete, notification_api, notification_unread_count_api, notification_mark_all_read,
@@ -74,11 +76,16 @@ urlpatterns = [
     path('payment/<int:order_id>/failed/', payment_failed_view, name='payment_failed'),
     path('payment/<int:order_id>/linepay/confirm/', linepay_confirm, name='linepay_confirm'),
     path('payment/<int:order_id>/linepay/cancel/', linepay_cancel, name='linepay_cancel'),
+    path('payment/<int:order_id>/ecpay/checkout/', ecpay_checkout, name='ecpay_checkout'),
+    path('payment/ecpay/return/', ecpay_return, name='ecpay_return'),
+    path('payment/<int:order_id>/ecpay/result/', ecpay_result, name='ecpay_result'),
 
     path('orders/', order_list_view, name='order_list'),
     path('orders/<int:order_id>/', order_detail_view, name='order_detail'),
     path('orders/<int:order_id>/cancel/', cancel_order_view, name='cancel_order'),
     path('orders/<int:order_id>/confirm-receipt/', confirm_receipt_view, name='confirm_receipt'),
+    path('orders/<int:order_id>/return/', request_return_view, name='request_return'),
+    path('orders/<int:order_id>/return/<int:return_id>/cancel/', cancel_return_view, name='cancel_return'),
 
     path('wishlist/', wishlist_view, name='wishlist'),
 

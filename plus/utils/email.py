@@ -337,6 +337,9 @@ def send_order_status_update_email(order, request=None):
             'user': order.user,
             'site_name': '好健健 GoodJian Plus',
             'status_display': order.get_status_display(),
+            'tracking_number': order.tracking_number,
+            'tracking_url': order.get_public_tracking_url(),
+            'carrier_display': order.get_carrier_display() if order.carrier else '',
         }
         
         # 發送郵件

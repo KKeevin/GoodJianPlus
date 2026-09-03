@@ -82,7 +82,47 @@
                         <span class="info-label">送達時間：</span>{{ order.delivered_at|date:"Y年m月d日 H:i" }}
                     </div>
                     {% endif %}
+                    {% if order.shipping_method %}
+                    <div class="info-item">
+                        <span class="info-label">配送方式：</span>{{ order.shipping_method.name }}
+                    </div>
+                    {% endif %}
+                    <div class="info-item">
+                        <span class="info-label">付款方式：</span>{{ order.get_payment_method_display }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">發票：</span>{{ order.get_invoice_type_display }}
+                        {% if order.invoice_title %}／{{ order.invoice_title }}{% endif %}
+                        {% if order.invoice_tax_id %}／統編 {{ order.invoice_tax_id }}{% endif %}
+                    </div>
                 </div>
+            </div>
+
+            <div class="info-section order-progress">
+                <h4><i class="bi bi-truck"></i> 出貨進度</h4>
+                <ol class="order-timeline">
+                    <li class="done">已下單<span>{{ order.created_at|date:"m/d H:i" }}</span></li>
+                    <li class="{% if order.payment_status == 'paid' or order.payment_method == 'cod' %}done{% endif %}">
+                        {% if order.payment_method == 'cod' %}貨到付款{% else %}已付款{% endif %}
+                    </li>
+                    <li class="{% if order.status == 'processing' or order.status == 'shipped' or order.status == 'delivered' or order.status == 'completed' %}done{% endif %}">備貨中</li>
+                    <li class="{% if order.status == 'shipped' or order.status == 'delivered' or order.status == 'completed' %}done{% endif %}">
+                        已出貨
+                        {% if order.shipped_at %}<span>{{ order.shipped_at|date:"m/d H:i" }}</span>{% endif %}
+                    </li>
+                    <li class="{% if order.status == 'delivered' or order.status == 'completed' %}done{% endif %}">已送達／完成</li>
+                </ol>
+                {% if order.tracking_number %}
+                <div class="info-item">
+                    <span class="info-label">物流商：</span>{{ order.get_carrier_display|default:"—" }}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">物流單號：</span>{{ order.tracking_number }}
+                    {% if tracking_url %}
+                    <a href="{{ tracking_url }}" target="_blank" rel="noopener">查詢貨態</a>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
 
             <h4 style="margin-bottom: 20px;"><i class="bi bi-cart"></i> 訂單商品</h4>
@@ -161,6 +201,46 @@
                 </form>
                 {% endif %}
             </div>
+
+            {% if return_requests %}
+            <div class="info-section" style="margin-top: 28px;">
+                <h4><i class="bi bi-arrow-repeat"></i> 退貨申請</h4>
+                {% for rma in return_requests %}
+                <div class="info-item">
+                    {{ rma.created_at|date:"Y/m/d H:i" }} · {{ rma.get_reason_display }} · {{ rma.get_status_display }}
+                    {% if rma.status == 'pending' %}
+                    <form method="post" action="{% url 'cancel_return' order.id rma.id %}" style="display:inline;" onsubmit="return confirm('取消此退貨申請？');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">取消申請</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <p class="text-muted">{{ rma.detail }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if can_request_return %}
+            <div class="info-section" style="margin-top: 20px;">
+                <h4>申請退貨</h4>
+                <form method="post" action="{% url 'request_return' order.id %}">
+                    {% csrf_token %}
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label for="reason">原因</label>
+                        <select id="reason" name="reason" required>
+                            {% for value, label in return_reason_choices %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label for="detail">說明</label>
+                        <textarea id="detail" name="detail" required minlength="8" rows="3" placeholder="請描述商品狀況或退貨原因"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger">送出退貨申請</button>
+                </form>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>

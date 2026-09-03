@@ -147,6 +147,27 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ('price', 'stock_quantity', 'status', 'is_featured')
     readonly_fields = ('created_at', 'updated_at')
+    actions = ['generate_ai_short_description']
+
+    @admin.action(description='以 AI 產生商品短介紹（需 OPENAI_API_KEY）')
+    def generate_ai_short_description(self, request, queryset):
+        from django.contrib import messages as admin_messages
+        from plus.services.ai_copy import generate_product_copy
+        ok = 0
+        last_error = ''
+        for product in queryset:
+            text, err = generate_product_copy(product)
+            if err:
+                last_error = err
+                continue
+            product.short_description = text[:500]
+            product.save(update_fields=['short_description'])
+            ok += 1
+        if ok == 0 and last_error:
+            self.message_user(request, last_error, level=admin_messages.ERROR)
+        else:
+            extra = f'（{last_error}）' if last_error else ''
+            self.message_user(request, f'已為 {ok} 件商品產生短介紹{extra}')
     
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """自定義 category 字段的選擇框，用縮進顯示層級關係，並分組顯示"""

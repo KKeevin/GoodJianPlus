@@ -1,0 +1,17 @@
+{% extends "base/main_all.html" %}
+{% block title %}前往綠界付款 - 好健健 GoodJian Plus{% endblock %}
+{% block content %}
+<section class="payment-section">
+    <div class="container" style="max-width: 640px; padding: 60px 20px; text-align: center;">
+        <h1>正在前往綠界付款</h1>
+        <p>訂單 {{ order.order_number }}，請稍候，系統將自動送出付款資料。</p>
+        <form id="ecpayForm" method="post" action="{{ ecpay_url }}">
+            {% for key, value in ecpay_params.items %}
+            <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endfor %}
+            <noscript><button type="submit">前往付款</button></noscript>
+        </form>
+    </div>
+</section>
+<script>document.getElementById('ecpayForm').submit();</script>
+{% endblock %}

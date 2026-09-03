@@ -8,7 +8,8 @@ from plus.models import (
     ProductReview, Cart, CartItem, Order, OrderItem, Coupon,
     Wishlist, ShippingMethod, SiteSettings, Notification,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
-    Article, ArticleCategory, ArticleImage, EmailVerificationToken
+    Article, ArticleCategory, ArticleImage, EmailVerificationToken,
+    ReturnRequest,
 )
 
 try:
@@ -43,71 +44,86 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
-    list_display = ('order_number', 'user', 'shipping_name', 'status', 'payment_status', 'total_amount', 'created_at')
-    list_filter = ('status', 'payment_status', 'created_at')
-    search_fields = ('order_number', 'user__username', 'shipping_name', 'shipping_phone', 'shipping_email')
+    list_display = (
+        'order_number', 'user', 'shipping_name', 'status', 'payment_status',
+        'payment_method', 'tracking_number', 'total_amount', 'created_at',
+    )
+    list_filter = ('status', 'payment_status', 'payment_method', 'carrier', 'created_at')
+    search_fields = (
+        'order_number', 'user__username', 'shipping_name', 'shipping_phone',
+        'shipping_email', 'tracking_number', 'invoice_tax_id',
+    )
     list_editable = ('status', 'payment_status')
-    
+
     def save_model(self, request, obj, form, change):
-        """保存訂單時檢查狀態變化，發送通知給用戶"""
-        if change:  # 如果是更新
-            try:
-                old_obj = Order.objects.get(pk=obj.pk)
-                old_status = old_obj.status
-                old_payment_status = old_obj.payment_status
-                
-                # 訂單狀態變更通知
-                if old_status != obj.status:
-                    if obj.status == 'cancelled' and old_status != 'cancelled':
-                        from plus.services.inventory import release_order_inventory, restore_coupon
-                        release_order_inventory(obj)
-                        restore_coupon(obj)
-                    status_messages = {
-                        'confirmed': '您的訂單已確認，正在準備出貨。',
-                        'processing': '您的訂單正在處理中。',
-                        'shipped': '您的訂單已出貨，請注意查收。',
-                        'delivered': '您的訂單已送達，感謝您的購買！',
-                        'cancelled': '您的訂單已取消。',
-                        'refunded': '您的訂單已退款。',
-                    }
-                    message = status_messages.get(obj.status, f'您的訂單狀態已變更為：{obj.get_status_display()}。')
-                    Notification.objects.create(
-                        user=obj.user,
-                        type='order',
-                        title=f'訂單 {obj.order_number} 狀態更新',
-                        message=message
-                    )
-                
-                # 支付狀態變更通知
-                if old_payment_status != obj.payment_status and obj.payment_status == 'paid':
-                    Notification.objects.create(
-                        user=obj.user,
-                        type='order',
-                        title='付款成功',
-                        message=f'您的訂單 {obj.order_number} 已成功付款，交易編號：{obj.payment_transaction_id or "N/A"}'
-                    )
-            except Order.DoesNotExist:
-                pass
-        
+        from plus.services.fulfillment import stamp_fulfillment_times, notify_order_status_change
+        old_status = None
+        old_payment_status = None
+        if change:
+            old_obj = Order.objects.get(pk=obj.pk)
+            old_status = old_obj.status
+            old_payment_status = old_obj.payment_status
+            stamp_fulfillment_times(obj)
         super().save_model(request, obj, form, change)
+        if change:
+            notify_order_status_change(obj, old_status, old_payment_status)
+
     readonly_fields = ('order_number', 'created_at', 'updated_at')
-    # date_hierarchy = 'created_at'  # 暫時移除以避免時區問題
-    
+
     fieldsets = (
         ('訂單基本資訊', {
-            'fields': ('order_number', 'user', 'status', 'payment_status')
+            'fields': ('order_number', 'user', 'status', 'payment_status', 'payment_method', 'payment_transaction_id')
         }),
         ('收件人資訊', {
-            'fields': ('shipping_name', 'shipping_phone', 'shipping_email', 'shipping_address', 'shipping_notes')
+            'fields': ('shipping_name', 'shipping_phone', 'shipping_email', 'shipping_address', 'shipping_notes', 'shipping_method')
+        }),
+        ('出貨與物流', {
+            'fields': ('carrier', 'tracking_number', 'tracking_url', 'shipped_at', 'delivered_at'),
+            'description': '填寫物流單號並將狀態改為「已出貨」，會員訂單頁會顯示查詢連結。',
+        }),
+        ('發票', {
+            'fields': ('invoice_type', 'invoice_title', 'invoice_tax_id', 'invoice_carrier'),
         }),
         ('金額明細', {
-            'fields': ('subtotal', 'shipping_fee', 'tax_amount', 'discount_amount', 'total_amount')
+            'fields': ('subtotal', 'shipping_fee', 'tax_amount', 'discount_amount', 'total_amount', 'coupon_code')
         }),
         ('時間記錄', {
-            'fields': ('created_at', 'updated_at', 'shipped_at', 'delivered_at'),
+            'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(ReturnRequest)
+class ReturnRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'order', 'user', 'reason', 'status', 'created_at')
+    list_filter = ('status', 'reason', 'created_at')
+    search_fields = ('order__order_number', 'user__username', 'detail')
+    list_editable = ('status',)
+    readonly_fields = ('created_at', 'updated_at')
+
+    def save_model(self, request, obj, form, change):
+        old_status = None
+        if change:
+            old_status = ReturnRequest.objects.get(pk=obj.pk).status
+        super().save_model(request, obj, form, change)
+        if not change or old_status == obj.status:
+            return
+        status_text = obj.get_status_display()
+        Notification.objects.create(
+            user=obj.user,
+            type='order',
+            title=f'退貨申請更新：{status_text}',
+            message=f'訂單 {obj.order.order_number} 的退貨申請已更新為「{status_text}」。{obj.admin_notes}'.strip(),
+        )
+        if obj.status == 'refunded' and obj.order.payment_status != 'refunded':
+            order = obj.order
+            order.status = 'refunded'
+            order.payment_status = 'refunded'
+            order.save(update_fields=['status', 'payment_status'])
+            from plus.services.inventory import release_order_inventory, restore_coupon
+            release_order_inventory(order)
+            restore_coupon(order)
 
 
 @admin.register(Coupon)

@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.crypto import get_random_string
 from django.utils import timezone
@@ -63,6 +64,8 @@ def payment_view(request, order_id):
     context = {
         'order': order,
         'allow_test_payment': settings.DEBUG,
+        'ecpay_enabled': bool(getattr(settings, 'ECPAY_MERCHANT_ID', '')),
+        'linepay_enabled': bool(getattr(settings, 'LINE_PAY_CHANNEL_ID', '')),
     }
     return render(request, 'payment/payment.html', context)
 
@@ -160,6 +163,22 @@ def process_payment(request, order_id):
                     'success': False,
                     'message': result.get('message', 'LINE Pay 支付請求失敗')
                 })
+
+        elif payment_method == 'ecpay':
+            from plus.payment.ecpay import ECPayAPI
+            ecpay = ECPayAPI()
+            if not ecpay.is_configured():
+                return JsonResponse({
+                    'success': False,
+                    'message': '綠界金流尚未設定，請見 docs/integrations.md',
+                })
+            order.payment_method = 'ecpay'
+            order.save(update_fields=['payment_method'])
+            return JsonResponse({
+                'success': True,
+                'message': '正在前往綠界付款...',
+                'redirect_url': reverse('ecpay_checkout', kwargs={'order_id': order.id}),
+            })
         
         else:
             return JsonResponse({
@@ -302,4 +321,102 @@ def linepay_cancel(request, order_id):
     except Order.DoesNotExist:
         messages.error(request, '訂單不存在')
         return redirect('order_list')
+
+
+@login_required
+def ecpay_checkout(request, order_id):
+    """自動送出綠界付款表單。"""
+    from plus.payment.ecpay import ECPayAPI
+    try:
+        order = Order.objects.prefetch_related('items').get(id=order_id, user=request.user)
+    except Order.DoesNotExist:
+        messages.error(request, '訂單不存在')
+        return redirect('order_list')
+    if order.payment_status == 'paid':
+        return redirect('order_detail', order_id=order.id)
+    ecpay = ECPayAPI()
+    return_url = request.build_absolute_uri(reverse('ecpay_return'))
+    result_url = request.build_absolute_uri(reverse('ecpay_result', kwargs={'order_id': order.id}))
+    client_back_url = request.build_absolute_uri(reverse('payment', kwargs={'order_id': order.id}))
+    params, error = ecpay.build_checkout_params(order, return_url, result_url, client_back_url)
+    if error:
+        messages.error(request, error)
+        return redirect('payment', order_id=order.id)
+    return render(request, 'payment/ecpay_checkout.html', {
+        'order': order,
+        'ecpay_url': ecpay.checkout_url,
+        'ecpay_params': params,
+    })
+
+
+def _mark_ecpay_paid(order, trade_no):
+    if order.payment_status == 'paid':
+        return
+    with transaction.atomic():
+        order.payment_method = 'ecpay'
+        order.payment_status = 'paid'
+        order.payment_transaction_id = trade_no or order.payment_transaction_id
+        order.status = 'confirmed'
+        order.save()
+        Notification.objects.create(
+            user=order.user,
+            type='order',
+            title='付款成功',
+            message=f'您的訂單 {order.order_number} 已透過綠界付款完成。',
+        )
+    try:
+        send_order_status_update_email(order)
+    except Exception as exc:
+        logger.error('ECPay status email failed: %s', exc)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def ecpay_return(request):
+    """綠界伺服器背景通知（必須回傳 1|OK）。"""
+    from plus.payment.ecpay import ECPayAPI
+    ecpay = ECPayAPI()
+    params = {key: request.POST.get(key) for key in request.POST}
+    if not ecpay.verify_check_mac_value(params):
+        logger.warning('ECPay ReturnURL CheckMacValue mismatch')
+        return HttpResponse('0|CheckMacValueError')
+    merchant_trade_no = params.get('MerchantTradeNo') or ''
+    try:
+        order = Order.objects.get(order_number=merchant_trade_no)
+    except Order.DoesNotExist:
+        logger.error('ECPay ReturnURL unknown order %s', merchant_trade_no)
+        return HttpResponse('0|OrderNotFound')
+    if params.get('RtnCode') == '1':
+        _mark_ecpay_paid(order, params.get('TradeNo', ''))
+    elif order.payment_status != 'paid':
+        order.payment_status = 'failed'
+        order.save(update_fields=['payment_status'])
+        release_order_inventory(order)
+        restore_coupon(order)
+    return HttpResponse('1|OK')
+
+
+@csrf_exempt
+def ecpay_result(request, order_id):
+    """綠界瀏覽器導回。"""
+    from plus.payment.ecpay import ECPayAPI
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        messages.error(request, '訂單不存在')
+        return redirect('order_list')
+    if request.method == 'POST':
+        ecpay = ECPayAPI()
+        params = {key: request.POST.get(key) for key in request.POST}
+        if ecpay.verify_check_mac_value(params) and params.get('RtnCode') == '1':
+            _mark_ecpay_paid(order, params.get('TradeNo', ''))
+            order.refresh_from_db()
+    if request.user.is_authenticated and request.user == order.user:
+        if order.payment_status == 'paid':
+            messages.success(request, '付款成功！')
+            return redirect('payment_success', order_id=order.id)
+        messages.error(request, '付款未完成，請再試一次')
+        return redirect('payment_failed', order_id=order.id)
+    messages.info(request, '付款結果已記錄，請登入後查看訂單')
+    return redirect('login')
 

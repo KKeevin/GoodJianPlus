@@ -93,6 +93,35 @@
 
                     <div class="row mt-4">
                         <div class="col-12">
+                            <div class="p-4 border rounded">
+                                <h3 class="mb-3">線上留言</h3>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label class="form-label" for="contact-name">姓名</label>
+                                        <input class="form-control" id="contact-name" name="name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="contact-email">電子郵件</label>
+                                        <input class="form-control" type="email" id="contact-email" name="email" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="contact-subject">主旨</label>
+                                        <input class="form-control" id="contact-subject" name="subject" placeholder="訂單／商品／其他">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label" for="contact-message">內容</label>
+                                        <textarea class="form-control" id="contact-message" name="message" rows="4" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">送出</button>
+                                </form>
+                                <p class="text-muted mt-3 mb-0">需設定 Gmail SMTP（見 docs/integrations.md）信件才會寄到客服信箱。</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
                             <div class="alert alert-info">
                                 <h5><i class="bi bi-info-circle"></i> 聯絡前準備</h5>
                                 <p class="mb-0">為了更快速地為您服務，建議您準備以下資訊：</p>

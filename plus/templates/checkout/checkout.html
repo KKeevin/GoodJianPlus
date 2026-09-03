@@ -82,33 +82,74 @@
                         {% endfor %}
                     </div>
 
+                    <!-- 發票 -->
+                    <div class="form-section">
+                        <h3 class="section-title">發票資訊</h3>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="invoice_type" value="personal" checked>
+                                個人／手機載具
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="invoice_type" value="company">
+                                公司戶（需統編）
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="invoice_type" value="donate">
+                                捐贈發票
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="invoice_title">發票抬頭（公司戶必填）</label>
+                            <input type="text" id="invoice_title" name="invoice_title" maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="invoice_tax_id">統一編號（8 碼）</label>
+                            <input type="text" id="invoice_tax_id" name="invoice_tax_id" maxlength="8" pattern="[0-9]*" inputmode="numeric">
+                        </div>
+                        <div class="form-group">
+                            <label for="invoice_carrier">載具條碼或愛心碼</label>
+                            <input type="text" id="invoice_carrier" name="invoice_carrier" maxlength="64" placeholder="/AB12345 或愛心碼">
+                        </div>
+                    </div>
+
                     <!-- 付款方式 -->
                     <div class="form-section">
                         <h3 class="section-title">付款方式</h3>
                         <div class="form-group">
                             <label>
-                                <input type="radio" name="payment_method" value="cod" required>
+                                <input type="radio" name="payment_method" value="cod"{% if not allow_test_payment %} checked{% endif %} required>
                                 <strong>貨到付款</strong>
-                                <small class="text-muted">（現金付款，收到商品時付款）</small>
+                                <small class="text-muted">（收到商品時付款）</small>
                             </label>
                         </div>
                         <div class="form-group">
                             <label>
-                                <input type="radio" name="payment_method" value="test_payment" checked required>
-                                <strong>線上付款（測試）</strong>
-                                <small class="text-muted">（模擬支付，立即完成付款）</small>
+                                <input type="radio" name="payment_method" value="linepay">
+                                <strong>LINE Pay</strong>
+                                <small class="text-muted">（結帳後導向 LINE Pay，需申請金鑰）</small>
                             </label>
                         </div>
-                        <!-- 未來可以添加其他支付方式 -->
-                        <!-- 
                         <div class="form-group">
                             <label>
                                 <input type="radio" name="payment_method" value="ecpay">
                                 <strong>綠界科技 ECPay</strong>
-                                <small class="text-muted">（信用卡、ATM、超商代碼）</small>
+                                <small class="text-muted">（信用卡、ATM、超商代碼，需申請金鑰）</small>
                             </label>
                         </div>
-                        -->
+                        {% if allow_test_payment %}
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="payment_method" value="test_payment" checked required>
+                                <strong>線上付款（測試）</strong>
+                                <small class="text-muted">（僅開發環境，正式站不會出現）</small>
+                            </label>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 

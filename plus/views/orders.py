@@ -23,7 +23,7 @@ from plus.models import (
     Coupon, ShippingMethod, SiteSettings, Notification,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
     Article, ArticleCategory, ArticleImage, EmailVerificationToken,
-    PhoneVerificationCode, EmailChangeRequest
+    PhoneVerificationCode, EmailChangeRequest, ReturnRequest
 )
 from plus.forms import CustomUserRegistrationForm, QuickRegistrationForm, CustomAuthenticationForm
 from plus.utils.email import (
@@ -68,13 +68,21 @@ def order_detail_view(request, order_id):
     """訂單詳情"""
     try:
         order = Order.objects.prefetch_related(
-            'items', 'items__product', 'items__product__images'
-        ).get(id=order_id, user=request.user)
+            'items', 'items__product', 'items__product__images', 'return_requests'
+        ).select_related('shipping_method').get(id=order_id, user=request.user)
     except Order.DoesNotExist:
         messages.error(request, '訂單不存在')
         return redirect('order_list')
     context = {
         'order': order,
+        'tracking_url': order.get_public_tracking_url(),
+        'return_requests': order.return_requests.all(),
+        'can_request_return': (
+            order.payment_status == 'paid'
+            and order.status in ('shipped', 'delivered', 'completed')
+            and not order.return_requests.filter(status__in=('pending', 'approved', 'received')).exists()
+        ),
+        'return_reason_choices': ReturnRequest.REASON_CHOICES,
     }
     return render(request, 'orders/order_detail.html', context)
 
@@ -105,6 +113,10 @@ def cancel_order_view(request, order_id):
         title='訂單已取消',
         message=f'您的訂單 {order.order_number} 已取消，庫存已釋出。',
     )
+    try:
+        send_order_status_update_email(order, request)
+    except Exception:
+        logger.exception('Cancel order email failed')
     messages.success(request, '訂單已取消')
     return redirect('order_detail', order_id=order.id)
 
@@ -126,4 +138,61 @@ def confirm_receipt_view(request, order_id):
     order.save(update_fields=['status', 'delivered_at'])
     messages.success(request, '已確認收貨，感謝您的購買')
     return redirect('order_detail', order_id=order.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def request_return_view(request, order_id):
+    """會員申請退貨。"""
+    try:
+        order = Order.objects.get(id=order_id, user=request.user)
+    except Order.DoesNotExist:
+        messages.error(request, '訂單不存在')
+        return redirect('order_list')
+    if order.payment_status != 'paid' or order.status not in ('shipped', 'delivered', 'completed'):
+        messages.error(request, '此訂單目前無法申請退貨')
+        return redirect('order_detail', order_id=order.id)
+    if order.return_requests.filter(status__in=('pending', 'approved', 'received')).exists():
+        messages.error(request, '此訂單已有進行中的退貨申請')
+        return redirect('order_detail', order_id=order.id)
+    reason = request.POST.get('reason', '')
+    detail = request.POST.get('detail', '').strip()
+    if reason not in dict(ReturnRequest.REASON_CHOICES):
+        messages.error(request, '請選擇退貨原因')
+        return redirect('order_detail', order_id=order.id)
+    if len(detail) < 8:
+        messages.error(request, '請再補充退貨說明（至少 8 個字）')
+        return redirect('order_detail', order_id=order.id)
+    ReturnRequest.objects.create(
+        order=order,
+        user=request.user,
+        reason=reason,
+        detail=detail,
+    )
+    send_notification(
+        user=request.user,
+        notification_type='order',
+        title='已收到退貨申請',
+        message=f'訂單 {order.order_number} 的退貨申請已送出，客服審核後會再通知您。',
+    )
+    messages.success(request, '退貨申請已送出')
+    return redirect('order_detail', order_id=order.id)
+
+
+@login_required
+@require_http_methods(["POST"])
+def cancel_return_view(request, order_id, return_id):
+    """取消尚在待審核的退貨申請。"""
+    try:
+        rma = ReturnRequest.objects.get(id=return_id, order_id=order_id, user=request.user)
+    except ReturnRequest.DoesNotExist:
+        messages.error(request, '找不到退貨申請')
+        return redirect('order_list')
+    if rma.status != 'pending':
+        messages.error(request, '此申請已在處理中，請聯絡客服')
+        return redirect('order_detail', order_id=order_id)
+    rma.status = 'cancelled'
+    rma.save(update_fields=['status', 'updated_at'])
+    messages.success(request, '已取消退貨申請')
+    return redirect('order_detail', order_id=order_id)
 

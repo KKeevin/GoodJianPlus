@@ -20,18 +20,15 @@ from datetime import datetime, timedelta
 from plus.models import (
     CustomUser, UserProfile, Wishlist, Category, Brand, Product,
     ProductImage, ProductReview, Cart, CartItem, Order, OrderItem,
-    Coupon, ShippingMethod, SiteSettings, Notification,
+    Coupon, ShippingMethod, SiteSettings, Notification, NewsletterSubscriber,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
     Article, ArticleCategory, ArticleImage, EmailVerificationToken,
     PhoneVerificationCode, EmailChangeRequest
 )
 from plus.forms import CustomUserRegistrationForm, QuickRegistrationForm, CustomAuthenticationForm
-from plus.utils.email import (
-    send_verification_email, send_welcome_email,
-    send_password_reset_email as send_password_reset_email_util,
-    send_order_status_update_email,
-    send_email_change_verification_email
-)
+from plus.utils.ratelimit import ratelimit
+from django.core.mail import send_mail
+from django.conf import settings as django_settings
 from plus.services.sms import send_sms_verification_code
 from plus.services.notifications import send_notification
 from plus.services.nutrition import (
@@ -76,15 +73,44 @@ def faq_view(request):
     return render(request, 'customer_service/faq.html')
 
 
+@ratelimit(limit=5, window=300)
 def contact_us_view(request):
     """聯絡客服頁面"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip() or '網站留言'
+        message = request.POST.get('message', '').strip()
+        if not name or not email or not message:
+            messages.error(request, '請填寫姓名、信箱與內容')
+            return redirect('contact_us')
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            messages.error(request, '請輸入正確的電子郵件')
+            return redirect('contact_us')
+        site = SiteSettings.objects.first()
+        to_email = (site.contact_email if site else '') or django_settings.DEFAULT_FROM_EMAIL
+        body = f'姓名：{name}\n信箱：{email}\n\n{message}'
+        try:
+            send_mail(
+                subject=f'[客服留言] {subject}',
+                message=body,
+                from_email=django_settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[to_email],
+                fail_silently=False,
+            )
+            messages.success(request, '已送出，我們會盡快回覆您')
+        except Exception:
+            logger.exception('Contact form email failed')
+            messages.error(request, '信件暫時無法送出，請改用上方信箱或電話聯絡')
+        return redirect('contact_us')
     return render(request, 'customer_service/contact_us.html')
 
 
 @require_http_methods(["POST"])
+@ratelimit(limit=8, window=300)
 def newsletter_subscribe(request):
     """電子報訂閱"""
-    email = request.POST.get('email', '').strip()
+    email = request.POST.get('email', '').strip().lower()
     if not email:
         return JsonResponse({
             'success': False,
@@ -95,7 +121,11 @@ def newsletter_subscribe(request):
             'success': False,
             'message': '請輸入正確的電子郵件格式'
         })
-    logger.info(f'Newsletter subscription request: {email}')
+    subscriber, created = NewsletterSubscriber.objects.update_or_create(
+        email=email,
+        defaults={'is_active': True},
+    )
+    logger.info('Newsletter subscription: %s created=%s', email, created)
     return JsonResponse({
         'success': True,
         'message': '感謝您的訂閱！我們將定期發送最新資訊給您。'

@@ -30,6 +30,7 @@ from plus.utils.email import (
     send_verification_email, send_welcome_email,
     send_password_reset_email as send_password_reset_email_util,
     send_order_status_update_email,
+    send_order_confirmation_email,
     send_email_change_verification_email
 )
 from plus.services.sms import send_sms_verification_code
@@ -40,6 +41,7 @@ from plus.services.nutrition import (
 )
 from plus.services.checkout import (
     get_pricing_settings, resolve_shipping_fee, compute_coupon_discount,
+    normalize_payment_method,
 )
 from plus.decorators import verified_required
 from plus.utils.request import get_client_ip
@@ -83,10 +85,26 @@ def checkout(request):
         shipping_notes = request.POST.get('shipping_notes', '')
         shipping_method_id = request.POST.get('shipping_method')
         coupon_code = request.POST.get('coupon_code', '').strip()
+        invoice_type = request.POST.get('invoice_type', 'personal')
+        invoice_title = request.POST.get('invoice_title', '').strip()
+        invoice_tax_id = request.POST.get('invoice_tax_id', '').strip()
+        invoice_carrier = request.POST.get('invoice_carrier', '').strip()
         
         # 驗證必填欄位
         if not all([shipping_name, shipping_phone, shipping_email, shipping_address]):
             messages.error(request, '請填寫完整的收件人資訊')
+            return redirect('checkout')
+        if invoice_type not in dict(Order.INVOICE_TYPE_CHOICES):
+            invoice_type = 'personal'
+        if invoice_type == 'company':
+            if not invoice_title:
+                messages.error(request, '公司戶請填寫發票抬頭')
+                return redirect('checkout')
+            if not re.match(r'^\d{8}$', invoice_tax_id):
+                messages.error(request, '請輸入 8 碼統一編號')
+                return redirect('checkout')
+        if invoice_type == 'donate' and not invoice_carrier:
+            messages.error(request, '請填寫愛心碼')
             return redirect('checkout')
         
         shipping_fee = resolve_shipping_fee(
@@ -107,9 +125,15 @@ def checkout(request):
                 # 計算最終金額
                 final_total = subtotal + shipping_fee + tax_amount - discount_amount
                 
-                # 取得支付方式
-                payment_method = request.POST.get('payment_method', 'cod')
-                
+                payment_method = normalize_payment_method(
+                    request.POST.get('payment_method', 'cod')
+                )
+                shipping_method_obj = None
+                if shipping_method_id:
+                    shipping_method_obj = ShippingMethod.objects.filter(
+                        id=shipping_method_id, is_active=True
+                    ).first()
+
                 # 建立訂單
                 order = Order.objects.create(
                     user=user,
@@ -118,6 +142,11 @@ def checkout(request):
                     shipping_email=shipping_email,
                     shipping_address=shipping_address,
                     shipping_notes=shipping_notes,
+                    shipping_method=shipping_method_obj,
+                    invoice_type=invoice_type,
+                    invoice_title=invoice_title,
+                    invoice_tax_id=invoice_tax_id,
+                    invoice_carrier=invoice_carrier,
                     subtotal=subtotal,
                     shipping_fee=shipping_fee,
                     tax_amount=tax_amount,
@@ -153,6 +182,10 @@ def checkout(request):
                 logger.info(f'Order created: {order.order_number} by user {user.username}')
                 
                 cart.items.all().delete()
+                try:
+                    send_order_confirmation_email(order, request)
+                except Exception as e:
+                    logger.error(f'Failed to send order confirmation email: {str(e)}')
                 
                 if payment_method == 'cod':
                     messages.success(request, f'訂單已成功建立！訂單編號：{order.order_number}')
@@ -171,6 +204,7 @@ def checkout(request):
             messages.error(request, '訂單建立失敗，請稍後再試')
             return redirect('checkout')
     
+    from django.conf import settings as django_settings
     context = {
         'cart': cart,
         'items': items,
@@ -180,6 +214,8 @@ def checkout(request):
         'total_amount': total_amount,
         'shipping_methods': shipping_methods,
         'user': user,
+        'allow_test_payment': django_settings.DEBUG,
+        'invoice_type_choices': Order.INVOICE_TYPE_CHOICES,
     }
     return render(request, 'checkout/checkout.html', context)
 

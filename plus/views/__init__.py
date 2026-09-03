@@ -8,8 +8,8 @@ from plus.views.email_verification import verify_email, resend_verification_emai
 from plus.views.profile import user_profile_view, profile_completion_view, phone_profile_update_view, verify_email_change
 from plus.views.cart import cart_view, cart_count_api, add_to_cart, update_cart_item, remove_cart_item, cart_totals
 from plus.views.checkout import checkout, calculate_checkout_price
-from plus.views.payments import payment_view, process_payment, payment_success_view, payment_failed_view, linepay_confirm, linepay_cancel
-from plus.views.orders import order_list_view, order_detail_view, cancel_order_view, confirm_receipt_view
+from plus.views.payments import payment_view, process_payment, payment_success_view, payment_failed_view, linepay_confirm, linepay_cancel, ecpay_checkout, ecpay_return, ecpay_result
+from plus.views.orders import order_list_view, order_detail_view, cancel_order_view, confirm_receipt_view, request_return_view, cancel_return_view
 from plus.views.wishlist import wishlist_view, toggle_wishlist
 from plus.views.notifications import notification_list_view, notification_detail_view, notification_toggle_read, notification_delete, notification_api, notification_unread_count_api, notification_mark_all_read, notification_batch_action, get_time_ago
 from plus.views.social import associate_by_email, social_auth_pipeline, google_login, facebook_login, line_login, google_callback, social_auth_error, social_auth_complete
@@ -66,10 +66,15 @@ __all__ = [
     'payment_failed_view',
     'linepay_confirm',
     'linepay_cancel',
+    'ecpay_checkout',
+    'ecpay_return',
+    'ecpay_result',
     'order_list_view',
     'order_detail_view',
     'cancel_order_view',
     'confirm_receipt_view',
+    'request_return_view',
+    'cancel_return_view',
     'wishlist_view',
     'toggle_wishlist',
     'notification_list_view',

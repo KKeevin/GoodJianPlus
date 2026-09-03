@@ -1,6 +1,24 @@
 from decimal import Decimal
 
+from django.conf import settings
+
 from plus.models import Coupon, ShippingMethod, SiteSettings
+
+ONLINE_PAYMENT_METHODS = ('linepay', 'ecpay', 'test_payment')
+
+
+def allowed_payment_methods():
+    methods = {'cod', 'linepay', 'ecpay'}
+    if settings.DEBUG:
+        methods.add('test_payment')
+    return methods
+
+
+def normalize_payment_method(raw):
+    methods = allowed_payment_methods()
+    if raw in methods:
+        return raw
+    return 'cod'
 
 
 def get_pricing_settings():

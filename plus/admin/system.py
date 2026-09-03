@@ -8,7 +8,8 @@ from plus.models import (
     ProductReview, Cart, CartItem, Order, OrderItem, Coupon,
     Wishlist, ShippingMethod, SiteSettings, Notification,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
-    Article, ArticleCategory, ArticleImage, EmailVerificationToken
+    Article, ArticleCategory, ArticleImage, EmailVerificationToken,
+    NewsletterSubscriber,
 )
 
 try:
@@ -58,6 +59,14 @@ class NotificationAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'title', 'message')
     list_editable = ('is_read',)
     readonly_fields = ('created_at',)
+
+
+@admin.register(NewsletterSubscriber)
+class NewsletterSubscriberAdmin(admin.ModelAdmin):
+    list_display = ('email', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('email',)
+    list_editable = ('is_active',)
 
 admin.site.site_header = '好健健 GoodJian Plus 管理後台'
 admin.site.site_title = '好健健管理系統'
