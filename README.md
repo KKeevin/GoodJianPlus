@@ -31,6 +31,7 @@ python manage.py runserver
 ## 文件
 
 - [本機與部署概要](docs/operations.md)
+- [金流／郵件／OAuth／物流申請金鑰](docs/integrations.md)
 - [正式機 SSH 與更新程式](docs/deploy.md)
 - [安全](docs/security.md)
 - [郵件](docs/email.md)

@@ -27,8 +27,9 @@ python manage.py migrate
 ## 正式環境（占位，請換成你自己的主機）
 
 - Web：Gunicorn（`gunicorn_config.py`）+ Nginx 反向代理（`nginx_https.conf.example`）
-- 設定：`DJANGO_ENV=production`、`DEBUG=False`，並在環境變數設定 `SECRET_KEY`、`ALLOWED_HOSTS`、`SITE_DOMAIN`、資料庫與金流／簡訊金鑰
+- 設定：`DJANGO_ENV=production`、`DEBUG=False`，並在環境變數設定 `SECRET_KEY`、`ALLOWED_HOSTS`、`SITE_DOMAIN`、`CSRF_TRUSTED_ORIGINS`、資料庫與金流／簡訊金鑰
 - HTTPS：Let’s Encrypt；`DEBUG=False` 時 Django 會啟用導向 HTTPS 與 Secure Cookie
+- 金流、SMTP、OAuth、Sentry、OpenAI 申請位置與要貼的變數：[integrations.md](integrations.md)
 - 靜態檔：`python manage.py collectstatic`
 
 請勿把正式機的 `.env`、SSH 私鑰、資料庫傾印提交到 Git。

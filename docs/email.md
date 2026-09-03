@@ -14,4 +14,6 @@ python manage.py test_email
 
 正式機可用 `scripts/test_email_production.sh`，或在該環境執行同一個 management command。
 
+申請 Gmail 應用程式密碼與其他金鑰的位置見 [integrations.md](integrations.md)。
+
 相關範本位於 `plus/templates/emails/`。

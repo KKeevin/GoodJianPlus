@@ -43,10 +43,15 @@ NAMED_URLS = [
     ('payment_failed', {'order_id': 1}, '/payment/1/failed/'),
     ('linepay_confirm', {'order_id': 1}, '/payment/1/linepay/confirm/'),
     ('linepay_cancel', {'order_id': 1}, '/payment/1/linepay/cancel/'),
+    ('ecpay_checkout', {'order_id': 1}, '/payment/1/ecpay/checkout/'),
+    ('ecpay_return', {}, '/payment/ecpay/return/'),
+    ('ecpay_result', {'order_id': 1}, '/payment/1/ecpay/result/'),
     ('order_list', {}, '/orders/'),
     ('order_detail', {'order_id': 1}, '/orders/1/'),
     ('cancel_order', {'order_id': 1}, '/orders/1/cancel/'),
     ('confirm_receipt', {'order_id': 1}, '/orders/1/confirm-receipt/'),
+    ('request_return', {'order_id': 1}, '/orders/1/return/'),
+    ('cancel_return', {'order_id': 1, 'return_id': 2}, '/orders/1/return/2/cancel/'),
     ('wishlist', {}, '/wishlist/'),
     ('notification_list', {}, '/notifications/'),
     ('notification_detail', {'notification_id': 1}, '/notifications/1/'),
@@ -93,7 +98,7 @@ NAMED_URLS = [
 
 class NamedUrlTests(SimpleTestCase):
     def test_named_urls_match_existing_paths(self):
-        self.assertEqual(len(NAMED_URLS), 85)
+        self.assertEqual(len(NAMED_URLS), 90)
         for name, kwargs, expected in NAMED_URLS:
             with self.subTest(name=name):
                 self.assertEqual(reverse(name, kwargs=kwargs), expected)
