@@ -1,0 +1,38 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 24px;">
+  <table style="width:100%;">
+    <caption>營運總覽（給店長／出貨／上架）</caption>
+    <thead>
+      <tr>
+        <th>待付款訂單</th>
+        <th>待出貨</th>
+        <th>運送中</th>
+        <th>待審退貨</th>
+        <th>草稿商品</th>
+        <th>低庫存</th>
+        <th>缺貨</th>
+        <th>待審評價</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="{{ ops_stats.links.awaiting_payment }}">{{ ops_stats.awaiting_payment }}</a></td>
+        <td><a href="{{ ops_stats.links.to_ship }}">{{ ops_stats.to_ship }}</a></td>
+        <td><a href="{{ ops_stats.links.shipped }}">{{ ops_stats.shipped }}</a></td>
+        <td><a href="{{ ops_stats.links.pending_returns }}">{{ ops_stats.pending_returns }}</a></td>
+        <td><a href="{{ ops_stats.links.draft_products }}">{{ ops_stats.draft_products }}</a></td>
+        <td><a href="{{ ops_stats.links.low_stock }}">{{ ops_stats.low_stock }}</a></td>
+        <td><a href="{{ ops_stats.links.out_of_stock }}">{{ ops_stats.out_of_stock }}</a></td>
+        <td><a href="{{ ops_stats.links.pending_reviews }}">{{ ops_stats.pending_reviews }}</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="padding: 8px 12px; color: #666;">
+    上架流程：分類／品牌 → 新增商品（草稿）→ 上傳主圖 → 改為「已發佈」。出貨：訂單填物流單號 → 動作「標示為已出貨」。
+    電子報訂閱 <a href="{{ ops_stats.links.newsletter }}">{{ ops_stats.newsletter }}</a> 筆。
+  </p>
+</div>
+{{ block.super }}
+{% endblock %}

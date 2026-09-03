@@ -11,6 +11,8 @@ from plus.models import (
     Article, ArticleCategory, ArticleImage, EmailVerificationToken
 )
 
+from plus.admin.filters import HasImageFilter, StockStatusFilter
+
 try:
     from django_summernote.admin import SummernoteModelAdmin
     SUMMERNOTE_AVAILABLE = True
@@ -134,20 +136,46 @@ class BrandAdmin(admin.ModelAdmin):
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 3
-    fields = ('image', 'alt_text', 'is_primary', 'sort_order')
+    extra = 1
+    fields = ('image_preview', 'image', 'alt_text', 'is_primary', 'sort_order')
+    readonly_fields = ('image_preview',)
+
+    def image_preview(self, obj):
+        if obj.pk and getattr(obj, 'image', None):
+            return format_html(
+                '<img src="{}" alt="" style="height:56px;width:56px;object-fit:cover;border-radius:6px;" />',
+                obj.image.url,
+            )
+        return '儲存後顯示預覽'
+    image_preview.short_description = '預覽'
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.ModelAdmin):
     inlines = [ProductImageInline]
-    list_display = ('name', 'category', 'brand', 'price', 'stock_quantity', 'status', 'is_featured', 'created_at')
-    list_filter = ('status', 'category', 'brand', 'is_featured', 'created_at')
-    search_fields = ('name', 'sku', 'description')
+    list_display = (
+        'thumbnail', 'name', 'sku', 'category', 'price', 'stock_badge',
+        'status', 'is_featured', 'view_on_site_link', 'updated_at',
+    )
+    list_filter = ('status', 'is_featured', StockStatusFilter, HasImageFilter, 'category', 'brand', 'created_at')
+    search_fields = ('name', 'sku', 'description', 'short_description')
     prepopulated_fields = {'slug': ('name',)}
-    list_editable = ('price', 'stock_quantity', 'status', 'is_featured')
-    readonly_fields = ('created_at', 'updated_at')
-    actions = ['generate_ai_short_description']
+    list_display_links = ('name',)
+    list_editable = ('price', 'status', 'is_featured')
+    readonly_fields = ('created_at', 'updated_at', 'view_on_site_link')
+    list_select_related = ('category', 'brand')
+    list_per_page = 25
+    autocomplete_fields = ('brand',)
+    if SUMMERNOTE_AVAILABLE:
+        summernote_fields = ('description',)
+    actions = [
+        'generate_ai_short_description',
+        'publish_products',
+        'unpublish_products',
+        'mark_featured',
+        'unmark_featured',
+        'duplicate_products',
+    ]
 
     @admin.action(description='以 AI 產生商品短介紹（需 OPENAI_API_KEY）')
     def generate_ai_short_description(self, request, queryset):
@@ -168,6 +196,88 @@ class ProductAdmin(admin.ModelAdmin):
         else:
             extra = f'（{last_error}）' if last_error else ''
             self.message_user(request, f'已為 {ok} 件商品產生短介紹{extra}')
+
+    @admin.action(description='發佈選取的商品')
+    def publish_products(self, request, queryset):
+        from django.utils import timezone
+        now = timezone.now()
+        updated = 0
+        for product in queryset:
+            product.status = 'published'
+            if not product.published_at:
+                product.published_at = now
+            product.save(update_fields=['status', 'published_at'])
+            updated += 1
+        self.message_user(request, f'已發佈 {updated} 件商品')
+
+    @admin.action(description='改回草稿（下架）')
+    def unpublish_products(self, request, queryset):
+        updated = queryset.update(status='draft')
+        self.message_user(request, f'已下架 {updated} 件商品')
+
+    @admin.action(description='設為推薦商品')
+    def mark_featured(self, request, queryset):
+        updated = queryset.update(is_featured=True)
+        self.message_user(request, f'已將 {updated} 件設為推薦')
+
+    @admin.action(description='取消推薦')
+    def unmark_featured(self, request, queryset):
+        updated = queryset.update(is_featured=False)
+        self.message_user(request, f'已取消 {updated} 件推薦')
+
+    @admin.action(description='複製為草稿商品（含圖片）')
+    def duplicate_products(self, request, queryset):
+        import uuid
+        count = 0
+        for product in queryset:
+            image_rows = list(product.images.all())
+            product.pk = None
+            product.id = None
+            product.name = f'{product.name}（複製）'
+            product.slug = f'{product.slug}-copy-{uuid.uuid4().hex[:6]}'
+            product.sku = f'{product.sku}-C{uuid.uuid4().hex[:4].upper()}'[:50]
+            product.status = 'draft'
+            product.is_featured = False
+            product.published_at = None
+            product.save()
+            for image in image_rows:
+                image.pk = None
+                image.id = None
+                image.product = product
+                image.save()
+            count += 1
+        self.message_user(request, f'已複製 {count} 件草稿，請改 SKU／名稱後再發佈')
+
+    def thumbnail(self, obj):
+        images = list(obj.images.all())
+        image = next((item for item in images if item.is_primary), None) or (images[0] if images else None)
+        if image and image.image:
+            return format_html(
+                '<img src="{}" alt="" style="height:48px;width:48px;object-fit:cover;border-radius:6px;" />',
+                image.image.url,
+            )
+        return format_html('<span style="color:#999;">無圖</span>')
+    thumbnail.short_description = '主圖'
+
+    def stock_badge(self, obj):
+        qty = obj.stock_quantity
+        if qty <= 0:
+            return format_html('<span style="color:#fff;background:#c0392b;padding:2px 8px;border-radius:10px;">缺貨</span>')
+        if qty <= obj.min_stock_level:
+            return format_html(
+                '<span style="color:#7a4d00;background:#fff3cd;padding:2px 8px;border-radius:10px;">{}（低）</span>',
+                qty,
+            )
+        return str(qty)
+    stock_badge.short_description = '庫存'
+    stock_badge.admin_order_field = 'stock_quantity'
+
+    def view_on_site_link(self, obj):
+        if not obj.pk:
+            return '—'
+        url = reverse('product_detail', kwargs={'product_id': obj.pk})
+        return format_html('<a href="{}" target="_blank" rel="noopener">前台預覽</a>', url)
+    view_on_site_link.short_description = '前台'
     
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         """自定義 category 字段的選擇框，用縮進顯示層級關係，並分組顯示"""
@@ -250,6 +360,9 @@ class ProductAdmin(admin.ModelAdmin):
     
     def save_model(self, request, obj, form, change):
         """保存商品時檢查價格和庫存變化，發送通知給收藏用戶"""
+        from django.utils import timezone
+        if obj.status == 'published' and not obj.published_at:
+            obj.published_at = timezone.now()
         if change:  # 如果是更新
             try:
                 old_obj = Product.objects.get(pk=obj.pk)
@@ -285,10 +398,18 @@ class ProductAdmin(admin.ModelAdmin):
                 pass
         
         super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('category', 'brand').prefetch_related('images')
+
+    class Media:
+        css = {
+            'all': ('admin/css/admin-summernote-custom.css',)
+        }
     
     fieldsets = (
         ('基本資訊', {
-            'fields': ('name', 'slug', 'category', 'brand', 'sku', 'status')
+            'fields': ('name', 'slug', 'category', 'brand', 'sku', 'status', 'view_on_site_link')
         }),
         ('內容描述', {
             'fields': ('short_description', 'description')
@@ -324,5 +445,16 @@ class ProductReviewAdmin(admin.ModelAdmin):
     list_filter = ('rating', 'is_verified_purchase', 'is_approved', 'created_at')
     search_fields = ('product__name', 'user__username', 'title', 'content')
     list_editable = ('is_approved',)
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'updated_at')
+    actions = ['approve_reviews', 'hide_reviews']
+
+    @admin.action(description='通過審核（前台顯示）')
+    def approve_reviews(self, request, queryset):
+        updated = queryset.update(is_approved=True)
+        self.message_user(request, f'已通過 {updated} 則評價')
+
+    @admin.action(description='隱藏評價')
+    def hide_reviews(self, request, queryset):
+        updated = queryset.update(is_approved=False)
+        self.message_user(request, f'已隱藏 {updated} 則評價')
 

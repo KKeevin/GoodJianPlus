@@ -38,22 +38,37 @@ class CartAdmin(admin.ModelAdmin):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    readonly_fields = ('subtotal',)
+    can_delete = False
+    readonly_fields = ('product', 'product_name', 'product_sku', 'unit_price', 'quantity', 'subtotal')
+    fields = ('product_name', 'product_sku', 'unit_price', 'quantity', 'subtotal')
+
+
+class ReturnRequestInline(admin.TabularInline):
+    model = ReturnRequest
+    extra = 0
+    can_delete = False
+    readonly_fields = ('user', 'reason', 'detail', 'status', 'created_at')
+    fields = ('user', 'reason', 'status', 'detail', 'created_at')
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    inlines = [OrderItemInline]
+    inlines = [OrderItemInline, ReturnRequestInline]
     list_display = (
         'order_number', 'user', 'shipping_name', 'status', 'payment_status',
         'payment_method', 'tracking_number', 'total_amount', 'created_at',
     )
+    list_display_links = ('order_number',)
     list_filter = ('status', 'payment_status', 'payment_method', 'carrier', 'created_at')
     search_fields = (
         'order_number', 'user__username', 'shipping_name', 'shipping_phone',
         'shipping_email', 'tracking_number', 'invoice_tax_id',
     )
     list_editable = ('status', 'payment_status')
+    list_select_related = ('user',)
+    list_per_page = 25
+    autocomplete_fields = ('user',)
+    actions = ['mark_processing', 'mark_shipped', 'mark_delivered']
 
     def save_model(self, request, obj, form, change):
         from plus.services.fulfillment import stamp_fulfillment_times, notify_order_status_change
@@ -67,6 +82,38 @@ class OrderAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if change:
             notify_order_status_change(obj, old_status, old_payment_status)
+
+    def _apply_status(self, request, queryset, status, require_tracking=False):
+        from plus.services.fulfillment import stamp_fulfillment_times, notify_order_status_change
+        ok = 0
+        skipped = 0
+        for order in queryset:
+            if require_tracking and not order.tracking_number:
+                skipped += 1
+                continue
+            old_status = order.status
+            old_payment = order.payment_status
+            order.status = status
+            stamp_fulfillment_times(order)
+            order.save()
+            notify_order_status_change(order, old_status, old_payment)
+            ok += 1
+        msg = f'已更新 {ok} 筆訂單'
+        if skipped:
+            msg += f'；{skipped} 筆未填物流單號已跳過'
+        self.message_user(request, msg)
+
+    @admin.action(description='標示為處理中（備貨）')
+    def mark_processing(self, request, queryset):
+        self._apply_status(request, queryset, 'processing')
+
+    @admin.action(description='標示為已出貨（需已填物流單號）')
+    def mark_shipped(self, request, queryset):
+        self._apply_status(request, queryset, 'shipped', require_tracking=True)
+
+    @admin.action(description='標示為已送達')
+    def mark_delivered(self, request, queryset):
+        self._apply_status(request, queryset, 'delivered')
 
     readonly_fields = ('order_number', 'created_at', 'updated_at')
 
@@ -100,6 +147,8 @@ class ReturnRequestAdmin(admin.ModelAdmin):
     list_filter = ('status', 'reason', 'created_at')
     search_fields = ('order__order_number', 'user__username', 'detail')
     list_editable = ('status',)
+    list_select_related = ('order', 'user')
+    autocomplete_fields = ('order', 'user')
     readonly_fields = ('created_at', 'updated_at')
 
     def save_model(self, request, obj, form, change):
@@ -133,6 +182,12 @@ class CouponAdmin(admin.ModelAdmin):
     search_fields = ('name', 'code', 'description')
     list_editable = ('is_active',)
     readonly_fields = ('used_count', 'created_at')
+
+    def save_model(self, request, obj, form, change):
+        if not obj.code:
+            import secrets
+            obj.code = secrets.token_hex(4).upper()
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Wishlist)
