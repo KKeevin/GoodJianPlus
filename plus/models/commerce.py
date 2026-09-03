@@ -73,7 +73,27 @@ class Order(models.Model):
         ('failed', '付款失敗'),
         ('refunded', '已退款'),
     ]
-    
+    PAYMENT_METHOD_CHOICES = [
+        ('cod', '貨到付款'),
+        ('test_payment', '測試付款'),
+        ('linepay', 'LINE Pay'),
+        ('ecpay', '綠界科技 ECPay'),
+    ]
+    CARRIER_CHOICES = [
+        ('', '尚未指定'),
+        ('hct', '新竹物流'),
+        ('tcat', '黑貓宅急便'),
+        ('kerry', '嘉里大榮'),
+        ('seven_eleven', '7-ELEVEN 交貨便'),
+        ('family_mart', '全家店到店'),
+        ('other', '其他'),
+    ]
+    INVOICE_TYPE_CHOICES = [
+        ('personal', '個人／載具'),
+        ('company', '公司戶統編'),
+        ('donate', '捐贈發票'),
+    ]
+
     order_number = models.CharField(max_length=50, unique=True, verbose_name='訂單編號')
     user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, verbose_name='訂購會員')
     
@@ -83,7 +103,20 @@ class Order(models.Model):
     shipping_email = models.EmailField(verbose_name='收件人信箱')
     shipping_address = models.TextField(verbose_name='收件地址')
     shipping_notes = models.TextField(blank=True, verbose_name='配送備註')
-    
+    shipping_method = models.ForeignKey(
+        'ShippingMethod', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='配送方式'
+    )
+    carrier = models.CharField(max_length=30, choices=CARRIER_CHOICES, blank=True, verbose_name='物流商')
+    tracking_number = models.CharField(max_length=80, blank=True, verbose_name='物流單號')
+    tracking_url = models.URLField(blank=True, verbose_name='物流查詢網址')
+
+    invoice_type = models.CharField(
+        max_length=20, choices=INVOICE_TYPE_CHOICES, default='personal', verbose_name='發票類型'
+    )
+    invoice_title = models.CharField(max_length=100, blank=True, verbose_name='發票抬頭')
+    invoice_tax_id = models.CharField(max_length=20, blank=True, verbose_name='統一編號')
+    invoice_carrier = models.CharField(max_length=64, blank=True, verbose_name='載具／捐贈碼')
+
     # 金額相關
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='商品小計')
     shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='運費')
@@ -94,7 +127,9 @@ class Order(models.Model):
     inventory_held = models.BooleanField(default=False, verbose_name='是否仍預扣庫存')
     
     # 支付相關
-    payment_method = models.CharField(max_length=50, default='cod', verbose_name='支付方式')
+    payment_method = models.CharField(
+        max_length=50, choices=PAYMENT_METHOD_CHOICES, default='cod', verbose_name='支付方式'
+    )
     payment_transaction_id = models.CharField(max_length=200, blank=True, null=True, verbose_name='支付交易編號')
     
     # 狀態
@@ -130,6 +165,10 @@ class Order(models.Model):
         timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
         random_str = ''.join(random.choices(string.digits, k=4))
         return f"GJ{timestamp}{random_str}"
+
+    def get_public_tracking_url(self):
+        from plus.services.shipping import resolve_tracking_url
+        return resolve_tracking_url(self)
 
 
 class OrderItem(models.Model):
@@ -221,4 +260,40 @@ class ShippingMethod(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ReturnRequest(models.Model):
+    """售後／退貨申請"""
+    STATUS_CHOICES = [
+        ('pending', '待審核'),
+        ('approved', '已核准'),
+        ('rejected', '已拒絕'),
+        ('received', '已收回商品'),
+        ('refunded', '已退款'),
+        ('cancelled', '已取消'),
+    ]
+    REASON_CHOICES = [
+        ('defective', '商品瑕疵'),
+        ('wrong_item', '寄錯商品'),
+        ('not_as_described', '與描述不符'),
+        ('changed_mind', '不想買了'),
+        ('other', '其他'),
+    ]
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='return_requests', verbose_name='訂單')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name='申請人')
+    reason = models.CharField(max_length=30, choices=REASON_CHOICES, verbose_name='原因')
+    detail = models.TextField(verbose_name='說明')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='狀態')
+    admin_notes = models.TextField(blank=True, verbose_name='後台備註')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='申請時間')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新時間')
+
+    class Meta:
+        verbose_name = '退貨申請'
+        verbose_name_plural = '退貨申請'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.order.order_number} {self.get_status_display()}'
 

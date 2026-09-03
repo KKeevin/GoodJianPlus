@@ -65,3 +65,18 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.title}"
 
+
+class NewsletterSubscriber(models.Model):
+    """電子報訂閱"""
+    email = models.EmailField(unique=True, verbose_name='電子郵件')
+    is_active = models.BooleanField(default=True, verbose_name='訂閱中')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='訂閱時間')
+
+    class Meta:
+        verbose_name = '電子報訂閱'
+        verbose_name_plural = '電子報訂閱'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.email
+
