@@ -98,15 +98,11 @@ class ProductFilterTests(TestCase):
 
 
 class BmiCalculatorTests(TestCase):
-    def test_public_page_and_calculation(self):
+    def test_calculator_url_goes_to_goal_management(self):
         response = self.client.get(reverse('bmi_calculator'))
-        self.assertEqual(response.status_code, 200)
-        posted = self.client.post(reverse('bmi_calculator'), {
-            'height': '170',
-            'weight': '65',
-            'goal_type': 'maintain',
-        })
-        self.assertEqual(posted.status_code, 200)
-        self.assertIsNotNone(posted.context['result']['bmi'])
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/goals/', response.url)
+
+    def test_formulas(self):
         self.assertEqual(calculate_bmi(65, 170), Decimal('22.5'))
         self.assertEqual(bmi_category(Decimal('22.5'))[1], '健康')

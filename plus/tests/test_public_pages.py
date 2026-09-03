@@ -16,7 +16,6 @@ PUBLIC_GET_URLS = [
     'faq',
     'contact_us',
     'search',
-    'bmi_calculator',
 ]
 
 

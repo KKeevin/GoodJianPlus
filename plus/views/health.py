@@ -5,59 +5,17 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from plus.models import Food, NutritionLog, UserGoal, UserProfile, WaterLog, WeightLog, WorkoutLog
-from plus.services.body_metrics import (
-    body_metrics_summary,
-    estimate_workout_calories,
-)
-from plus.services.nutrition import local_day_range, sum_nutrition_logs
+from plus.models import Food, NutritionLog, UserProfile, WaterLog, WeightLog, WorkoutLog
+from plus.services.body_metrics import estimate_workout_calories
+from plus.services.nutrition import local_day_range
 
 
 def bmi_calculator_view(request):
-    result = None
-    form = {
-        'weight': '',
-        'height': '',
-        'goal_type': 'maintain',
-    }
-    if request.user.is_authenticated:
-        try:
-            profile = request.user.profile
-            if profile.weight:
-                form['weight'] = str(profile.weight)
-            if profile.height:
-                form['height'] = str(profile.height)
-        except UserProfile.DoesNotExist:
-            pass
-        try:
-            form['goal_type'] = request.user.goal.goal_type
-        except UserGoal.DoesNotExist:
-            pass
-
-    if request.method == 'POST' or request.GET.get('weight'):
-        source = request.POST if request.method == 'POST' else request.GET
-        form['weight'] = (source.get('weight') or '').strip()
-        form['height'] = (source.get('height') or '').strip()
-        form['goal_type'] = source.get('goal_type') or 'maintain'
-        try:
-            weight = Decimal(form['weight']) if form['weight'] else None
-            height = Decimal(form['height']) if form['height'] else None
-        except (InvalidOperation, TypeError):
-            weight = height = None
-        if weight and height and weight > 0 and height > 0:
-            result = body_metrics_summary(weight, height, form['goal_type'])
-        else:
-            result = {'error': '請輸入有效的身高與體重'}
-
-    return render(request, 'health/bmi_calculator.html', {
-        'form': form,
-        'result': result,
-        'goal_choices': UserGoal.GOAL_TYPE_CHOICES,
-    })
+    return redirect('goal_management')
 
 
 @login_required

@@ -76,10 +76,8 @@
                             </li>
                             {% if user.is_authenticated %}
                             <li><a href="{% url 'goal_management' %}">目標管理</a></li>
-                            <li><a href="{% url 'bmi_calculator' %}">BMI 試算</a></li>
                             {% else %}
                             <li><a href="{% url 'login' %}?next={% url 'goal_management' %}">目標管理</a></li>
-                            <li><a href="{% url 'bmi_calculator' %}">BMI 試算</a></li>
                             {% endif %}
                             <li><a href="{% url 'articles_list' %}">健康專欄</a></li>
                         </ul>
@@ -260,7 +258,6 @@
                     <ul>
                         <li><a href="{% url 'shipping_info' %}">配送資訊</a></li>
                         <li><a href="{% url 'return_policy' %}">退換貨政策</a></li>
-                        <li><a href="{% url 'bmi_calculator' %}">BMI 試算</a></li>
                         <li><a href="{% url 'faq' %}">常見問題</a></li>
                         <li><a href="{% url 'contact_us' %}">聯絡客服</a></li>
                     </ul>
