@@ -221,7 +221,6 @@
 
 .progress-bar {
     width: 100%;
-    height: 12px;
     background: #e9ecef;
     border-radius: 6px;
     overflow: hidden;
@@ -440,6 +439,198 @@
 .empty-state p {
     margin: 0;
     font-size: 1.1rem;
+}
+
+/* KPI 儀表板與快捷功能 */
+.kpi-dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.kpi-card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.kpi-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2D5B69;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kpi-badge {
+    font-size: 0.8rem;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.kpi-main-val {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #2D5B69;
+    line-height: 1.1;
+    margin-bottom: 12px;
+}
+
+.kpi-main-val small {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.kpi-formula-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+}
+
+.formula-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.formula-item .sub-label {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+.formula-item .sub-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.formula-operator {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #aaa;
+}
+
+.kpi-footer-note {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* 體重比較卡片 */
+.weight-compare {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.weight-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.weight-val {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #2D5B69;
+}
+
+.weight-val small {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.weight-arrow {
+    font-size: 1.4rem;
+    color: #4CAF50;
+}
+
+.weight-diff-badge {
+    text-align: center;
+}
+
+.weight-diff-badge .badge {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+/* 快捷按鈕區塊 */
+.quick-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.btn-quick-action {
+    padding: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-quick-action.btn-water {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.btn-quick-action.btn-water:hover {
+    background: #bae6fd;
+    color: #0369a1;
+}
+
+.btn-quick-action.btn-food {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.btn-quick-action.btn-food:hover {
+    background: #bbf7d0;
+    color: #15803d;
+}
+
+.btn-quick-action.btn-weight {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+.btn-quick-action.btn-weight:hover {
+    background: #e9d5ff;
+    color: #7e22ce;
 }
 
 /* 響應式設計 */

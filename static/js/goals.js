@@ -665,6 +665,10 @@ function updateNutritionDisplay(data) {
             const percentage = Math.min((totals.fat / targets.fat) * 100, 100);
             fatProgress.style.width = percentage + '%';
         }
+
+        // 更新 KPI 儀表板與三大營養素比例
+        updateKpiDashboard();
+        updateMacroRatioBar();
     } else {
         console.error('No totals data found:', data);
     }
@@ -1037,17 +1041,34 @@ function updateWeightChart(weightLogs) {
         weight: log.weight
     }));
     
+    const targetWeight = (window.GOALS_CONFIG && window.GOALS_CONFIG.goalPrefill) ? parseFloat(window.GOALS_CONFIG.goalPrefill.target_weight) : null;
+
+    const datasets = [{
+        label: '體重 (kg)',
+        data: data,
+        borderColor: '#4CAF50',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        fill: true
+    }];
+
+    if (targetWeight && !isNaN(targetWeight) && targetWeight > 0) {
+        datasets.push({
+            label: '目標體重 (kg)',
+            data: labels.map(() => targetWeight),
+            borderColor: '#2196F3',
+            borderDash: [6, 6],
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            fill: false
+        });
+    }
+
     const chartData = {
         labels: labels,
-        datasets: [{
-            label: '體重 (kg)',
-            data: data,
-            borderColor: '#4CAF50',
-            backgroundColor: 'rgba(76, 175, 80, 0.1)',
-            tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 6
-        }]
+        datasets: datasets
     };
     
     if (weightChart) {
@@ -1175,8 +1196,141 @@ document.getElementById('customFoodForm')?.addEventListener('submit', function(e
 
 window.addWater = addWater;
 
-// 初始化：載入最新10筆記錄
+// 即時更新頂部 KPI 儀表板
+function updateKpiDashboard() {
+    const kpiNetCalories = document.getElementById('kpiNetCalories');
+    const kpiFoodIn = document.getElementById('kpiFoodIn');
+    const kpiWorkoutOut = document.getElementById('kpiWorkoutOut');
+    const kpiCalorieTarget = document.getElementById('kpiCalorieTarget');
+    const kpiNetCalorieBar = document.getElementById('kpiNetCalorieBar');
+    const kpiRemainingNote = document.getElementById('kpiRemainingNote');
+    const calorieStatusBadge = document.getElementById('calorieStatusBadge');
+
+    if (!kpiNetCalories) return;
+
+    // 攝取熱量
+    const currentCalEl = document.getElementById('nutritionCaloriesCurrent');
+    const foodIn = currentCalEl ? parseFloat(currentCalEl.textContent) || 0 : 0;
+
+    // 運動消耗熱量
+    let workoutOut = 0;
+    const workoutHeader = document.querySelector('.goal-card h2 i.bi-bicycle')?.closest('.card-header');
+    if (workoutHeader) {
+        const text = workoutHeader.textContent;
+        const match = text.match(/已消耗約\s*(\d+)/);
+        if (match) {
+            workoutOut = parseInt(match[1]) || 0;
+        }
+    }
+
+    const netCalories = Math.round(foodIn - workoutOut);
+
+    let targetCalories = 0;
+    if (kpiCalorieTarget) {
+        targetCalories = parseFloat(kpiCalorieTarget.textContent) || (window.GOALS_CONFIG && window.GOALS_CONFIG.defaultTargets ? window.GOALS_CONFIG.defaultTargets.calories : 0);
+    }
+
+    kpiNetCalories.textContent = netCalories;
+    if (kpiFoodIn) kpiFoodIn.textContent = '+' + Math.round(foodIn);
+    if (kpiWorkoutOut) kpiWorkoutOut.textContent = '-' + Math.round(workoutOut);
+
+    if (targetCalories > 0) {
+        const remaining = Math.round(targetCalories - netCalories);
+        const percent = Math.min(100, Math.max(0, Math.round((netCalories / targetCalories) * 100)));
+
+        if (kpiNetCalorieBar) {
+            kpiNetCalorieBar.style.width = percent + '%';
+            if (percent > 100) {
+                kpiNetCalorieBar.className = 'progress-bar bg-danger';
+            } else if (percent >= 85) {
+                kpiNetCalorieBar.className = 'progress-bar bg-warning';
+            } else {
+                kpiNetCalorieBar.className = 'progress-bar bg-success';
+            }
+        }
+
+        if (kpiRemainingNote) {
+            if (remaining >= 0) {
+                kpiRemainingNote.innerHTML = `還可攝取 <strong class="text-success">${remaining}</strong> 大卡`;
+            } else {
+                kpiRemainingNote.innerHTML = `已超過目標 <strong class="text-danger">${Math.abs(remaining)}</strong> 大卡`;
+            }
+        }
+
+        if (calorieStatusBadge) {
+            if (percent > 100) {
+                calorieStatusBadge.className = 'badge bg-danger';
+                calorieStatusBadge.textContent = '熱量超標';
+            } else if (percent >= 85) {
+                calorieStatusBadge.className = 'badge bg-warning text-dark';
+                calorieStatusBadge.textContent = '接近熱量目標';
+            } else {
+                calorieStatusBadge.className = 'badge bg-success';
+                calorieStatusBadge.textContent = '熱量良好';
+            }
+        }
+    } else {
+        if (kpiRemainingNote) kpiRemainingNote.textContent = '請設定每日目標熱量';
+        if (calorieStatusBadge) {
+            calorieStatusBadge.className = 'badge bg-secondary';
+            calorieStatusBadge.textContent = '未設定目標';
+        }
+    }
+}
+
+function updateMacroRatioBar() {
+    const proteinEl = document.getElementById('nutritionProteinCurrent');
+    const carbsEl = document.getElementById('nutritionCarbsCurrent');
+    const fatEl = document.getElementById('nutritionFatCurrent');
+
+    const macroBarProtein = document.getElementById('macroBarProtein');
+    const macroBarCarbs = document.getElementById('macroBarCarbs');
+    const macroBarFat = document.getElementById('macroBarFat');
+    const macroPctProtein = document.getElementById('macroPctProtein');
+    const macroPctCarbs = document.getElementById('macroPctCarbs');
+    const macroPctFat = document.getElementById('macroPctFat');
+
+    if (!proteinEl || !carbsEl || !fatEl || !macroBarProtein) return;
+
+    const pGrams = parseFloat(proteinEl.textContent) || 0;
+    const cGrams = parseFloat(carbsEl.textContent) || 0;
+    const fGrams = parseFloat(fatEl.textContent) || 0;
+
+    const pKcal = pGrams * 4;
+    const cKcal = cGrams * 4;
+    const fKcal = fGrams * 9;
+    const totalMacroKcal = pKcal + cKcal + fKcal;
+
+    if (totalMacroKcal > 0) {
+        const pPct = Math.round((pKcal / totalMacroKcal) * 100);
+        const cPct = Math.round((cKcal / totalMacroKcal) * 100);
+        const fPct = Math.max(0, 100 - pPct - cPct);
+
+        macroBarProtein.style.width = pPct + '%';
+        macroBarCarbs.style.width = cPct + '%';
+        macroBarFat.style.width = fPct + '%';
+
+        if (macroPctProtein) macroPctProtein.textContent = pPct + '%';
+        if (macroPctCarbs) macroPctCarbs.textContent = cPct + '%';
+        if (macroPctFat) macroPctFat.textContent = fPct + '%';
+    } else {
+        macroBarProtein.style.width = '33%';
+        macroBarCarbs.style.width = '33%';
+        macroBarFat.style.width = '34%';
+
+        if (macroPctProtein) macroPctProtein.textContent = '0%';
+        if (macroPctCarbs) macroPctCarbs.textContent = '0%';
+        if (macroPctFat) macroPctFat.textContent = '0%';
+    }
+}
+
+window.updateKpiDashboard = updateKpiDashboard;
+window.updateMacroRatioBar = updateMacroRatioBar;
+
+// 初始化：載入最新10筆記錄並初始化 KPI 儀表板與熱量供能比
 document.addEventListener('DOMContentLoaded', function() {
     loadWeightLogs(0);
+    updateKpiDashboard();
+    updateMacroRatioBar();
 });
 

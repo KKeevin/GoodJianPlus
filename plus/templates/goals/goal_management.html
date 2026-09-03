@@ -20,7 +20,105 @@
                 </ol>
             </nav>
 
-            <h1 class="page-title">目標管理</h1>
+            <h1 class="page-title"><i class="bi bi-speedometer2"></i> 目標管理</h1>
+
+            <!-- 頂部即時 KPI 與淨熱量儀表板 -->
+            <div class="kpi-dashboard-grid mb-4">
+                <!-- 淨熱量平衡卡片 -->
+                <div class="kpi-card net-calories-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title"><i class="bi bi-lightning-charge-fill text-warning"></i> 今日熱量平衡</span>
+                        <span class="badge kpi-badge" id="calorieStatusBadge">淨熱量計算中</span>
+                    </div>
+                    <div class="kpi-card-body">
+                        <div class="kpi-main-val">
+                            <span id="kpiNetCalories">{{ today_totals.calories|sub:today_workout_kcal|floatformat:0 }}</span>
+                            <small>大卡 (淨攝取)</small>
+                        </div>
+                        <div class="kpi-formula-bar">
+                            <div class="formula-item">
+                                <span class="sub-label">飲食攝取</span>
+                                <span class="sub-value text-success" id="kpiFoodIn">+{{ today_totals.calories|floatformat:0 }}</span>
+                            </div>
+                            <div class="formula-operator">-</div>
+                            <div class="formula-item">
+                                <span class="sub-label">運動消耗</span>
+                                <span class="sub-value text-danger" id="kpiWorkoutOut">-{{ today_workout_kcal|default:0 }}</span>
+                            </div>
+                            <div class="formula-operator">=</div>
+                            <div class="formula-item">
+                                <span class="sub-label">目標熱量</span>
+                                <span class="sub-value text-primary" id="kpiCalorieTarget">{% if today_target and today_target.target_calories %}{{ today_target.target_calories|floatformat:0 }}{% else %}{{ goal.target_calories|floatformat:0|default:"0" }}{% endif %}</span>
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height: 8px; border-radius: 4px; background: #e9ecef;">
+                            <div class="progress-bar bg-success" id="kpiNetCalorieBar" role="progressbar" style="width: 0%;"></div>
+                        </div>
+                        <div class="kpi-footer-note mt-2 text-muted" id="kpiRemainingNote">
+                            剩餘可攝取熱量計算中...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 體重目標進度卡片 -->
+                <div class="kpi-card weight-progress-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title"><i class="bi bi-graph-up-arrow text-primary"></i> 體重目標進度</span>
+                        {% if goal.goal_type %}
+                        <span class="badge bg-light text-dark">{{ goal.get_goal_type_display }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="kpi-card-body">
+                        <div class="weight-compare">
+                            <div class="weight-col">
+                                <span class="sub-label">目前體重</span>
+                                <span class="weight-val" id="kpiCurrentWeight">{% if goal.current_weight %}{{ goal.current_weight|floatformat:1 }}{% else %}--{% endif %} <small>kg</small></span>
+                            </div>
+                            <div class="weight-arrow">
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                            <div class="weight-col">
+                                <span class="sub-label">目標體重</span>
+                                <span class="weight-val text-primary" id="kpiTargetWeight">{% if goal.target_weight %}{{ goal.target_weight|floatformat:1 }}{% else %}--{% endif %} <small>kg</small></span>
+                            </div>
+                        </div>
+                        <div class="weight-diff-badge mt-2" id="weightDiffBadge">
+                            {% if goal.current_weight and goal.target_weight %}
+                                {% if goal.current_weight == goal.target_weight %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> 已達成目標體重！</span>
+                                {% else %}
+                                    <span class="badge bg-info text-dark">
+                                        <i class="bi bi-flag-fill"></i> 距離目標還有 {{ weight_diff|floatformat:1 }} kg
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">請設定目前與目標體重</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷功能導覽列卡片 -->
+                <div class="kpi-card quick-actions-card">
+                    <div class="kpi-card-header">
+                        <span class="kpi-title"><i class="bi bi-lightning-auto text-info"></i> 快捷紀錄紀錄</span>
+                    </div>
+                    <div class="kpi-card-body quick-buttons-grid">
+                        <button type="button" class="btn btn-quick-action btn-water" onclick="addWater(250)">
+                            <i class="bi bi-droplet-fill"></i> +250ml 水
+                        </button>
+                        <button type="button" class="btn btn-quick-action btn-water" onclick="addWater(500)">
+                            <i class="bi bi-droplet-half"></i> +500ml 水
+                        </button>
+                        <button type="button" class="btn btn-quick-action btn-food" onclick="showAddFoodModal()">
+                            <i class="bi bi-plus-circle-fill"></i> 添加食物
+                        </button>
+                        <button type="button" class="btn btn-quick-action btn-weight" onclick="showAddWeightModal()">
+                            <i class="bi bi-body-text"></i> 記錄體重
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <!-- 目標設定卡片 -->
             <div class="goal-card">
@@ -444,6 +542,22 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 三大營養素供能比例 -->
+                    <div class="macro-ratio-section my-4 p-3 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0 text-dark font-weight-bold" style="font-size: 0.95rem;">
+                                <i class="bi bi-pie-chart-fill text-primary"></i> 三大營養素熱量供能比例
+                            </h5>
+                            <small class="text-muted">蛋白質 (4kcal/g) · 碳水 (4kcal/g) · 脂肪 (9kcal/g)</small>
+                        </div>
+                        <div class="progress" style="height: 45px; border-radius: 9px; font-weight: 600; font-size: 0.75rem;">
+                            <div class="progress-bar bg-info" id="macroBarProtein" role="progressbar" style="width: 33%;" title="蛋白質">蛋白質 <span id="macroPctProtein">33%</span></div>
+                            <div class="progress-bar bg-success" id="macroBarCarbs" role="progressbar" style="width: 33%;" title="碳水">碳水 <span id="macroPctCarbs">33%</span></div>
+                            <div class="progress-bar bg-warning text-dark" id="macroBarFat" role="progressbar" style="width: 34%;" title="脂肪">脂肪 <span id="macroPctFat">34%</span></div>
+                        </div>
+                    </div>
+
                     <div class="nutrition-logs">
                         <h4 id="nutritionLogsTitle">今日飲食記錄</h4>
                         <div id="nutritionLogsList">

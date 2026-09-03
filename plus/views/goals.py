@@ -110,9 +110,17 @@ def goal_management_view(request):
             user=user, logged_at__gte=today_start, logged_at__lte=today_end
         ).values_list('amount_ml', flat=True)
     )
+
+    # -------------------------------------------------------------
+    # 計算目前體重與目標體重的絕對差距
+    # -------------------------------------------------------------
+    weight_diff = None
+    if goal.current_weight and goal.target_weight:
+        weight_diff = abs(goal.current_weight - goal.target_weight)
     
     context = {
         'goal': goal,
+        'weight_diff': weight_diff,  # <--- 新增這行傳給 Template
         'recent_weight_logs': recent_weight_logs,
         'weight_logs_for_chart': weight_logs_for_chart,
         'today_nutrition_logs': today_nutrition_logs,
