@@ -76,8 +76,10 @@
                             </li>
                             {% if user.is_authenticated %}
                             <li><a href="{% url 'goal_management' %}">目標管理</a></li>
+                            <li><a href="{% url 'bmi_calculator' %}">BMI 試算</a></li>
                             {% else %}
                             <li><a href="{% url 'login' %}?next={% url 'goal_management' %}">目標管理</a></li>
+                            <li><a href="{% url 'bmi_calculator' %}">BMI 試算</a></li>
                             {% endif %}
                             <li><a href="{% url 'articles_list' %}">健康專欄</a></li>
                         </ul>
@@ -107,11 +109,9 @@
                             </form>
                         </div>
                         <div class="header-icon">
-                            <a href="{% if user.is_authenticated %}{% url 'cart' %}{% else %}{% url 'login' %}?next={% url 'cart' %}{% endif %}" title="購物車">
+                            <a href="{% url 'cart' %}" title="購物車">
                                 <i class="bi bi-cart"></i>
-                                {% if user.is_authenticated %}
                                 <span class="cart-count" id="cartCount">{{ cart_count|default:0 }}</span>
-                                {% endif %}
                             </a>
                         </div>
                         {% if user.is_authenticated %}
@@ -169,6 +169,7 @@
                                     <li><a class="member-menu-item" href="{% url 'goal_management' %}"><i class="bi bi-bullseye me-2"></i>目標管理</a></li>
                                     <li><a class="member-menu-item" href="{% url 'order_list' %}"><i class="bi bi-box me-2"></i>我的訂單</a></li>
                                     <li><a class="member-menu-item" href="{% url 'wishlist' %}"><i class="bi bi-heart me-2"></i>我的收藏</a></li>
+                                    <li><a class="member-menu-item" href="{% url 'address_book' %}"><i class="bi bi-geo-alt me-2"></i>常用地址</a></li>
                                     <li><a class="member-menu-item" href="{% url 'cart' %}"><i class="bi bi-cart me-2"></i>購物車</a></li>
                                     <!-- <li><a class="member-menu-item" href="{% url 'profile_complete' %}"><i class="bi bi-gear me-2"></i>帳戶設定</a></li> -->
                                     <li><a class="member-menu-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>登出</a></li>
@@ -259,6 +260,7 @@
                     <ul>
                         <li><a href="{% url 'shipping_info' %}">配送資訊</a></li>
                         <li><a href="{% url 'return_policy' %}">退換貨政策</a></li>
+                        <li><a href="{% url 'bmi_calculator' %}">BMI 試算</a></li>
                         <li><a href="{% url 'faq' %}">常見問題</a></li>
                         <li><a href="{% url 'contact_us' %}">聯絡客服</a></li>
                     </ul>
@@ -295,7 +297,7 @@
     </button>
 
     <!-- 懸浮購物車按鈕（平板和手機版） -->
-    <a href="{% if user.is_authenticated %}{% url 'cart' %}{% else %}{% url 'login' %}?next={% url 'cart' %}{% endif %}" 
+    <a href="{% url 'cart' %}" 
        id="floatingCartBtn" 
        class="floating-cart-btn" 
        title="購物車">

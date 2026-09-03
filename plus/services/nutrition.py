@@ -1,6 +1,8 @@
 from decimal import Decimal
 from datetime import datetime as dt
 
+from django.utils import timezone
+
 from plus.models import DailyNutritionTarget, UserGoal, WeightLog
 
 
@@ -137,3 +139,36 @@ def get_or_create_daily_nutrition_target(user, target_date):
     )
 
     return daily_target
+
+
+def local_day_range(when=None):
+    local_now = timezone.localtime(when or timezone.now())
+    day = local_now.date()
+    start = timezone.make_aware(dt.combine(day, dt.min.time()))
+    end = timezone.make_aware(dt.combine(day, dt.max.time()))
+    return day, start, end
+
+
+def empty_nutrition_totals():
+    return {
+        'calories': Decimal('0'),
+        'protein': Decimal('0'),
+        'carbs': Decimal('0'),
+        'fat': Decimal('0'),
+        'fiber': Decimal('0'),
+        'sugar': Decimal('0'),
+        'sodium': Decimal('0'),
+    }
+
+
+def sum_nutrition_logs(logs):
+    totals = empty_nutrition_totals()
+    for log in logs:
+        totals['calories'] += log.total_calories
+        totals['protein'] += log.total_protein
+        totals['carbs'] += log.total_carbs
+        totals['fat'] += log.total_fat
+        totals['fiber'] += log.total_fiber
+        totals['sugar'] += log.total_sugar
+        totals['sodium'] += log.total_sodium
+    return totals

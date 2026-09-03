@@ -152,15 +152,9 @@
                     
                     <!-- 加入購物車按鈕 -->
                     {% if product.stock_quantity > 0 %}
-                        {% if user.is_authenticated %}
                         <button class="add-to-cart" data-product-id="{{ product.id }}">
                             <i class="bi bi-cart-plus"></i> 加入購物車
                         </button>
-                        {% else %}
-                        <a href="{% url 'login' %}?next=/" class="add-to-cart">
-                            <i class="bi bi-person"></i> 登入購買
-                        </a>
-                        {% endif %}
                     {% else %}
                     <button class="add-to-cart disabled" disabled>
                         <i class="bi bi-x-circle"></i> 暫時缺貨
@@ -365,6 +359,9 @@
                 </div>
                 
                 <div class="promotion-cta">
+                    <a href="{% url 'bmi_calculator' %}" class="btn-promotion-secondary">
+                        <i class="bi bi-calculator"></i> <span>先試算 BMI</span>
+                    </a>
                     <a href="{% url 'register' %}" class="btn-promotion-primary">
                         <i class="bi bi-person-plus"></i> <span>立即註冊，開始使用</span>
                     </a>
@@ -395,7 +392,6 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             
-            {% if user.is_authenticated %}
             const productId = this.dataset.productId;
             const originalHTML = this.innerHTML;
             
@@ -419,7 +415,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     this.disabled = false;
                 }.bind(this)
             });
-            {% endif %}
         });
     });
 });

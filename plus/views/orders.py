@@ -196,3 +196,37 @@ def cancel_return_view(request, order_id, return_id):
     messages.success(request, '已取消退貨申請')
     return redirect('order_detail', order_id=order_id)
 
+
+@login_required
+@require_http_methods(["POST"])
+def reorder_view(request, order_id):
+    from plus.services.cart import get_or_create_cart
+    try:
+        order = Order.objects.prefetch_related('items', 'items__product').get(id=order_id, user=request.user)
+    except Order.DoesNotExist:
+        messages.error(request, '訂單不存在')
+        return redirect('order_list')
+    cart = get_or_create_cart(request)
+    added = 0
+    skipped = []
+    for item in order.items.all():
+        product = item.product
+        if not product or product.status != 'published' or product.stock_quantity < 1:
+            skipped.append(item.product_name)
+            continue
+        qty = min(item.quantity, product.stock_quantity)
+        existing = CartItem.objects.filter(cart=cart, product=product).first()
+        if existing:
+            existing.quantity = min(existing.quantity + qty, product.stock_quantity)
+            existing.save(update_fields=['quantity'])
+        else:
+            CartItem.objects.create(cart=cart, product=product, quantity=qty)
+        added += 1
+    if added:
+        messages.success(request, f'已將 {added} 項商品加入購物車')
+    if skipped:
+        messages.warning(request, '以下商品目前無法再次購買：' + '、'.join(skipped[:8]))
+    if not added:
+        return redirect('order_detail', order_id=order.id)
+    return redirect('cart')
+

@@ -1,0 +1,74 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}完善個人資料 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/auth.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-container" style="max-width: 640px;">
+            <div class="auth-header">
+                <img src="{% static 'img/common/Logo_white.png' %}" alt="好健健 Logo" class="auth-logo">
+                <h1 class="auth-title">完善個人資料</h1>
+                <p class="auth-subtitle">填寫身高體重與健身目標，即可計算 BMI、熱量與蛋白質建議</p>
+            </div>
+
+            <form method="post" class="auth-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="first_name">姓名</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" value="{{ user.first_name }}">
+                </div>
+                <div class="form-group">
+                    <label for="phone">手機號碼</label>
+                    <input type="tel" id="phone" name="phone" class="form-control" value="{{ user.phone }}">
+                </div>
+                <div class="form-group">
+                    <label for="birthday">生日</label>
+                    <input type="date" id="birthday" name="birthday" class="form-control" value="{% if user.birthday %}{{ user.birthday|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="form-group">
+                    <label for="address">地址</label>
+                    <textarea id="address" name="address" class="form-control" rows="2">{{ user.address }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="gender">性別</label>
+                    <select id="gender" name="gender" class="form-control">
+                        <option value="">請選擇</option>
+                        <option value="M" {% if profile.gender == 'M' %}selected{% endif %}>男性</option>
+                        <option value="F" {% if profile.gender == 'F' %}selected{% endif %}>女性</option>
+                        <option value="O" {% if profile.gender == 'O' %}selected{% endif %}>其他</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="height">身高（cm）</label>
+                            <input type="number" id="height" name="height" class="form-control" step="0.1" min="50" max="250" value="{% if profile.height %}{{ profile.height }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="weight">體重（kg）</label>
+                            <input type="number" id="weight" name="weight" class="form-control" step="0.1" min="20" max="300" value="{% if profile.weight %}{{ profile.weight }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fitness_goal">健身目標</label>
+                    <input type="text" id="fitness_goal" name="fitness_goal" class="form-control" value="{{ profile.fitness_goal }}" placeholder="例如：減脂、增肌、維持">
+                </div>
+                <div class="form-group">
+                    <label for="dietary_restrictions">飲食限制</label>
+                    <textarea id="dietary_restrictions" name="dietary_restrictions" class="form-control" rows="2" placeholder="例如：素食、乳糖不耐">{{ profile.dietary_restrictions }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">儲存並繼續</button>
+                <p class="text-center mt-3"><a href="{% url 'profile' %}">稍後再填，回我的帳戶</a></p>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

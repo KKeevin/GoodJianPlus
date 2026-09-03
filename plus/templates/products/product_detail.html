@@ -94,7 +94,6 @@
 
                 <!-- 商品操作 -->
                 <div class="product-actions">
-                    {% if request.user.is_authenticated %}
                     <div class="quantity-selector">
                         <label>數量：</label>
                         <div class="quantity-controls">
@@ -131,26 +130,20 @@
                             {% endif %}
                         </div>
                         {% endif %}
+                        {% if request.user.is_authenticated %}
                         <button class="wishlist-btn {% if is_favorited %}active{% endif %}" 
                                 onclick="toggleWishlist({{ product.id }})"
                                 title="{% if is_favorited %}已收藏{% else %}加入收藏{% endif %}">
                             <i class="bi bi-heart{% if is_favorited %}-fill{% endif %}"></i>
                             <span class="wishlist-btn-text">{% if is_favorited %}已收藏{% else %}加入收藏{% endif %}</span>
                         </button>
-                    </div>
-                    {% else %}
-                    <div class="action-buttons">
-                        <div class="alert alert-info" style="width: 100%; margin-bottom: 10px;">
-                            <a href="{% url 'login' %}?next={% url 'product_detail' product.id %}">請先登入</a> 以購買商品
-                        </div>
-                        <button class="wishlist-btn" 
-                                onclick="toggleWishlist({{ product.id }})"
-                                title="加入收藏">
+                        {% else %}
+                        <a class="wishlist-btn" href="{% url 'login' %}?next={% url 'product_detail' product.id %}" title="登入後收藏">
                             <i class="bi bi-heart"></i>
-                            <span class="wishlist-btn-text">加入收藏</span>
-                        </button>
+                            <span class="wishlist-btn-text">登入後收藏</span>
+                        </a>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -225,6 +218,16 @@
                         {% endif %}
                     </tbody>
                 </table>
+                {% if product.calories_per_100g and user.is_authenticated %}
+                <form method="post" action="{% url 'log_product_nutrition' %}" class="mt-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <input type="hidden" name="meal_type" value="snack">
+                    <button type="submit" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-journal-plus"></i> 以 100g 加入今日飲食記錄
+                    </button>
+                </form>
+                {% endif %}
             </div>
 
             <div id="reviews-tab" class="tab-content">
@@ -370,6 +373,37 @@
                             {% else %}
                                 <span class="stock-badge out-of-stock"><i class="bi bi-x-circle"></i> 暫時缺貨</span>
                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if recently_viewed %}
+        <section class="related-products-section" style="margin-top: 40px;">
+            <h2 class="related-products-title" style="margin-bottom: 24px; font-size: 1.5rem; font-weight: 600; color: #333;">
+                <i class="bi bi-clock-history" style="margin-right: 8px; color: #4CAF50;"></i>最近瀏覽
+            </h2>
+            <div class="related-products-grid">
+                {% for product in recently_viewed %}
+                <div class="related-product-card">
+                    <div class="related-product-image">
+                        <a href="{% url 'product_detail' product.id %}">
+                            {% if product.images.exists %}
+                                <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                            {% else %}
+                                <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="related-product-info">
+                        <h4 class="related-product-name">
+                            <a href="{% url 'product_detail' product.id %}">{{ product.name|truncatechars:50 }}</a>
+                        </h4>
+                        <div class="related-product-price">
+                            <span class="related-current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
                         </div>
                     </div>
                 </div>

@@ -162,6 +162,15 @@
                     </div>
                 </div>
                 {% endif %}
+
+                <p style="margin-bottom: 20px;">
+                    <a href="{% url 'address_book' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-geo-alt"></i> 管理常用收件地址
+                    </a>
+                    <a href="{% url 'profile_complete' %}" class="btn btn-outline-secondary btn-sm">
+                        完善健身資料
+                    </a>
+                </p>
                 
                 <form method="post" action="{% url 'profile' %}">
                     {% csrf_token %}

@@ -18,8 +18,8 @@ from plus.views import (
     linepay_confirm, linepay_cancel,
     ecpay_checkout, ecpay_return, ecpay_result,
     order_list_view, order_detail_view, cancel_order_view, confirm_receipt_view,
-    request_return_view, cancel_return_view,
-    wishlist_view, toggle_wishlist,
+    request_return_view, cancel_return_view, reorder_view,
+    wishlist_view, toggle_wishlist, wishlist_add_all_to_cart,
     notification_list_view, notification_detail_view, notification_toggle_read,
     notification_delete, notification_api, notification_unread_count_api, notification_mark_all_read,
     notification_batch_action,
@@ -29,6 +29,9 @@ from plus.views import (
     goal_management_view, update_goal_view, add_weight_log_view, weight_log_api,
     food_search_api, add_nutrition_log_view, update_nutrition_log_view, delete_nutrition_log_view,
     nutrition_log_api,
+    address_book_view, address_set_default_view, address_delete_view, address_json_api,
+    bmi_calculator_view, health_export_view, add_custom_food_view,
+    add_workout_log_view, add_water_log_view, log_product_nutrition_view,
 )
 
 urlpatterns = [
@@ -87,7 +90,15 @@ urlpatterns = [
     path('orders/<int:order_id>/return/', request_return_view, name='request_return'),
     path('orders/<int:order_id>/return/<int:return_id>/cancel/', cancel_return_view, name='cancel_return'),
 
+    path('orders/<int:order_id>/reorder/', reorder_view, name='reorder'),
+
     path('wishlist/', wishlist_view, name='wishlist'),
+    path('wishlist/add-all-to-cart/', wishlist_add_all_to_cart, name='wishlist_add_all_to_cart'),
+
+    path('profile/addresses/', address_book_view, name='address_book'),
+    path('profile/addresses/<int:address_id>/default/', address_set_default_view, name='address_set_default'),
+    path('profile/addresses/<int:address_id>/delete/', address_delete_view, name='address_delete'),
+    path('api/addresses/', address_json_api, name='address_json_api'),
 
     path('notifications/', notification_list_view, name='notification_list'),
     path('notifications/<int:notification_id>/', notification_detail_view, name='notification_detail'),
@@ -123,6 +134,12 @@ urlpatterns = [
     path('api/nutrition-log/<int:log_id>/update/', update_nutrition_log_view, name='update_nutrition_log'),
     path('api/nutrition-log/<int:log_id>/delete/', delete_nutrition_log_view, name='delete_nutrition_log'),
     path('api/nutrition-log/', nutrition_log_api, name='nutrition_log_api'),
+    path('api/foods/custom/', add_custom_food_view, name='add_custom_food'),
+    path('api/workouts/add/', add_workout_log_view, name='add_workout_log'),
+    path('api/water/add/', add_water_log_view, name='add_water_log'),
+    path('api/products/log-nutrition/', log_product_nutrition_view, name='log_product_nutrition'),
+    path('goals/export/', health_export_view, name='health_export'),
+    path('health/calculator/', bmi_calculator_view, name='bmi_calculator'),
 
     path('articles/', articles_list_view, name='articles_list'),
     path('article/<slug:slug>/', article_detail_view, name='article_detail'),

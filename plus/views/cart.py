@@ -46,15 +46,12 @@ from plus.utils.request import get_client_ip
 
 logger = logging.getLogger(__name__)
 
-@login_required
+
 def cart_view(request):
     """購物車頁面"""
-    try:
-        cart = Cart.objects.get(user=request.user)
-        items = cart.items.select_related('product').prefetch_related('product__images').all()
-    except Cart.DoesNotExist:
-        cart = None
-        items = []
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    items = cart.items.select_related('product').prefetch_related('product__images').all()
     # 獲取免運門檻（從網站設定）
     try:
         site_settings = SiteSettings.objects.first()
@@ -93,37 +90,32 @@ def cart_view(request):
 
 def cart_count_api(request):
     """購物車數量 API"""
-    if not request.user.is_authenticated:
-        return JsonResponse({'count': 0})
-    try:
-        cart = Cart.objects.get(user=request.user)
-        count = cart.total_items
-    except Cart.DoesNotExist:
-        count = 0
-    return JsonResponse({'count': count})
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    return JsonResponse({'count': cart.total_items})
 
 
-@login_required
 @require_http_methods(["POST"])
 def add_to_cart(request):
     """加入購物車 API"""
+    from plus.services.cart import get_or_create_cart
     product_id = request.POST.get('product_id')
     quantity = int(request.POST.get('quantity', 1))
     try:
         product = Product.objects.get(id=product_id, status='published')
         if product.stock_quantity < quantity:
-            # 創建庫存不足通知
-            send_notification(
-                user=request.user,
-                notification_type='cart',
-                title='商品庫存不足',
-                message=f'很抱歉，{product.name} 目前庫存不足（僅剩 {product.stock_quantity} 件），無法加入購物車。'
-            )
+            if request.user.is_authenticated:
+                send_notification(
+                    user=request.user,
+                    notification_type='cart',
+                    title='商品庫存不足',
+                    message=f'很抱歉，{product.name} 目前庫存不足（僅剩 {product.stock_quantity} 件），無法加入購物車。'
+                )
             return JsonResponse({
                 'success': False,
                 'message': '庫存不足'
             })
-        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart = get_or_create_cart(request)
         cart_item, created = CartItem.objects.get_or_create(
             cart=cart,
             product=product,
@@ -180,10 +172,10 @@ def add_to_cart(request):
         })
 
 
-@login_required
 @require_http_methods(["POST"])
 def update_cart_item(request):
     """更新購物車項目數量"""
+    from plus.services.cart import get_or_create_cart
     item_id = request.POST.get('item_id')
     quantity = int(request.POST.get('quantity', 1))
     if quantity < 1:
@@ -192,15 +184,16 @@ def update_cart_item(request):
             'message': '數量不能少於1'
         })
     try:
-        item = CartItem.objects.get(id=item_id, cart__user=request.user)
+        cart = get_or_create_cart(request)
+        item = CartItem.objects.get(id=item_id, cart=cart)
         if item.product.stock_quantity < quantity:
-            # 創建庫存不足通知
-            send_notification(
-                user=request.user,
-                notification_type='cart',
-                title='購物車商品庫存不足',
-                message=f'{item.product.name} 目前庫存不足（僅剩 {item.product.stock_quantity} 件），請調整購買數量。'
-            )
+            if request.user.is_authenticated:
+                send_notification(
+                    user=request.user,
+                    notification_type='cart',
+                    title='購物車商品庫存不足',
+                    message=f'{item.product.name} 目前庫存不足（僅剩 {item.product.stock_quantity} 件），請調整購買數量。'
+                )
             return JsonResponse({
                 'success': False,
                 'message': f'庫存不足，僅剩 {item.product.stock_quantity} 件'
@@ -226,17 +219,17 @@ def update_cart_item(request):
         })
 
 
-@login_required
 @require_http_methods(["POST"])
 def remove_cart_item(request):
     """從購物車移除項目"""
+    from plus.services.cart import get_or_create_cart
     item_id = request.POST.get('item_id')
     try:
-        item = CartItem.objects.get(id=item_id, cart__user=request.user)
-        cart = item.cart
+        cart = get_or_create_cart(request)
+        item = CartItem.objects.get(id=item_id, cart=cart)
         product_name = item.product.name
         item.delete()
-        cart_empty = not CartItem.objects.filter(cart__user=request.user).exists()
+        cart_empty = not cart.items.exists()
         return JsonResponse({
             'success': True,
             'message': f'已將 {product_name} 從購物車移除',
@@ -256,18 +249,17 @@ def remove_cart_item(request):
         })
 
 
-@login_required
 def cart_totals(request):
     """取得購物車總計資訊"""
+    from plus.services.cart import get_or_create_cart
     try:
-        # 獲取免運門檻（從網站設定）
         try:
             site_settings = SiteSettings.objects.first()
             free_shipping_threshold = site_settings.free_shipping_threshold if site_settings else Decimal('1000')
-        except:
+        except Exception:
             free_shipping_threshold = Decimal('1000')
         
-        cart = Cart.objects.get(user=request.user)
+        cart = get_or_create_cart(request)
         subtotal = cart.total_price
         shipping_fee = Decimal('0') if subtotal >= free_shipping_threshold else Decimal('100')
         total = subtotal + shipping_fee
@@ -276,7 +268,7 @@ def cart_totals(request):
             'shipping_fee': int(shipping_fee),
             'total': int(total)
         })
-    except Cart.DoesNotExist:
+    except Exception:
         return JsonResponse({
             'subtotal': 0,
             'shipping_fee': 0,

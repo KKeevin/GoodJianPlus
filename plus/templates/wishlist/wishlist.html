@@ -24,6 +24,12 @@
         </div>
 
         {% if products %}
+        <div class="account-card" style="padding: 20px 30px; margin-bottom: 16px; display:flex; justify-content:flex-end;">
+            <form method="post" action="{% url 'wishlist_add_all_to_cart' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary"><i class="bi bi-cart-plus"></i> 全部加入購物車</button>
+            </form>
+        </div>
         <div class="account-card" style="padding: 30px;">
             <div class="product-grid">
             {% for product in products %}

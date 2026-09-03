@@ -180,6 +180,28 @@ def products(request):
                     products = products.filter(category=selected_category)
         except Category.DoesNotExist:
             pass
+
+    brand_slug = request.GET.get('brand', '').strip()
+    min_price = request.GET.get('min_price', '').strip()
+    max_price = request.GET.get('max_price', '').strip()
+    in_stock = request.GET.get('in_stock', '')
+    selected_brand = None
+    if brand_slug:
+        selected_brand = Brand.objects.filter(slug=brand_slug, is_active=True).first()
+        if selected_brand:
+            products = products.filter(brand=selected_brand)
+    if min_price:
+        try:
+            products = products.filter(price__gte=Decimal(min_price))
+        except Exception:
+            min_price = ''
+    if max_price:
+        try:
+            products = products.filter(price__lte=Decimal(max_price))
+        except Exception:
+            max_price = ''
+    if in_stock in ('1', 'true', 'yes', 'on'):
+        products = products.filter(stock_quantity__gt=0)
     
     # 計算平均評分和評價數量（在排序之前）
     products = products.annotate(
@@ -232,6 +254,9 @@ def products(request):
             user_wishlist = list(wishlist.products.values_list('id', flat=True))
         except:
             pass
+    brands = Brand.objects.filter(is_active=True).order_by('name')
+    from plus.services.recently_viewed import recent_products
+    recently_viewed = recent_products(request)
     context = {
         'products': page_obj.object_list,
         'page_obj': page_obj,
@@ -245,6 +270,13 @@ def products(request):
         'search_query': search_query,
         'featured_products': featured_products,
         'user_wishlist': user_wishlist,
+        'brands': brands,
+        'selected_brand': selected_brand,
+        'selected_brand_slug': brand_slug,
+        'min_price': min_price,
+        'max_price': max_price,
+        'in_stock': in_stock in ('1', 'true', 'yes', 'on'),
+        'recently_viewed': recently_viewed,
     }
     return render(request, 'products/products.html', context)
 
@@ -261,6 +293,9 @@ def product_detail_view(request, product_id):
     except Product.DoesNotExist:
         messages.error(request, '商品不存在或已下架')
         return redirect('products')
+
+    from plus.services.recently_viewed import track_product, recent_products
+    track_product(request, product.id)
     
     # 計算平均評分
     reviews = ProductReview.objects.filter(product=product, is_approved=True).order_by('-created_at')
@@ -270,21 +305,18 @@ def product_detail_view(request, product_id):
     cart_quantity = 0
     is_favorited = False
     user_review = None
+
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    cart_item = CartItem.objects.filter(cart=cart, product=product).first()
+    if cart_item:
+        cart_quantity = cart_item.quantity
     
     if request.user.is_authenticated:
         try:
             wishlist = request.user.wishlist
             is_favorited = product in wishlist.products.all()
         except:
-            pass
-        
-        # 檢查購物車中該商品的數量
-        try:
-            cart = Cart.objects.get(user=request.user)
-            cart_item = CartItem.objects.filter(cart=cart, product=product).first()
-            if cart_item:
-                cart_quantity = cart_item.quantity
-        except Cart.DoesNotExist:
             pass
         
         # 檢查用戶是否已評價過該商品
@@ -318,6 +350,7 @@ def product_detail_view(request, product_id):
         'cart_quantity': cart_quantity,
         'available_quantity': available_quantity,
         'user_review': user_review,  # 用戶的評價（如果有的話）
+        'recently_viewed': recent_products(request, exclude_id=product.id, limit=4),
     }
     return render(request, 'products/product_detail.html', context)
 

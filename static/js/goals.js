@@ -1102,6 +1102,79 @@ function updateWeightChart(weightLogs) {
     }
 }
 
+function csrfHeaders() {
+    return {
+        'X-CSRFToken': window.GOALS_CONFIG.csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+    };
+}
+
+function addWater(amount) {
+    const body = new URLSearchParams();
+    body.append('amount_ml', amount);
+    fetch(window.GOALS_CONFIG.addWaterLogUrl, {
+        method: 'POST',
+        headers: csrfHeaders(),
+        body
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const el = document.getElementById('todayWaterMl');
+                if (el) el.textContent = data.today_ml;
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || '記錄失敗', 'error');
+            }
+        })
+        .catch(() => showToast('記錄失敗', 'error'));
+}
+
+document.getElementById('workoutForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const body = new URLSearchParams(new FormData(form));
+    fetch(window.GOALS_CONFIG.addWorkoutLogUrl, {
+        method: 'POST',
+        headers: csrfHeaders(),
+        body
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                window.location.reload();
+            } else {
+                showToast(data.message || '記錄失敗', 'error');
+            }
+        })
+        .catch(() => showToast('記錄失敗', 'error'));
+});
+
+document.getElementById('customFoodForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const body = new URLSearchParams(new FormData(form));
+    fetch(window.GOALS_CONFIG.addCustomFoodUrl, {
+        method: 'POST',
+        headers: csrfHeaders(),
+        body
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                form.reset();
+                searchFoods();
+            } else {
+                showToast(data.message || '新增失敗', 'error');
+            }
+        })
+        .catch(() => showToast('新增失敗', 'error'));
+});
+
+window.addWater = addWater;
+
 // 初始化：載入最新10筆記錄
 document.addEventListener('DOMContentLoaded', function() {
     loadWeightLogs(0);

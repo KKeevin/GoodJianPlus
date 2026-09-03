@@ -10,6 +10,7 @@ from plus.models import (
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
     Article, ArticleCategory, ArticleImage, EmailVerificationToken,
     ReturnRequest,
+    ShippingAddress,
 )
 
 try:
@@ -205,4 +206,11 @@ class ShippingMethodAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     list_editable = ('price', 'estimated_days', 'is_active', 'sort_order')
     ordering = ['sort_order', 'name']
+
+
+@admin.register(ShippingAddress)
+class ShippingAddressAdmin(admin.ModelAdmin):
+    list_display = ('user', 'label', 'name', 'phone', 'is_default', 'created_at')
+    list_filter = ('is_default', 'created_at')
+    search_fields = ('user__username', 'name', 'phone', 'address', 'label')
 

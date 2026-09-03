@@ -62,7 +62,10 @@ def custom_login_view(request):
             remember_me = request.POST.get('remember_me')
             user = authenticate(username=username, password=password)
             if user is not None:
+                session_key = request.session.session_key
                 login(request, user)
+                from plus.services.cart import merge_session_cart
+                merge_session_cart(request, user, session_key=session_key)
                 if remember_me:
                     request.session.set_expiry(30 * 24 * 60 * 60)
                 else:
@@ -120,7 +123,10 @@ def ajax_login(request):
             pass
     user = authenticate(username=username, password=password)
     if user is not None:
+        session_key = request.session.session_key
         login(request, user)
+        from plus.services.cart import merge_session_cart
+        merge_session_cart(request, user, session_key=session_key)
         if remember_me:
             request.session.set_expiry(30 * 24 * 60 * 60)
         else:

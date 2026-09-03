@@ -23,7 +23,7 @@ from plus.models import (
     Coupon, ShippingMethod, SiteSettings, Notification,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
     Article, ArticleCategory, ArticleImage, EmailVerificationToken,
-    PhoneVerificationCode, EmailChangeRequest
+    PhoneVerificationCode, EmailChangeRequest, ShippingAddress
 )
 from plus.forms import CustomUserRegistrationForm, QuickRegistrationForm, CustomAuthenticationForm
 from plus.utils.email import (
@@ -75,7 +75,7 @@ def checkout(request):
     
     # 取得用戶資訊
     user = request.user
-    
+    saved_addresses = list(user.shipping_addresses.all())
     if request.method == 'POST':
         # 處理訂單提交
         shipping_name = request.POST.get('shipping_name', user.first_name or user.username)
@@ -89,6 +89,7 @@ def checkout(request):
         invoice_title = request.POST.get('invoice_title', '').strip()
         invoice_tax_id = request.POST.get('invoice_tax_id', '').strip()
         invoice_carrier = request.POST.get('invoice_carrier', '').strip()
+        save_address = request.POST.get('save_address') == 'on'
         
         # 驗證必填欄位
         if not all([shipping_name, shipping_phone, shipping_email, shipping_address]):
@@ -182,6 +183,15 @@ def checkout(request):
                 logger.info(f'Order created: {order.order_number} by user {user.username}')
                 
                 cart.items.all().delete()
+                if save_address:
+                    ShippingAddress.objects.create(
+                        user=user,
+                        label=(request.POST.get('address_label') or '常用地址')[:40],
+                        name=shipping_name,
+                        phone=shipping_phone,
+                        address=shipping_address,
+                        is_default=not saved_addresses,
+                    )
                 try:
                     send_order_confirmation_email(order, request)
                 except Exception as e:
@@ -216,6 +226,7 @@ def checkout(request):
         'user': user,
         'allow_test_payment': django_settings.DEBUG,
         'invoice_type_choices': Order.INVOICE_TYPE_CHOICES,
+        'saved_addresses': saved_addresses,
     }
     return render(request, 'checkout/checkout.html', context)
 

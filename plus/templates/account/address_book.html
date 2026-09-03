@@ -1,0 +1,82 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}常用收件地址 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/account-pages.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="account-page-section">
+    <div class="container">
+        <div class="account-page-header">
+            <h1><i class="bi bi-geo-alt"></i> 常用收件地址</h1>
+            <div class="account-page-breadcrumb">
+                <a href="{% url 'home' %}">首頁</a>
+                <span>></span>
+                <a href="{% url 'profile' %}">我的帳戶</a>
+                <span>></span>
+                <span>常用地址</span>
+            </div>
+        </div>
+
+        <div class="account-card" style="padding: 28px; margin-bottom: 24px;">
+            <h3 style="margin-bottom: 16px;">新增地址</h3>
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>名稱</label>
+                        <input type="text" name="label" class="form-control" value="住家" maxlength="40">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>收件人</label>
+                        <input type="text" name="name" class="form-control" value="{{ user.first_name|default:user.username }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>電話</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ user.phone }}" required>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label>地址</label>
+                    <textarea name="address" class="form-control" rows="2" required>{{ user.address }}</textarea>
+                </div>
+                <label class="mb-3 d-block">
+                    <input type="checkbox" name="is_default"> 設為預設地址
+                </label>
+                <button type="submit" class="btn btn-primary">新增地址</button>
+            </form>
+        </div>
+
+        {% for addr in addresses %}
+        <div class="account-card" style="padding: 20px 24px; margin-bottom: 16px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+            <div>
+                <strong>{{ addr.label }}</strong>
+                {% if addr.is_default %}<span class="badge bg-success ms-2">預設</span>{% endif %}
+                <p class="mb-1 mt-2">{{ addr.name }} · {{ addr.phone }}</p>
+                <p class="mb-0 text-muted">{{ addr.address }}</p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:flex-start;">
+                {% if not addr.is_default %}
+                <form method="post" action="{% url 'address_set_default' addr.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">設為預設</button>
+                </form>
+                {% endif %}
+                <form method="post" action="{% url 'address_delete' addr.id %}" onsubmit="return confirm('確定刪除這個地址？');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">刪除</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="account-empty-state">
+            <i class="bi bi-geo-alt"></i>
+            <h3>還沒有常用地址</h3>
+            <p>新增後，結帳時可一鍵帶入收件資料。</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

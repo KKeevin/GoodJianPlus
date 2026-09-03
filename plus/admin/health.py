@@ -8,7 +8,8 @@ from plus.models import (
     ProductReview, Cart, CartItem, Order, OrderItem, Coupon,
     Wishlist, ShippingMethod, SiteSettings, Notification,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
-    Article, ArticleCategory, ArticleImage, EmailVerificationToken
+    Article, ArticleCategory, ArticleImage, EmailVerificationToken,
+    WorkoutLog, WaterLog,
 )
 
 try:
@@ -21,7 +22,7 @@ except ImportError:
 
 @admin.register(Food)
 class FoodAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'calories', 'protein', 'carbs', 'fat', 'is_active', 'created_at')
+    list_display = ('name', 'category', 'owner', 'calories', 'protein', 'carbs', 'fat', 'is_active', 'created_at')
     list_filter = ('category', 'is_active', 'created_at')
     search_fields = ('name',)
     list_editable = ('is_active',)
@@ -109,4 +110,18 @@ class DailyNutritionTargetAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
     ordering = ['-target_date', '-created_at']
     date_hierarchy = 'target_date'
+
+
+@admin.register(WorkoutLog)
+class WorkoutLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'activity', 'duration_minutes', 'calories_burned', 'logged_at')
+    list_filter = ('activity', 'logged_at')
+    search_fields = ('user__username', 'notes')
+
+
+@admin.register(WaterLog)
+class WaterLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount_ml', 'logged_at')
+    list_filter = ('logged_at',)
+    search_fields = ('user__username',)
 

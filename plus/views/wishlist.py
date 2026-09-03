@@ -103,3 +103,27 @@ def toggle_wishlist(request):
             'message': '操作失敗，請稍後再試'
         })
 
+
+@login_required
+@require_http_methods(["POST"])
+def wishlist_add_all_to_cart(request):
+    from plus.services.cart import get_or_create_cart
+    try:
+        wishlist = request.user.wishlist
+        products = wishlist.products.filter(status='published', stock_quantity__gt=0)
+    except Exception:
+        products = Product.objects.none()
+    cart = get_or_create_cart(request)
+    added = 0
+    for product in products:
+        existing = CartItem.objects.filter(cart=cart, product=product).first()
+        if existing:
+            continue
+        CartItem.objects.create(cart=cart, product=product, quantity=1)
+        added += 1
+    if added:
+        messages.success(request, f'已將 {added} 件收藏商品加入購物車')
+        return redirect('cart')
+    messages.info(request, '沒有可加入的收藏商品')
+    return redirect('wishlist')
+

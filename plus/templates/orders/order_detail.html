@@ -200,6 +200,10 @@
                     <button type="submit" class="btn btn-success">確認收貨</button>
                 </form>
                 {% endif %}
+                <form method="post" action="{% url 'reorder' order.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-repeat"></i> 再次購買</button>
+                </form>
             </div>
 
             {% if return_requests %}

@@ -52,7 +52,9 @@ NAMED_URLS = [
     ('confirm_receipt', {'order_id': 1}, '/orders/1/confirm-receipt/'),
     ('request_return', {'order_id': 1}, '/orders/1/return/'),
     ('cancel_return', {'order_id': 1, 'return_id': 2}, '/orders/1/return/2/cancel/'),
+    ('reorder', {'order_id': 1}, '/orders/1/reorder/'),
     ('wishlist', {}, '/wishlist/'),
+    ('wishlist_add_all_to_cart', {}, '/wishlist/add-all-to-cart/'),
     ('notification_list', {}, '/notifications/'),
     ('notification_detail', {'notification_id': 1}, '/notifications/1/'),
     ('notification_toggle_read', {'notification_id': 1}, '/notifications/1/toggle-read/'),
@@ -84,6 +86,16 @@ NAMED_URLS = [
     ('update_nutrition_log', {'log_id': 1}, '/api/nutrition-log/1/update/'),
     ('delete_nutrition_log', {'log_id': 1}, '/api/nutrition-log/1/delete/'),
     ('nutrition_log_api', {}, '/api/nutrition-log/'),
+    ('add_custom_food', {}, '/api/foods/custom/'),
+    ('add_workout_log', {}, '/api/workouts/add/'),
+    ('add_water_log', {}, '/api/water/add/'),
+    ('log_product_nutrition', {}, '/api/products/log-nutrition/'),
+    ('health_export', {}, '/goals/export/'),
+    ('bmi_calculator', {}, '/health/calculator/'),
+    ('address_book', {}, '/profile/addresses/'),
+    ('address_set_default', {'address_id': 1}, '/profile/addresses/1/default/'),
+    ('address_delete', {'address_id': 1}, '/profile/addresses/1/delete/'),
+    ('address_json_api', {}, '/api/addresses/'),
     ('articles_list', {}, '/articles/'),
     ('article_detail', {'slug': 'sample'}, '/article/sample/'),
     ('privacy_policy', {}, '/privacy/'),
@@ -98,7 +110,7 @@ NAMED_URLS = [
 
 class NamedUrlTests(SimpleTestCase):
     def test_named_urls_match_existing_paths(self):
-        self.assertEqual(len(NAMED_URLS), 90)
+        self.assertEqual(len(NAMED_URLS), 102)
         for name, kwargs, expected in NAMED_URLS:
             with self.subTest(name=name):
                 self.assertEqual(reverse(name, kwargs=kwargs), expected)

@@ -171,6 +171,30 @@ class Order(models.Model):
         return resolve_tracking_url(self)
 
 
+class ShippingAddress(models.Model):
+    """會員常用收件地址"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='shipping_addresses', verbose_name='會員')
+    label = models.CharField(max_length=40, default='住家', verbose_name='名稱')
+    name = models.CharField(max_length=100, verbose_name='收件人')
+    phone = models.CharField(max_length=20, verbose_name='電話')
+    address = models.TextField(verbose_name='地址')
+    is_default = models.BooleanField(default=False, verbose_name='預設')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='建立時間')
+
+    class Meta:
+        verbose_name = '收件地址'
+        verbose_name_plural = '收件地址'
+        ordering = ['-is_default', '-created_at']
+
+    def __str__(self):
+        return f'{self.user.username} {self.label}'
+
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            type(self).objects.filter(user=self.user, is_default=True).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+
 class OrderItem(models.Model):
     """訂單項目"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')

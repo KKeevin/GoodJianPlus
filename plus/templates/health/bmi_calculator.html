@@ -1,0 +1,96 @@
+{% extends "base/main_all.html" %}
+{% load static %}
+{% block title %}BMI 與健康試算 - 好健健 GoodJian Plus{% endblock %}
+
+{% block head %}
+<link href="{% static 'css/goals.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<section class="goals-section">
+    <div class="container">
+        <div class="goals-container">
+            <nav aria-label="breadcrumb" class="breadcrumb-nav">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'home' %}">首頁</a></li>
+                    <li class="breadcrumb-item active">健康試算</li>
+                </ol>
+            </nav>
+            <h1 class="page-title">BMI 與健康試算</h1>
+            <p class="text-muted mb-4">依衛生福利部常用標準：BMI 18.5–24 為健康範圍。蛋白質與飲水為一般成人建議，實際需求請諮詢專業人員。</p>
+
+            <div class="goal-card">
+                <div class="card-header"><h2><i class="bi bi-calculator"></i> 輸入身高體重</h2></div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>身高（cm）</label>
+                                    <input type="number" name="height" class="form-control" step="0.1" min="50" max="250" value="{{ form.height }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>體重（kg）</label>
+                                    <input type="number" name="weight" class="form-control" step="0.1" min="20" max="300" value="{{ form.weight }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>目標類型</label>
+                                    <select name="goal_type" class="form-control">
+                                        {% for value, label in goal_choices %}
+                                        <option value="{{ value }}" {% if form.goal_type == value %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">開始試算</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if result %}
+            <div class="goal-card">
+                <div class="card-header"><h2><i class="bi bi-heart-pulse"></i> 試算結果</h2></div>
+                <div class="card-body">
+                    {% if result.error %}
+                    <p class="text-danger">{{ result.error }}</p>
+                    {% else %}
+                    <div class="goal-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">BMI</div>
+                            <div class="stat-value">{{ result.bmi }}</div>
+                            <div class="text-muted">{{ result.bmi_label }}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">理想體重</div>
+                            <div class="stat-value">{% if result.ideal_low %}{{ result.ideal_low }}–{{ result.ideal_high }} kg{% else %}—{% endif %}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">建議飲水</div>
+                            <div class="stat-value">{% if result.water_ml %}{{ result.water_ml }} ml{% else %}—{% endif %}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">建議蛋白質</div>
+                            <div class="stat-value">{% if result.protein_g %}{{ result.protein_g }} g{% else %}—{% endif %}</div>
+                        </div>
+                    </div>
+                    <p class="mt-4 mb-0">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'goal_management' %}" class="btn btn-primary">記錄到目標管理</a>
+                        {% else %}
+                        <a href="{% url 'register' %}" class="btn btn-primary">註冊後追蹤每日飲食與運動</a>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

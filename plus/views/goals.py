@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.db.models import Q
 from decimal import Decimal
 import logging
 
@@ -91,20 +92,24 @@ def goal_management_view(request):
         user=user,
         logged_at__gte=today_start,
         logged_at__lte=today_end
-    ).order_by('-logged_at')
+    ).select_related('food').order_by('-logged_at')
     
-    # 計算今天的總營養攝取
-    today_totals = {
-        'calories': Decimal('0'),
-        'protein': Decimal('0'),
-        'carbs': Decimal('0'),
-        'fat': Decimal('0'),
-    }
-    for log in today_nutrition_logs:
-        today_totals['calories'] += log.total_calories
-        today_totals['protein'] += log.total_protein
-        today_totals['carbs'] += log.total_carbs
-        today_totals['fat'] += log.total_fat
+    from plus.services.nutrition import sum_nutrition_logs
+    from plus.services.body_metrics import body_metrics_summary
+    from plus.models import WorkoutLog, WaterLog
+    today_totals = sum_nutrition_logs(today_nutrition_logs)
+    body_metrics = body_metrics_summary(
+        goal.current_weight, goal.height, goal.goal_type
+    )
+    today_workouts = WorkoutLog.objects.filter(
+        user=user, logged_at__gte=today_start, logged_at__lte=today_end
+    )
+    today_workout_kcal = sum(w.calories_burned for w in today_workouts)
+    today_water_ml = sum(
+        WaterLog.objects.filter(
+            user=user, logged_at__gte=today_start, logged_at__lte=today_end
+        ).values_list('amount_ml', flat=True)
+    )
     
     context = {
         'goal': goal,
@@ -113,6 +118,12 @@ def goal_management_view(request):
         'today_nutrition_logs': today_nutrition_logs,
         'today_totals': today_totals,
         'today_target': today_target,  # 今天的營養目標
+        'body_metrics': body_metrics,
+        'today_workouts': today_workouts,
+        'today_workout_kcal': today_workout_kcal,
+        'today_water_ml': today_water_ml,
+        'workout_choices': WorkoutLog.ACTIVITY_CHOICES,
+        'food_categories': Food.CATEGORY_CHOICES,
     }
     return render(request, 'goals/goal_management.html', context)
 
@@ -504,6 +515,10 @@ def food_search_api(request):
     category = request.GET.get('category', '')
     
     foods = Food.objects.filter(is_active=True)
+    if request.user.is_authenticated:
+        foods = foods.filter(Q(owner__isnull=True) | Q(owner=request.user))
+    else:
+        foods = foods.filter(owner__isnull=True)
     
     if query:
         foods = foods.filter(name__icontains=query)

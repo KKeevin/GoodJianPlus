@@ -33,6 +33,10 @@ class Food(models.Model):
     sugar = models.DecimalField(max_digits=7, decimal_places=2, default=0, verbose_name='糖（g）')
     sodium = models.DecimalField(max_digits=7, decimal_places=2, default=0, verbose_name='鈉（mg）')
     is_active = models.BooleanField(default=True, verbose_name='是否啟用')
+    owner = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='custom_foods', verbose_name='自訂者'
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='建立時間')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新時間')
 
@@ -275,4 +279,67 @@ class NutritionLog(models.Model):
     def total_fat(self):
         """計算總脂肪"""
         return (self.food.fat * self.quantity).quantize(Decimal('0.01'))
+
+    @property
+    def total_fiber(self):
+        return (self.food.fiber * self.quantity).quantize(Decimal('0.01'))
+
+    @property
+    def total_sugar(self):
+        return (self.food.sugar * self.quantity).quantize(Decimal('0.01'))
+
+    @property
+    def total_sodium(self):
+        return (self.food.sodium * self.quantity).quantize(Decimal('0.01'))
+
+
+class WorkoutLog(models.Model):
+    ACTIVITY_CHOICES = [
+        ('walk', '走路／散步'),
+        ('run', '跑步'),
+        ('cycle', '騎車'),
+        ('swim', '游泳'),
+        ('weight', '重量訓練'),
+        ('yoga', '瑜珈／伸展'),
+        ('hiit', 'HIIT'),
+        ('other', '其他'),
+    ]
+    MET = {
+        'walk': 3.5,
+        'run': 8.0,
+        'cycle': 6.8,
+        'swim': 7.0,
+        'weight': 6.0,
+        'yoga': 3.0,
+        'hiit': 9.0,
+        'other': 4.5,
+    }
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='workout_logs', verbose_name='用戶')
+    activity = models.CharField(max_length=20, choices=ACTIVITY_CHOICES, verbose_name='活動')
+    duration_minutes = models.PositiveIntegerField(verbose_name='時間（分鐘）')
+    calories_burned = models.PositiveIntegerField(default=0, verbose_name='消耗熱量')
+    notes = models.CharField(max_length=200, blank=True, verbose_name='備註')
+    logged_at = models.DateTimeField(default=timezone.now, verbose_name='記錄時間')
+
+    class Meta:
+        verbose_name = '運動記錄'
+        verbose_name_plural = '運動記錄'
+        ordering = ['-logged_at']
+
+    def __str__(self):
+        return f'{self.user.username} {self.get_activity_display()} {self.duration_minutes}分'
+
+
+class WaterLog(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='water_logs', verbose_name='用戶')
+    amount_ml = models.PositiveIntegerField(default=250, verbose_name='水量（ml）')
+    logged_at = models.DateTimeField(default=timezone.now, verbose_name='記錄時間')
+
+    class Meta:
+        verbose_name = '飲水記錄'
+        verbose_name_plural = '飲水記錄'
+        ordering = ['-logged_at']
+
+    def __str__(self):
+        return f'{self.user.username} {self.amount_ml}ml'
 

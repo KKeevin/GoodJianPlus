@@ -47,6 +47,18 @@
                 {% if request.GET.category %}
                 <input type="hidden" name="category" value="{{ request.GET.category }}">
                 {% endif %}
+                {% if request.GET.brand %}
+                <input type="hidden" name="brand" value="{{ request.GET.brand }}">
+                {% endif %}
+                {% if request.GET.min_price %}
+                <input type="hidden" name="min_price" value="{{ request.GET.min_price }}">
+                {% endif %}
+                {% if request.GET.max_price %}
+                <input type="hidden" name="max_price" value="{{ request.GET.max_price }}">
+                {% endif %}
+                {% if in_stock %}
+                <input type="hidden" name="in_stock" value="1">
+                {% endif %}
             </form>
         </div>
         
@@ -99,6 +111,25 @@
                 {% endif %}
             </div>
             <div class="filter-right">
+                <form method="get" action="{% url 'products' %}" class="shop-extra-filters" id="shopFilterForm">
+                    {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                    {% if selected_category_slug %}<input type="hidden" name="category" value="{{ selected_category_slug }}">{% endif %}
+                    {% if sort_by and sort_by != 'default' %}<input type="hidden" name="sort" value="{{ sort_by }}">{% endif %}
+                    <select name="brand" class="sort-select" onchange="this.form.submit()">
+                        <option value="">全部品牌</option>
+                        {% for brand in brands %}
+                        <option value="{{ brand.slug }}" {% if selected_brand_slug == brand.slug %}selected{% endif %}>{{ brand.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" name="min_price" class="price-filter-input" placeholder="最低價" min="0" value="{{ min_price }}">
+                    <span class="price-filter-sep">–</span>
+                    <input type="number" name="max_price" class="price-filter-input" placeholder="最高價" min="0" value="{{ max_price }}">
+                    <label class="in-stock-filter">
+                        <input type="checkbox" name="in_stock" value="1" {% if in_stock %}checked{% endif %} onchange="this.form.submit()">
+                        只看有貨
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">套用</button>
+                </form>
                 <select class="sort-select" id="sortSelect">
                     <option value="default" {% if sort_by == 'default' %}selected{% endif %}>預設排序</option>
                     <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>價格：低到高</option>
@@ -199,15 +230,9 @@
                     <!-- 操作按鈕 -->
                     <div class="product-actions">
                         {% if product.stock_quantity > 0 %}
-                            {% if user.is_authenticated %}
                             <button class="add-to-cart" data-product-id="{{ product.id }}">
                                 <i class="bi bi-cart-plus"></i>加入購物車
                             </button>
-                            {% else %}
-                            <a href="{% url 'login' %}?next={% url 'products' %}" class="add-to-cart">
-                                <i class="bi bi-person"></i>登入購買
-                            </a>
-                            {% endif %}
                         {% else %}
                         <button class="add-to-cart disabled" disabled>
                             <i class="bi bi-x-circle"></i>暫時缺貨
@@ -343,20 +368,51 @@
                     <!-- 加入購物車按鈕 -->
                     <div class="recommended-product-actions">
                         {% if product.stock_quantity > 0 %}
-                            {% if user.is_authenticated %}
                             <button class="recommended-add-to-cart" data-product-id="{{ product.id }}">
                                 <i class="bi bi-cart-plus"></i> 加入購物車
                             </button>
-                            {% else %}
-                            <a href="{% url 'login' %}?next={% url 'products' %}" class="recommended-add-to-cart">
-                                <i class="bi bi-person"></i> 登入購買
-                            </a>
-                            {% endif %}
                         {% else %}
                         <button class="recommended-add-to-cart disabled" disabled>
                             <i class="bi bi-x-circle"></i> 暫時缺貨
                         </button>
                         {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if recently_viewed %}
+<section class="recommended-products-section">
+    <div class="container">
+        <div class="recommended-section-title">
+            <h3>
+                <i class="bi bi-clock-history"></i>
+                最近瀏覽
+                <span class="title-underline"></span>
+            </h3>
+        </div>
+        <div class="recommended-products-grid">
+            {% for product in recently_viewed %}
+            <div class="recommended-product-card">
+                <div class="recommended-product-image">
+                    <a href="{% url 'product_detail' product.id %}">
+                        {% if product.images.exists %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                        {% endif %}
+                    </a>
+                </div>
+                <div class="recommended-product-info">
+                    <h4 class="recommended-product-name">
+                        <a href="{% url 'product_detail' product.id %}">{{ product.name|truncatechars:50 }}</a>
+                    </h4>
+                    <div class="recommended-product-price">
+                        <span class="recommended-current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
                     </div>
                 </div>
             </div>

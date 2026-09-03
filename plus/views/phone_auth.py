@@ -237,7 +237,10 @@ def phone_login(request):
                 }, status=500)
         
         # 登入用戶
+        session_key = request.session.session_key
         login(request, user)
+        from plus.services.cart import merge_session_cart
+        merge_session_cart(request, user, session_key=session_key)
         
         # 設置 session 過期時間
         if remember_me:

@@ -260,7 +260,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 收集靜態文件的目�
 
 # 靜態文件版本號（用於強制刷新緩存）
 # 每次更新 CSS/JS 時，請更新此版本號
-STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.5')
+STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.6')
 
 # 在檔案最後加入
 MEDIA_URL = '/media/'

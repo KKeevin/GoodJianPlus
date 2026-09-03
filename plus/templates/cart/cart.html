@@ -21,6 +21,14 @@
             </div>
         </div>
 
+        {% if not user.is_authenticated and items %}
+        <div class="alert alert-info" style="margin-bottom: 20px;">
+            訪客購物車會暫存在此瀏覽器。結帳前請先
+            <a href="{% url 'login' %}?next={% url 'checkout' %}">登入</a>
+            ，商品會自動合併到會員購物車。
+        </div>
+        {% endif %}
+
         {% if items %}
         <div class="cart-content">
             <div class="cart-items">

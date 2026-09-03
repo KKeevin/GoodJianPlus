@@ -188,6 +188,31 @@
                                 <div class="stat-value">{{ goal.get_activity_level_display|default:"未設定" }}</div>
                             </div>
                         </div>
+                        {% if body_metrics and body_metrics.bmi %}
+                        <div class="goal-stats" style="margin-top: 20px;">
+                            <div class="stat-item">
+                                <div class="stat-label">BMI</div>
+                                <div class="stat-value">{{ body_metrics.bmi }} <small>{{ body_metrics.bmi_label }}</small></div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">理想體重</div>
+                                <div class="stat-value">{% if body_metrics.ideal_low %}{{ body_metrics.ideal_low }}–{{ body_metrics.ideal_high }} kg{% else %}—{% endif %}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">建議飲水</div>
+                                <div class="stat-value">{% if body_metrics.water_ml %}{{ body_metrics.water_ml }} ml{% else %}—{% endif %}</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">建議蛋白質</div>
+                                <div class="stat-value">{% if body_metrics.protein_g %}{{ body_metrics.protein_g }} g{% else %}—{% endif %}</div>
+                            </div>
+                        </div>
+                        <p class="mt-3 mb-0">
+                            <a href="{% url 'bmi_calculator' %}">公開 BMI 試算</a>
+                            ·
+                            <a href="{% url 'health_export' %}">匯出健康紀錄 CSV</a>
+                        </p>
+                        {% endif %}
                         {% if goal.current_muscle_percentage or goal.target_muscle_percentage or goal.current_fat_percentage or goal.target_fat_percentage or goal.current_bone_percentage or goal.target_bone_percentage or goal.current_water_percentage or goal.target_water_percentage %}
                         <div class="body-composition-section" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #eee;">
                             <h3 style="color: #2D5B69; margin-bottom: 20px;">身體組成目標</h3>
@@ -393,6 +418,27 @@
                                 <div class="progress-fill" id="nutritionFatProgress" style="width: {% if today_target and today_target.target_fat %}{{ today_totals.fat|mul:100|div:today_target.target_fat|floatformat:0 }}{% elif goal.target_fat %}{{ today_totals.fat|mul:100|div:goal.target_fat|floatformat:0 }}{% else %}0{% endif %}%"></div>
                             </div>
                         </div>
+                        <div class="summary-item">
+                            <div class="summary-label">纖維</div>
+                            <div class="summary-value">
+                                <span class="current">{{ today_totals.fiber|default:0|floatformat:1 }}</span>
+                                <span class="target"> g</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">糖</div>
+                            <div class="summary-value">
+                                <span class="current">{{ today_totals.sugar|default:0|floatformat:1 }}</span>
+                                <span class="target"> g</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">鈉</div>
+                            <div class="summary-value">
+                                <span class="current">{{ today_totals.sodium|default:0|floatformat:0 }}</span>
+                                <span class="target"> mg</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="nutrition-logs">
                         <h4 id="nutritionLogsTitle">今日飲食記錄</h4>
@@ -423,6 +469,61 @@
                             </div>
                             {% endfor %}
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="goal-card">
+                <div class="card-header">
+                    <h2><i class="bi bi-droplet"></i> 今日飲水</h2>
+                </div>
+                <div class="card-body">
+                    <p>今日已喝 <strong id="todayWaterMl">{{ today_water_ml|default:0 }}</strong> ml{% if body_metrics.water_ml %}／建議 {{ body_metrics.water_ml }} ml{% endif %}</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="addWater(250)">+250 ml</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="addWater(500)">+500 ml</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="goal-card">
+                <div class="card-header">
+                    <h2><i class="bi bi-bicycle"></i> 今日運動</h2>
+                    <span class="mt-1">已消耗約 {{ today_workout_kcal|default:0 }} 大卡</span>
+                </div>
+                <div class="card-body">
+                    <form id="workoutForm" class="row g-2 align-items-end">
+                        <div class="col-md-4">
+                            <label>活動</label>
+                            <select name="activity" class="form-control">
+                                {% for value, label in workout_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>分鐘</label>
+                            <input type="number" name="duration_minutes" class="form-control" min="1" max="300" value="30" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label>備註</label>
+                            <input type="text" name="notes" class="form-control" maxlength="200">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">記錄</button>
+                        </div>
+                    </form>
+                    <div class="nutrition-logs mt-3">
+                        {% for log in today_workouts %}
+                        <div class="log-item">
+                            <div class="log-info">
+                                <div class="log-food">{{ log.get_activity_display }}</div>
+                                <div class="log-details">{{ log.duration_minutes }} 分 · {{ log.calories_burned }} 大卡</div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-state"><p>今天還沒有運動記錄</p></div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -495,6 +596,30 @@
                     </select>
                 </div>
                 <div id="foodSearchResults" class="food-results"></div>
+                <hr>
+                <h6>找不到？新增自訂食物</h6>
+                <form id="customFoodForm" class="row g-2">
+                    <div class="col-md-6">
+                        <input type="text" name="name" class="form-control" placeholder="食物名稱" required>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="category" class="form-control">
+                            {% for value, label in food_categories %}
+                            <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="serving_size" class="form-control" value="100g" placeholder="份量">
+                    </div>
+                    <div class="col-md-3"><input type="number" name="calories" class="form-control" step="0.1" placeholder="熱量" required></div>
+                    <div class="col-md-3"><input type="number" name="protein" class="form-control" step="0.1" placeholder="蛋白質 g"></div>
+                    <div class="col-md-3"><input type="number" name="carbs" class="form-control" step="0.1" placeholder="碳水 g"></div>
+                    <div class="col-md-3"><input type="number" name="fat" class="form-control" step="0.1" placeholder="脂肪 g"></div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">儲存自訂食物</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -593,6 +718,9 @@ window.GOALS_CONFIG = {
     updateNutritionLogUrlTemplate: '{% url "update_nutrition_log" 0 %}',
     deleteNutritionLogUrlTemplate: '{% url "delete_nutrition_log" 0 %}',
     weightLogApiUrl: '{% url "weight_log_api" %}',
+    addCustomFoodUrl: '{% url "add_custom_food" %}',
+    addWorkoutLogUrl: '{% url "add_workout_log" %}',
+    addWaterLogUrl: '{% url "add_water_log" %}',
     csrfToken: '{{ csrf_token }}',
     defaultTargets: {
         calories: {{ goal.target_calories|default:0 }},

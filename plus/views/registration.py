@@ -75,7 +75,10 @@ def register_view(request):
                     password = form.cleaned_data.get('password1')
                     user = authenticate(username=username, password=password)
                     if user is not None:
+                        session_key = request.session.session_key
                         login(request, user)
+                        from plus.services.cart import merge_session_cart
+                        merge_session_cart(request, user, session_key=session_key)
                         # 創建註冊成功通知
                         send_notification(
                             user=user,
@@ -128,7 +131,10 @@ def quick_register_view(request):
                 user.phone_verified = False
                 user.save()
                 Wishlist.objects.create(user=user)
+                session_key = request.session.session_key
                 login(request, user)
+                from plus.services.cart import merge_session_cart
+                merge_session_cart(request, user, session_key=session_key)
                 
                 # 發送郵件驗證信
                 send_verification_email(user, request)

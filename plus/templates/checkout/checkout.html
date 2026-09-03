@@ -29,6 +29,26 @@
                     <!-- 收件人資訊 -->
                     <div class="form-section">
                         <h3 class="section-title">收件人資訊</h3>
+                        {% if saved_addresses %}
+                        <div class="form-group">
+                            <label for="savedAddress">常用地址</label>
+                            <select id="savedAddress" class="form-control">
+                                <option value="">手動填寫</option>
+                                {% for addr in saved_addresses %}
+                                <option value="{{ addr.id }}"
+                                        data-name="{{ addr.name }}"
+                                        data-phone="{{ addr.phone }}"
+                                        data-address="{{ addr.address }}"
+                                        {% if addr.is_default %}selected{% endif %}>
+                                    {{ addr.label }} — {{ addr.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <p class="text-muted" style="font-size: 0.85rem; margin-top: 6px;">
+                                <a href="{% url 'address_book' %}">管理常用地址</a>
+                            </p>
+                        </div>
+                        {% endif %}
                         <div class="form-group">
                             <label for="shipping_name">收件人姓名 <span style="color: red;">*</span></label>
                             <input type="text" id="shipping_name" name="shipping_name" 
@@ -54,6 +74,13 @@
                             <label for="shipping_notes">配送備註（選填）</label>
                             <textarea id="shipping_notes" name="shipping_notes" 
                                       placeholder="例如：請在指定時間配送、放置於管理室等"></textarea>
+                        </div>
+                        <label class="d-block mb-2">
+                            <input type="checkbox" name="save_address"> 儲存為常用地址
+                        </label>
+                        <div class="form-group">
+                            <label for="address_label">地址名稱（選填）</label>
+                            <input type="text" id="address_label" name="address_label" placeholder="例如：住家、公司" maxlength="40">
                         </div>
                     </div>
 
@@ -233,6 +260,21 @@ let originalSubtotal = {{ subtotal }};
 let originalShipping = {{ shipping_fee }};
 let originalTax = {{ tax_amount }};
 let originalTotal = {{ total_amount }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const saved = document.getElementById('savedAddress');
+    if (saved) {
+        const applySaved = function() {
+            const opt = saved.options[saved.selectedIndex];
+            if (!opt || !opt.value) return;
+            document.getElementById('shipping_name').value = opt.dataset.name || '';
+            document.getElementById('shipping_phone').value = opt.dataset.phone || '';
+            document.getElementById('shipping_address').value = opt.dataset.address || '';
+        };
+        saved.addEventListener('change', applySaved);
+        applySaved();
+    }
+});
 
 // 格式化價格顯示
 function formatPrice(amount) {

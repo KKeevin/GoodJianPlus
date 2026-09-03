@@ -54,10 +54,11 @@ def site_settings(request):
     try:
         if request.user.is_authenticated:
             cart = Cart.objects.filter(user=request.user).first()
-            if cart:
-                context['cart_count'] = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
-            else:
-                context['cart_count'] = 0
+        else:
+            session_key = getattr(request.session, 'session_key', None)
+            cart = Cart.objects.filter(user__isnull=True, session_key=session_key).first() if session_key else None
+        if cart:
+            context['cart_count'] = cart.items.aggregate(total=Sum('quantity'))['total'] or 0
         else:
             context['cart_count'] = 0
     except Exception:
