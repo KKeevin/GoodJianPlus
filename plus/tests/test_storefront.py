@@ -55,6 +55,29 @@ class GuestCartTests(TestCase):
         self.assertEqual(cart.items.get(product=self.product).quantity, 1)
         self.assertFalse(Cart.objects.filter(user__isnull=True).exists())
 
+    def test_guest_quick_view_api(self):
+        response = self.client.get(reverse('quick_view_product', kwargs={'product_id': self.product.id}))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['product']['stock_quantity'], 10)
+        self.assertEqual(data['product']['cart_quantity'], 0)
+        self.assertEqual(data['product']['available_quantity'], 10)
+
+    def test_guest_quick_view_limit_reached(self):
+        # 訪客加入全部庫存 (10) 到購物車
+        self.client.post(reverse('api_add_to_cart'), {
+            'product_id': self.product.id,
+            'quantity': 10,
+        })
+        response = self.client.get(reverse('quick_view_product', kwargs={'product_id': self.product.id}))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['product']['stock_quantity'], 10)
+        self.assertEqual(data['product']['cart_quantity'], 10)
+        self.assertEqual(data['product']['available_quantity'], 0)
+
 
 class ProductFilterTests(TestCase):
     def setUp(self):

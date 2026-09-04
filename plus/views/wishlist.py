@@ -55,6 +55,15 @@ def wishlist_view(request):
     except:
         wishlist = Wishlist.objects.create(user=request.user)
         products = []
+
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    cart_items_map = {item.product_id: item.quantity for item in cart.items.all()}
+
+    for product in products:
+        product.cart_quantity = cart_items_map.get(product.id, 0)
+        product.available_quantity = max(0, product.stock_quantity - product.cart_quantity)
+
     context = {
         'products': products,
     }

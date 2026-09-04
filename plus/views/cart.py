@@ -103,27 +103,42 @@ def add_to_cart(request):
     quantity = int(request.POST.get('quantity', 1))
     try:
         product = Product.objects.get(id=product_id, status='published')
-        if product.stock_quantity < quantity:
+        cart = get_or_create_cart(request)
+        cart_item = CartItem.objects.filter(cart=cart, product=product).first()
+        current_cart_qty = cart_item.quantity if cart_item else 0
+
+        if current_cart_qty + quantity > product.stock_quantity:
+            avail = max(0, product.stock_quantity - current_cart_qty)
+            if current_cart_qty >= product.stock_quantity:
+                msg = '已達購買上限，無法繼續加入購物車'
+            else:
+                msg = f'庫存不足，該商品最多只能再購買 {avail} 件'
             if request.user.is_authenticated:
                 send_notification(
                     user=request.user,
                     notification_type='cart',
-                    title='商品庫存不足',
-                    message=f'很抱歉，{product.name} 目前庫存不足（僅剩 {product.stock_quantity} 件），無法加入購物車。'
+                    title='商品已達購買上限' if current_cart_qty >= product.stock_quantity else '商品庫存不足',
+                    message=f'很抱歉，{product.name} {msg}'
                 )
             return JsonResponse({
                 'success': False,
-                'message': '庫存不足'
+                'message': msg,
+                'available_quantity': avail,
+                'cart_quantity': current_cart_qty,
+                'stock_quantity': product.stock_quantity,
             })
-        cart = get_or_create_cart(request)
-        cart_item, created = CartItem.objects.get_or_create(
-            cart=cart,
-            product=product,
-            defaults={'quantity': quantity}
-        )
-        if not created:
+
+        if not cart_item:
+            cart_item = CartItem.objects.create(
+                cart=cart,
+                product=product,
+                quantity=quantity
+            )
+            created = True
+        else:
             cart_item.quantity += quantity
             cart_item.save()
+            created = False
         
         # 獲取商品圖片
         product_image_url = ''

@@ -151,14 +151,18 @@
                     </div>
                     
                     <!-- 加入購物車按鈕 -->
-                    {% if product.stock_quantity > 0 %}
-                        <button class="add-to-cart" data-product-id="{{ product.id }}">
-                            <i class="bi bi-cart-plus"></i> 加入購物車
-                        </button>
-                    {% else %}
+                    {% if product.stock_quantity <= 0 %}
                     <button class="add-to-cart disabled" disabled>
                         <i class="bi bi-x-circle"></i> 暫時缺貨
                     </button>
+                    {% elif product.available_quantity <= 0 %}
+                    <button class="add-to-cart disabled" disabled style="opacity: 0.6; cursor: not-allowed;">
+                        <i class="bi bi-cart-x"></i> 已達購買上限
+                    </button>
+                    {% else %}
+                        <button class="add-to-cart" data-product-id="{{ product.id }}">
+                            <i class="bi bi-cart-plus"></i> 加入購物車
+                        </button>
                     {% endif %}
                 </div>
             </div>
@@ -399,17 +403,39 @@ document.addEventListener('DOMContentLoaded', function() {
             // 使用 cart.js 中的 addToCart 函數
             addToCart(productId, 1, {
                 onSuccess: function(data) {
-                    this.innerHTML = '<i class="bi bi-check"></i> 已加入！';
-                    this.style.backgroundColor = '#28a745';
-                    setTimeout(() => {
-                        this.innerHTML = originalHTML;
-                        this.style.backgroundColor = '';
-                        this.disabled = false;
-                    }, 2000);
+                    if (data.available_quantity !== undefined && data.available_quantity <= 0) {
+                        const targets = document.querySelectorAll(`button[data-product-id="${productId}"]`);
+                        targets.forEach(btn => {
+                            btn.disabled = true;
+                            btn.classList.add('disabled');
+                            btn.style.opacity = '0.6';
+                            btn.style.cursor = 'not-allowed';
+                            btn.innerHTML = '<i class="bi bi-cart-x"></i> 已達購買上限';
+                        });
+                    } else {
+                        this.innerHTML = '<i class="bi bi-check"></i> 已加入！';
+                        this.style.backgroundColor = '#28a745';
+                        setTimeout(() => {
+                            this.innerHTML = originalHTML;
+                            this.style.backgroundColor = '';
+                            this.disabled = false;
+                        }, 2000);
+                    }
                 }.bind(this),
                 onError: function(data) {
-                    this.innerHTML = originalHTML;
-                    this.disabled = false;
+                    if (data && (data.available_quantity <= 0 || (data.message && data.message.includes('已達購買上限')))) {
+                        const targets = document.querySelectorAll(`button[data-product-id="${productId}"]`);
+                        targets.forEach(btn => {
+                            btn.disabled = true;
+                            btn.classList.add('disabled');
+                            btn.style.opacity = '0.6';
+                            btn.style.cursor = 'not-allowed';
+                            btn.innerHTML = '<i class="bi bi-cart-x"></i> 已達購買上限';
+                        });
+                    } else {
+                        this.innerHTML = originalHTML;
+                        this.disabled = false;
+                    }
                 }.bind(this)
             });
         });

@@ -58,12 +58,19 @@ def index(request):
         avg_rating=Avg('reviews__rating', filter=Q(reviews__is_approved=True)),
         review_count=Count('reviews', filter=Q(reviews__is_approved=True))
     ).order_by('-updated_at', '-id')[:4]
-    # 確保 featured_products 的 avg_rating 有值
+
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    cart_items_map = {item.product_id: item.quantity for item in cart.items.all()}
+
+    # 確保 featured_products 的 avg_rating 有值並附加可購買數量資訊
     for product in featured_products:
         if product.avg_rating is None:
             product.avg_rating = 0
         if product.review_count is None:
             product.review_count = 0
+        product.cart_quantity = cart_items_map.get(product.id, 0)
+        product.available_quantity = max(0, product.stock_quantity - product.cart_quantity)
     categories = Category.objects.filter(is_active=True, parent=None).order_by('sort_order')[:3]
     user_wishlist = []
     
@@ -223,13 +230,20 @@ def products(request):
     paginator = Paginator(products, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    # 為每個產品添加 is_new 屬性，並確保 avg_rating 有值
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    cart_items_map = {item.product_id: item.quantity for item in cart.items.all()}
+
+    # 為每個產品添加 is_new 屬性，並確保 avg_rating 有值，以及計算可購買數量
     seven_days_ago = datetime.now() - timedelta(days=7)
     for product in page_obj.object_list:
         product.is_new = product.created_at.date() >= seven_days_ago.date()
         # 確保 avg_rating 有值（如果沒有評價則為 None，設為 0）
         if product.avg_rating is None:
             product.avg_rating = 0
+        product.cart_quantity = cart_items_map.get(product.id, 0)
+        product.available_quantity = max(0, product.stock_quantity - product.cart_quantity)
+
     # 獲取頂層類別（用於顯示主類別按鈕）
     categories = Category.objects.filter(is_active=True, parent=None).order_by('sort_order')
     featured_products = Product.objects.filter(
@@ -241,12 +255,14 @@ def products(request):
         avg_rating=Avg('reviews__rating', filter=Q(reviews__is_approved=True)),
         review_count=Count('reviews', filter=Q(reviews__is_approved=True))
     )[:6]
-    # 確保 featured_products 的 avg_rating 有值
+    # 確保 featured_products 的 avg_rating 有值並計算可購買數量
     for product in featured_products:
         if product.avg_rating is None:
             product.avg_rating = 0
         if product.review_count is None:
             product.review_count = 0
+        product.cart_quantity = cart_items_map.get(product.id, 0)
+        product.available_quantity = max(0, product.stock_quantity - product.cart_quantity)
     user_wishlist = []
     if request.user.is_authenticated:
         try:
@@ -381,17 +397,15 @@ def quick_view_product(request, product_id):
         try:
             wishlist = request.user.wishlist
             is_favorited = product in wishlist.products.all()
-        except:
+        except Exception:
             pass
-        
-        # 檢查購物車中該商品的數量
-        try:
-            cart = Cart.objects.get(user=request.user)
-            cart_item = CartItem.objects.filter(cart=cart, product=product).first()
-            if cart_item:
-                cart_quantity = cart_item.quantity
-        except Cart.DoesNotExist:
-            pass
+
+    # 檢查購物車中該商品的數量（包含未登入訪客購物車）
+    from plus.services.cart import get_or_create_cart
+    cart = get_or_create_cart(request)
+    cart_item = CartItem.objects.filter(cart=cart, product=product).first()
+    if cart_item:
+        cart_quantity = cart_item.quantity
     
     # 計算可購買數量（庫存 - 購物車已有數量）
     available_quantity = max(0, product.stock_quantity - cart_quantity)

@@ -89,13 +89,17 @@
                     </div>
 
                     <div class="product-actions">
-                        {% if product.stock_quantity > 0 %}
-                        <button class="add-to-cart" data-product-id="{{ product.id }}">
-                            <i class="bi bi-cart-plus"></i>加入購物車
-                        </button>
-                        {% else %}
+                        {% if product.stock_quantity <= 0 %}
                         <button class="add-to-cart disabled" disabled>
                             <i class="bi bi-x-circle"></i>暫時缺貨
+                        </button>
+                        {% elif product.available_quantity <= 0 %}
+                        <button class="add-to-cart disabled" disabled style="opacity: 0.6; cursor: not-allowed;">
+                            <i class="bi bi-cart-x"></i>已達購買上限
+                        </button>
+                        {% else %}
+                        <button class="add-to-cart" data-product-id="{{ product.id }}">
+                            <i class="bi bi-cart-plus"></i>加入購物車
                         </button>
                         {% endif %}
                     </div>
