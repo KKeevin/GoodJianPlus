@@ -6,6 +6,7 @@
 {% block head %}
 <link href="{% static 'css/profile.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
 <link href="{% static 'css/account-dashboard.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/empty-states.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
 <script src="{% static 'js/profile.js' %}?v={{ static_version }}"></script>
 <script>
     // 配置個人資料頁面 URLs
@@ -280,10 +281,16 @@
                     </ul>
                 </div>
                 {% else %}
-                <div class="empty-state" style="padding: 60px 20px; text-align: center;">
-                    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
-                    <p style="font-size: 1.1rem; color: #6c757d; margin-bottom: 20px;">尚無訂單記錄</p>
-                    <a href="{% url 'products' %}" class="btn btn-primary">逛逛商品</a>
+                <div class="compact-empty-state account-orders-empty">
+                    <i class="bi bi-receipt" aria-hidden="true"></i>
+                    <div class="compact-empty-copy">
+                        <h2>尚無訂單</h2>
+                        <p>完成購物後，訂單進度會顯示在這裡。</p>
+                    </div>
+                    <a href="{% url 'products' %}" class="compact-empty-action">
+                        <span>瀏覽商品</span>
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                    </a>
                 </div>
                 {% endif %}
             </div>

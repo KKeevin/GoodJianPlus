@@ -108,17 +108,15 @@
         {% endif %}
         {% else %}
         <div class="account-empty-state">
-            <i class="bi bi-inbox"></i>
-            <h3>目前沒有訂單</h3>
-            <p>您還沒有下過任何訂單，快去選購商品吧！</p>
-            <a href="{% url 'products' %}" class="account-btn-primary">
-                <i class="bi bi-bag-check"></i>
-                <span>開始購物</span>
-            </a>
+            <div class="empty-state-visual">
+                <i class="bi bi-inbox"></i>
+            </div>
+            <div class="empty-state-copy">
+                <h3>目前沒有訂單</h3>
+                <a href="{% url 'products' %}" class="empty-state-new-action"><span>前往選購</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+            </div>
         </div>
         {% endif %}
     </div>
 </section>
 {% endblock %}
-
-

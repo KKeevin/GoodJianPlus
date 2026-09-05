@@ -1,0 +1,97 @@
+/* Shared compact empty state for account lists such as wishlist and orders. */
+.compact-empty-state {
+    min-height: 148px;
+    margin: 0 auto;
+    padding: 24px 28px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    border: 1px solid #dce7e1;
+    border-radius: 12px;
+    background: #fafcfb;
+    text-align: left;
+    box-shadow: none;
+}
+
+.compact-empty-state > i {
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #e8f2ed;
+    color: #24795d;
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.compact-empty-copy h2 {
+    margin: 0 0 5px;
+    color: #213d35;
+    font-size: 1.05rem;
+    font-weight: 650;
+}
+
+.compact-empty-copy p {
+    margin: 0;
+    color: #64746e;
+    font-size: .875rem;
+    line-height: 1.55;
+}
+
+.compact-empty-action {
+    min-height: 42px;
+    padding: 10px 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #bdd2c8;
+    border-radius: 8px;
+    background: #fff;
+    color: #17634b;
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.compact-empty-action i {
+    margin: 0;
+    font-size: .875rem;
+    line-height: 1;
+}
+
+.compact-empty-action:hover {
+    border-color: #18745b;
+    background: #f2f7f4;
+    color: #125d48;
+}
+
+.compact-empty-action:focus-visible {
+    outline: 3px solid rgba(24, 116, 91, .25);
+    outline-offset: 2px;
+}
+
+@media (max-width: 575px) {
+    .compact-empty-state {
+        min-height: 0;
+        padding: 20px;
+        grid-template-columns: 40px minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .compact-empty-state > i {
+        width: 40px;
+        height: 40px;
+    }
+
+    .compact-empty-action {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-height: 44px;
+    }
+}

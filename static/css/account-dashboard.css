@@ -104,6 +104,12 @@
 .account-redesign #phone-edit-hint { background: none; border: 0; padding: 0; text-align: left; min-height: 32px; }
 .account-redesign .recent-order-item { text-decoration: none; color: inherit; flex-wrap: wrap; gap: 12px; }
 .account-redesign .recent-order-number { overflow-wrap: anywhere; }
+.account-redesign .compact-empty-state { min-height: 148px; padding: 24px; display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 18px; border: 1px solid var(--account-line); border-radius: 12px; background: #fafcfb; }
+.account-redesign .compact-empty-state > i { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 10px; background: #e8f2ed; color: var(--account-green); font-size: 1.3rem; }
+.account-redesign .compact-empty-copy h2 { margin: 0 0 5px; font-size: 1.05rem; font-weight: 650; color: var(--account-ink); }
+.account-redesign .compact-empty-copy p { margin: 0; color: var(--account-muted); font-size: .875rem; line-height: 1.55; }
+.account-redesign .compact-empty-action { min-height: 42px; padding: 10px 15px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #a9c8b9; border-radius: 8px; background: white; color: #17634b; font-size: .875rem; font-weight: 600; line-height: 1; text-decoration: none; white-space: nowrap; }
+.account-redesign .compact-empty-action:hover { border-color: var(--account-green); background: #f0f6f2; color: #125d48; }
 @media (max-width: 991px) {
     .account-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
     .account-nav { position: static; }
@@ -128,6 +134,9 @@
     .panel-heading { gap: 12px; padding-bottom: 18px; margin-bottom: 20px; }
     .address-editor .account-form { padding: 0 14px 16px; }
     .account-redesign .recent-order-item > div { flex-wrap: wrap; }
+    .account-redesign .compact-empty-state { min-height: 0; padding: 20px; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; }
+    .account-redesign .compact-empty-state > i { width: 40px; height: 40px; }
+    .account-redesign .compact-empty-action { grid-column: 1 / -1; width: 100%; min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
     .account-redesign *, .account-redesign *::before { animation: none !important; transition: none !important; scroll-behavior: auto !important; }

@@ -110,18 +110,19 @@
         </div>
         {% else %}
         <div class="account-empty-state">
-            <i class="bi bi-heart"></i>
-            <h3>您的收藏清單是空的</h3>
-            <p>還沒有收藏任何商品，快去逛逛吧！</p>
-            <a href="{% url 'products' %}" class="account-btn-primary">
-                <i class="bi bi-bag-check"></i>
-                <span>瀏覽商品</span>
-            </a>
+            <div class="empty-state-visual">
+                <i class="bi bi-heart"></i>
+            </div>
+            <div class="empty-state-copy">
+                <h3>目前沒有收藏商品</h3>
+                <a href="{% url 'products' %}" class="empty-state-new-action"><span>前往選購</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+            </div>
         </div>
         {% endif %}
     </div>
 </section>
 
+{% if products %}
 <!-- 快速預覽 Modal -->
 <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -136,6 +137,7 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block script %}
@@ -146,5 +148,3 @@ window.WISHLIST_CONFIG = {
 };
 </script>
 {% endblock %}
-
-
