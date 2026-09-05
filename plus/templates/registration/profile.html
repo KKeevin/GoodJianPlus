@@ -21,7 +21,6 @@
 <section class="profile-section account-redesign">
     <div class="container">
         <div class="profile-container">
-            <div class="account-page-title"><p class="panel-eyebrow">MEMBER CENTER</p><h1>我的帳戶</h1><p>管理個人資料，照顧每一天的健康生活。</p></div>
             <!-- 個人資料頭部 -->
             <div class="profile-header">
                 <div class="profile-header-content">
@@ -124,7 +123,7 @@
             <div class="account-panels">
             <!-- 基本資料標籤頁 -->
             <div id="info-tab" class="tab-content {% if active_tab == 'info' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-info" tabindex="0" {% if active_tab != 'info' %}hidden{% endif %}>
-                <div class="panel-heading"><div><p class="panel-eyebrow">PERSONAL INFORMATION</p><h2>基本資料</h2><p>更新聯絡資訊，讓重要通知順利送達。</p></div></div>
+                <div class="panel-heading"><div><h2>基本資料</h2><p>更新聯絡資訊，讓重要通知順利送達。</p></div></div>
                 
                 {% if needs_profile_update %}
                 <!-- 資料更新提示 -->
@@ -256,7 +255,7 @@
             <!-- 我的訂單標籤頁 -->
             <div id="orders-tab" class="tab-content {% if active_tab == 'orders' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" {% if active_tab != 'orders' %}hidden{% endif %}>
                 <div class="panel-heading">
-                    <div><p class="panel-eyebrow">MY ORDERS</p><h2>我的訂單</h2><p>查看最近五筆訂單與付款狀態。</p></div>
+                    <div><h2>我的訂單</h2><p>查看最近五筆訂單與付款狀態。</p></div>
                     <a href="{% url 'order_list' %}" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-right"></i>
                         查看全部訂單
@@ -297,7 +296,7 @@
 
             <!-- 帳戶安全標籤頁 -->
             <div id="security-tab" class="tab-content {% if active_tab == 'security' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-security" tabindex="0" {% if active_tab != 'security' %}hidden{% endif %}>
-                <div class="panel-heading"><div><p class="panel-eyebrow">ACCOUNT SECURITY</p><h2>帳戶安全</h2><p>管理驗證狀態與登入密碼。</p></div></div>
+                <div class="panel-heading"><div><h2>帳戶安全</h2><p>管理驗證狀態與登入密碼。</p></div></div>
                 
                 <!-- 驗證狀態 -->
                 <div class="form-group">

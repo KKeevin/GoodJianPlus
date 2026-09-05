@@ -1,0 +1,158 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="goodjian-dashboard">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">營運儀表盤</h1>
+            <p class="text-muted mb-0">掌握今日訂單、營收與待處理工作</p>
+        </div>
+        <a href="{% url 'admin:plus_order_changelist' %}" class="btn btn-success">
+            <i class="fas fa-list me-2" aria-hidden="true"></i>查看全部訂單
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="goodjian-kpi-card card h-100">
+                <div class="card-body"><div class="d-flex justify-content-between"><span class="text-muted">今日訂單</span><i class="fas fa-receipt text-primary fa-lg"></i></div><div class="display-6 fw-semibold mt-2">{{ dashboard.today_orders }}</div><small class="text-muted">今日新建立</small></div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="goodjian-kpi-card card h-100">
+                <div class="card-body"><div class="d-flex justify-content-between"><span class="text-muted">本月營收</span><i class="fas fa-coins text-success fa-lg"></i></div><div class="display-6 fw-semibold mt-2">${{ dashboard.month_revenue|floatformat:0 }}</div><small class="text-muted">已付款且未取消</small></div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="goodjian-kpi-card card h-100">
+                <div class="card-body"><div class="d-flex justify-content-between"><span class="text-muted">上架商品</span><i class="fas fa-box-open text-info fa-lg"></i></div><div class="display-6 fw-semibold mt-2">{{ dashboard.active_products }}</div><small class="text-muted">目前已發佈</small></div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="goodjian-kpi-card card h-100">
+                <div class="card-body"><div class="d-flex justify-content-between"><span class="text-muted">有效會員</span><i class="fas fa-users text-warning fa-lg"></i></div><div class="display-6 fw-semibold mt-2">{{ dashboard.member_count }}</div><small class="text-muted">可正常登入</small></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-outline card-success shadow-sm mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between"><h2 class="card-title mb-0">營運總覽</h2><span class="text-muted small">待處理工作</span></div>
+        <div class="card-body">
+            <div class="row g-3">
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="{{ ops_stats.links.awaiting_payment }}" class="goodjian-ops-card card h-100 border-start border-4 border-info text-decoration-none shadow-sm">
+                    <div class="card-body d-flex align-items-center justify-content-start gap-3">
+                        <span class="text-info"><i class="fas fa-credit-card fa-2x"></i></span>
+                        <div><div class="text-muted small mb-1">待付款訂單</div><div class="h3 mb-0 text-body">{{ ops_stats.awaiting_payment }}</div></div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="{{ ops_stats.links.to_ship }}" class="goodjian-ops-card card h-100 border-start border-4 border-warning text-decoration-none shadow-sm">
+                    <div class="card-body d-flex align-items-center justify-content-start gap-3">
+                        <span class="text-warning"><i class="fas fa-box fa-2x"></i></span>
+                        <div><div class="text-muted small mb-1">待出貨</div><div class="h3 mb-0 text-body">{{ ops_stats.to_ship }}</div></div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="{{ ops_stats.links.shipped }}" class="goodjian-ops-card card h-100 border-start border-4 border-success text-decoration-none shadow-sm">
+                    <div class="card-body d-flex align-items-center justify-content-start gap-3">
+                        <span class="text-success"><i class="fas fa-truck fa-2x"></i></span>
+                        <div><div class="text-muted small mb-1">運送中</div><div class="h3 mb-0 text-body">{{ ops_stats.shipped }}</div></div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-12 col-sm-6 col-xl-3">
+                <a href="{{ ops_stats.links.pending_reviews }}" class="goodjian-ops-card card h-100 border-start border-4 border-danger text-decoration-none shadow-sm">
+                    <div class="card-body d-flex align-items-center justify-content-start gap-3">
+                        <span class="text-danger"><i class="fas fa-star fa-2x"></i></span>
+                        <div><div class="text-muted small mb-1">待審評價</div><div class="h3 mb-0 text-body">{{ ops_stats.pending_reviews }}</div></div>
+                    </div>
+                </a>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-xl-8">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center"><h2 class="card-title mb-0">訂單與營收趨勢</h2><span class="text-muted small">最近 7 天</span></div>
+                <div class="card-body"><div class="goodjian-chart-wrap"><canvas id="sales-trend-chart" aria-label="最近七天訂單與營收趨勢圖"></canvas></div></div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h2 class="card-title mb-0">訂單狀態分布</h2></div>
+                <div class="card-body"><div class="goodjian-chart-wrap goodjian-doughnut-wrap"><canvas id="order-status-chart" aria-label="訂單狀態分布圖"></canvas></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-7">
+            <div class="card shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center"><h2 class="card-title mb-0">最近訂單</h2><a href="{% url 'admin:plus_order_changelist' %}" class="small">查看全部</a></div>
+                <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>訂單</th><th>會員</th><th>金額</th><th>狀態</th><th>時間</th></tr></thead><tbody>
+                    {% for order in dashboard.recent_orders %}<tr><td><a href="{% url 'admin:plus_order_change' order.pk %}">{{ order.order_number }}</a></td><td>{{ order.user.username }}</td><td>${{ order.total_amount|floatformat:0 }}</td><td><span class="badge text-bg-light">{{ order.get_status_display }}</span></td><td class="text-muted small">{{ order.created_at|date:"m/d H:i" }}</td></tr>{% empty %}<tr><td colspan="5" class="text-center text-muted py-4">目前沒有訂單</td></tr>{% endfor %}
+                </tbody></table></div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header"><h2 class="card-title mb-0">熱銷商品</h2></div>
+                <div class="card-body">
+                    {% for product in dashboard.top_products %}<div class="mb-3"><div class="d-flex justify-content-between small mb-1"><span class="text-truncate me-3">{{ product.product_name }}</span><strong>{{ product.quantity }} 件</strong></div><div class="progress" style="height: 7px;"><div class="progress-bar bg-success" style="width: {{ product.revenue_width }}%;"></div></div><div class="text-muted small mt-1">${{ product.revenue|floatformat:0 }}</div></div>{% empty %}<div class="text-center text-muted py-4">尚無已付款商品銷售資料</div>{% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ dashboard.sales_chart|json_script:"sales-chart-data" }}
+{{ dashboard.status_chart|json_script:"status-chart-data" }}
+<script>
+    (function () {
+        var salesData = JSON.parse(document.getElementById('sales-chart-data').textContent);
+        var statusData = JSON.parse(document.getElementById('status-chart-data').textContent);
+        var textColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-body-color').trim() || '#495057';
+        var gridColor = getComputedStyle(document.documentElement).getPropertyValue('--bs-border-color').trim() || '#dee2e6';
+
+        new Chart(document.getElementById('sales-trend-chart'), {
+            type: 'line',
+            data: {
+                labels: salesData.labels,
+                datasets: [
+                    {label: '訂單數', data: salesData.orders, borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, .12)', fill: true, tension: .35, yAxisID: 'orders'},
+                    {label: '營收', data: salesData.revenue, borderColor: '#198754', backgroundColor: 'transparent', tension: .35, yAxisID: 'revenue'},
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {mode: 'index', intersect: false},
+                plugins: {legend: {labels: {color: textColor}}},
+                scales: {
+                    x: {ticks: {color: textColor}, grid: {color: gridColor}},
+                    orders: {position: 'left', beginAtZero: true, ticks: {color: textColor}, grid: {color: gridColor}},
+                    revenue: {position: 'right', beginAtZero: true, ticks: {color: textColor}, grid: {drawOnChartArea: false}},
+                },
+            },
+        });
+
+        new Chart(document.getElementById('order-status-chart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusData.labels,
+                datasets: [{data: statusData.values, backgroundColor: ['#0d6efd', '#198754', '#ffc107', '#0dcaf0', '#6f42c1', '#fd7e14', '#dc3545', '#6c757d'], borderWidth: 2, borderColor: getComputedStyle(document.documentElement).getPropertyValue('--bs-body-bg').trim() || '#fff'}],
+            },
+            options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {color: textColor, padding: 14}}}},
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+html:not(.goodjian-theme-ready) body {
+    visibility: hidden;
+}
+
+#goodjian-theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 40px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: .5rem .75rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+#goodjian-theme-toggle:hover,
+#goodjian-theme-toggle:focus-visible {
+    color: #ffc107 !important;
+}
+
+#goodjian-theme-toggle:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+.goodjian-frontend-link {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: 40px;
+    border: 1px solid currentColor;
+    border-radius: .25rem;
+    margin: 0 .5rem 0 0;
+    padding: .5rem .75rem !important;
+    line-height: 1.5;
+    transition: background-color .15s ease, transform .15s ease;
+}
+
+.goodjian-frontend-link:hover,
+.goodjian-frontend-link:focus-visible {
+    color: inherit !important;
+    border-color: currentColor;
+    background-color: rgba(255, 255, 255, .08);
+    transform: translateY(-1px);
+}
+
+.goodjian-ops-card {
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.goodjian-dashboard .card {
+    border-color: rgba(108, 117, 125, .2);
+}
+
+.goodjian-kpi-card {
+    border-top: 3px solid var(--bs-success);
+}
+
+.goodjian-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .35rem .9rem rgba(0, 0, 0, .1) !important;
+}
+
+.goodjian-chart-wrap {
+    height: 280px;
+    position: relative;
+}
+
+.goodjian-doughnut-wrap {
+    height: 280px;
+}
+
+.goodjian-ops-card:hover,
+.goodjian-ops-card:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .12) !important;
+}
+
+.app-footer > .float-end {
+    display: none !important;
+}

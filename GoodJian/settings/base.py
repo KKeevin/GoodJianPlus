@@ -73,8 +73,8 @@ CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins()
 # Application definition
 
 INSTALLED_APPS = [
-    # 重要：將 plus 放在 admin 之前，確保自定義模板優先於 admin 的默認模板
-    'plus',  # 自定義應用，必須在 admin 之前
+    'plus',
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -84,6 +84,147 @@ INSTALLED_APPS = [
     'django_summernote',  # 富文本編輯器
     'social_django',  # Google OAuth 登入
 ]
+
+JAZZMIN_SETTINGS = {
+    'site_title': '好健健管理系統',
+    'site_header': '好健健 GoodJian Plus',
+    'site_brand': '好健健 GoodJian Plus',
+    'welcome_sign': '歡迎使用好健健管理後台',
+    'copyright': 'GoodJian Plus',
+    'custom_css': 'css/admin-theme-toggle.css',
+    'custom_js': 'js/admin-theme-toggle.js',
+    'show_sidebar': True,
+    'navigation_expanded': True,
+    'show_theme_chooser': False,
+    'show_ui_builder': False,
+    'hide_apps': [
+        'django_summernote',
+        'social_django',
+    ],
+    'hide_models': [
+        'plus.category',
+        'plus.brand',
+        'plus.product',
+        'plus.productreview',
+        'plus.cart',
+        'plus.order',
+        'plus.returnrequest',
+        'plus.coupon',
+        'plus.wishlist',
+        'plus.shippingmethod',
+        'plus.shippingaddress',
+        'plus.articlecategory',
+        'plus.article',
+        'plus.articleimage',
+        'plus.customuser',
+        'plus.emailverificationtoken',
+        'plus.notification',
+        'plus.newslettersubscriber',
+        'plus.food',
+        'plus.usergoal',
+        'plus.weightlog',
+        'plus.nutritionlog',
+        'plus.dailynutritiontarget',
+        'plus.workoutlog',
+        'plus.waterlog',
+        'plus.dailyhealthlog',
+        'plus.sitesettings',
+    ],
+    'order_with_respect_to': [
+        '商品與目錄',
+        '訂單與物流',
+        '內容管理',
+        '會員與通知',
+        '健康與營養',
+        '系統設定',
+        'plus',
+    ],
+    'custom_links': {
+        '商品與目錄': [
+            {'model': 'plus.Category'},
+            {'model': 'plus.Brand'},
+            {'model': 'plus.Product'},
+            {'model': 'plus.ProductReview'},
+        ],
+        '訂單與物流': [
+            {'model': 'plus.Cart'},
+            {'model': 'plus.Order'},
+            {'model': 'plus.ReturnRequest'},
+            {'model': 'plus.Coupon'},
+            {'model': 'plus.Wishlist'},
+            {'model': 'plus.ShippingMethod'},
+            {'model': 'plus.ShippingAddress'},
+        ],
+        '內容管理': [
+            {'model': 'plus.ArticleCategory'},
+            {'model': 'plus.Article'},
+            {'model': 'plus.ArticleImage'},
+        ],
+        '會員與通知': [
+            {'model': 'plus.CustomUser'},
+            {'model': 'plus.EmailVerificationToken'},
+            {'model': 'plus.Notification'},
+            {'model': 'plus.NewsletterSubscriber'},
+        ],
+        '健康與營養': [
+            {'model': 'plus.Food'},
+            {'model': 'plus.UserGoal'},
+            {'model': 'plus.WeightLog'},
+            {'model': 'plus.NutritionLog'},
+            {'model': 'plus.DailyNutritionTarget'},
+            {'model': 'plus.WorkoutLog'},
+            {'model': 'plus.WaterLog'},
+            {'model': 'plus.DailyHealthLog'},
+        ],
+        '系統設定': [
+            {'model': 'plus.SiteSettings'},
+        ],
+    },
+    'search_model': [
+        'plus.Product',
+        'plus.Order',
+        'plus.CustomUser',
+    ],
+    'topmenu_links': [
+        {'name': '瀏覽前台', 'url': '/', 'new_window': True},
+    ],
+    'usermenu_links': [
+        {'name': '最近的動作', 'url': 'admin:recent-actions', 'icon': 'fas fa-clock-rotate-left'},
+    ],
+    'icons': {
+        'plus': 'fas fa-puzzle-piece',
+        '商品與目錄': 'fas fa-boxes-stacked',
+        '訂單與物流': 'fas fa-truck-fast',
+        '內容管理': 'fas fa-newspaper',
+        '會員與通知': 'fas fa-users',
+        '健康與營養': 'fas fa-heart-pulse',
+        '系統設定': 'fas fa-sliders',
+        'plus.product': 'fas fa-dumbbell',
+        'plus.order': 'fas fa-receipt',
+        'plus.customuser': 'fas fa-users',
+        'plus.article': 'fas fa-newspaper',
+        'plus.food': 'fas fa-utensils',
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    'theme': 'united',
+    'default_theme_mode': 'light',
+    'navbar_small_text': False,
+    'sidebar_nav_small_text': False,
+    'sidebar_disable_expand': False,
+    'sidebar_fixed': True,
+    'navbar_fixed': True,
+    'footer_fixed': False,
+    'button_classes': {
+        'primary': 'btn-success',
+        'secondary': 'btn-outline-secondary',
+        'info': 'btn-info',
+        'warning': 'btn-warning',
+        'danger': 'btn-danger',
+        'success': 'btn-success',
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

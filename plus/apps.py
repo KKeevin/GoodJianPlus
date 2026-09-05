@@ -4,3 +4,4 @@ from django.apps import AppConfig
 class PlusConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'plus'
+    verbose_name = '其他功能'

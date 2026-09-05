@@ -1,4 +1,4 @@
-<div class="panel-heading"><div><p class="panel-eyebrow">ADDRESS BOOK</p><h2>常用地址</h2><p>管理收件資料，結帳時可直接選用。</p></div><span class="account-badge">{{ addresses|length }} 個地址</span></div>
+<div class="panel-heading"><div><h2>常用地址</h2><p>管理收件資料，結帳時可直接選用。</p></div><span class="account-badge">{{ addresses|length }} 個地址</span></div>
 <div class="address-grid">
     {% for addr in addresses %}
     <article class="address-card{% if addr.is_default %} is-default{% endif %}">

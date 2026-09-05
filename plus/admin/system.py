@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.urls import path
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html, mark_safe
 from django.urls import reverse
@@ -85,17 +86,35 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
 admin.site.site_header = '好健健 GoodJian Plus 管理後台'
 admin.site.site_title = '好健健管理系統'
 admin.site.index_title = '歡迎使用好健健管理後台'
-admin.site.index_template = 'admin/goodjian_index.html'
 
 _orig_admin_index = admin.site.index
 
 
-def _ops_admin_index(request, extra_context=None):
+def _admin_index_with_ops_stats(request, extra_context=None):
     extra_context = extra_context or {}
-    from plus.admin.dashboard import get_ops_stats
+    from plus.admin.dashboard import get_dashboard_data, get_ops_stats
     extra_context['ops_stats'] = get_ops_stats()
+    extra_context['dashboard'] = get_dashboard_data()
     return _orig_admin_index(request, extra_context=extra_context)
 
 
-admin.site.index = _ops_admin_index
+admin.site.index = _admin_index_with_ops_stats
+
+_orig_admin_get_urls = admin.site.get_urls
+
+
+def _admin_get_urls():
+    from plus.admin.dashboard import recent_actions_view
+
+    custom_urls = [
+        path(
+            'recent-actions/',
+            admin.site.admin_view(recent_actions_view),
+            name='recent-actions',
+        ),
+    ]
+    return custom_urls + _orig_admin_get_urls()
+
+
+admin.site.get_urls = _admin_get_urls
 
