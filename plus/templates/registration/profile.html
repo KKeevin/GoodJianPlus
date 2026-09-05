@@ -5,6 +5,7 @@
 
 {% block head %}
 <link href="{% static 'css/profile.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/account-dashboard.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
 <script src="{% static 'js/profile.js' %}?v={{ static_version }}"></script>
 <script>
     // 配置個人資料頁面 URLs
@@ -16,9 +17,10 @@
 {% endblock %}
 
 {% block content %}
-<section class="profile-section">
+<section class="profile-section account-redesign">
     <div class="container">
         <div class="profile-container">
+            <div class="account-page-title"><p class="panel-eyebrow">MEMBER CENTER</p><h1>我的帳戶</h1><p>管理個人資料，照顧每一天的健康生活。</p></div>
             <!-- 個人資料頭部 -->
             <div class="profile-header">
                 <div class="profile-header-content">
@@ -39,7 +41,7 @@
                         </div>
                     </div>
                     <div class="profile-info">
-                        <h1>{{ user.first_name|default:user.username }}</h1>
+                        <h2>{{ user.first_name|default:user.username }}</h2>
                         <div class="profile-info-meta">
                             <div class="profile-info-meta-item">
                                 <i class="bi bi-envelope"></i>
@@ -110,37 +112,18 @@
             </div>
 
 
-            <!-- 標籤頁容器（包含滾動箭頭） -->
-            <div class="profile-tabs-wrapper">
-                <button class="tab-scroll-btn tab-scroll-left" id="tabScrollLeft" aria-label="向左滾動">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-                <div class="profile-tabs" id="profileTabs">
-                    <button class="tab-button active" onclick="switchTab(event, 'info')">
-                        <i class="bi bi-person-fill"></i>
-                        基本資料
-                    </button>
-                    <button class="tab-button" onclick="switchTab(event, 'fitness')">
-                        <i class="bi bi-activity"></i>
-                        健身資料
-                    </button>
-                    <button class="tab-button" onclick="switchTab(event, 'orders')">
-                        <i class="bi bi-bag-check"></i>
-                        我的訂單
-                    </button>
-                    <button class="tab-button" onclick="switchTab(event, 'security')">
-                        <i class="bi bi-shield-lock-fill"></i>
-                        帳戶安全
-                    </button>
-                </div>
-                <button class="tab-scroll-btn tab-scroll-right" id="tabScrollRight" aria-label="向右滾動">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
-            </div>
-
+            <div class="account-layout">
+            <nav class="account-nav" aria-label="帳戶導覽"><div class="profile-tabs" id="profileTabs" role="tablist" aria-label="我的帳戶分頁">
+                <a href="{% url 'profile' %}?tab=info" class="tab-button {% if active_tab == 'info' %}active{% endif %}" id="tab-info" role="tab" aria-controls="info-tab" aria-selected="{% if active_tab == 'info' %}true{% else %}false{% endif %}" data-account-tab="info"><i class="bi bi-person" aria-hidden="true"></i><span>基本資料</span></a>
+                <a href="{% url 'profile' %}?tab=fitness" class="tab-button {% if active_tab == 'fitness' %}active{% endif %}" id="tab-fitness" role="tab" aria-controls="fitness-tab" aria-selected="{% if active_tab == 'fitness' %}true{% else %}false{% endif %}" data-account-tab="fitness"><i class="bi bi-activity" aria-hidden="true"></i><span>健身資料</span></a>
+                <a href="{% url 'profile' %}?tab=addresses" class="tab-button {% if active_tab == 'addresses' %}active{% endif %}" id="tab-addresses" role="tab" aria-controls="addresses-tab" aria-selected="{% if active_tab == 'addresses' %}true{% else %}false{% endif %}" data-account-tab="addresses"><i class="bi bi-geo-alt" aria-hidden="true"></i><span>常用地址</span></a>
+                <a href="{% url 'profile' %}?tab=orders" class="tab-button {% if active_tab == 'orders' %}active{% endif %}" id="tab-orders" role="tab" aria-controls="orders-tab" aria-selected="{% if active_tab == 'orders' %}true{% else %}false{% endif %}" data-account-tab="orders"><i class="bi bi-bag-check" aria-hidden="true"></i><span>我的訂單</span></a>
+                <a href="{% url 'profile' %}?tab=security" class="tab-button {% if active_tab == 'security' %}active{% endif %}" id="tab-security" role="tab" aria-controls="security-tab" aria-selected="{% if active_tab == 'security' %}true{% else %}false{% endif %}" data-account-tab="security"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>帳戶安全</span></a>
+            </div></nav>
+            <div class="account-panels">
             <!-- 基本資料標籤頁 -->
-            <div id="info-tab" class="tab-content active">
-                <h3 style="margin-bottom: 25px; color: #2c3e50;">基本資料</h3>
+            <div id="info-tab" class="tab-content {% if active_tab == 'info' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-info" tabindex="0" {% if active_tab != 'info' %}hidden{% endif %}>
+                <div class="panel-heading"><div><p class="panel-eyebrow">PERSONAL INFORMATION</p><h2>基本資料</h2><p>更新聯絡資訊，讓重要通知順利送達。</p></div></div>
                 
                 {% if needs_profile_update %}
                 <!-- 資料更新提示 -->
@@ -163,39 +146,28 @@
                 </div>
                 {% endif %}
 
-                <p style="margin-bottom: 20px;">
-                    <a href="{% url 'address_book' %}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-geo-alt"></i> 管理常用收件地址
-                    </a>
-                    <a href="{% url 'profile_complete' %}" class="btn btn-outline-secondary btn-sm">
-                        完善健身資料
-                    </a>
-                </p>
-                
-                <form method="post" action="{% url 'profile' %}">
+                <form method="post" action="{% url 'profile' %}" class="basic-info-form account-form">
                     {% csrf_token %}
                     <div class="form-group">
-                        <label>
+                        <label for="account-username">
                             <i class="bi bi-person-badge"></i>
                             使用者名稱
                         </label>
-                        <input type="text" value="{{ user.username }}" disabled>
+                        <input type="text" id="account-username" value="{{ user.username }}" disabled>
                         <div class="form-help-text">
                             <i class="bi bi-info-circle"></i>
                             使用者名稱無法修改
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label for="account-email">
                             <i class="bi bi-envelope"></i>
                             電子郵件
                             {% if user.email_verified %}
-                            <span class="verification-badge" alt="電子郵件已認證">
-                                <i class="bi bi-check-lg"></i>
-                            </span>
+                            <span class="account-badge">已驗證</span>
                             {% endif %}
                         </label>
-                        <input type="email" value="{{ user.email }}" disabled>
+                        <input type="email" id="account-email" value="{{ user.email }}" disabled>
                         <div class="form-help-text">
                             <i class="bi bi-info-circle"></i>
                             {% if needs_profile_update %}
@@ -213,26 +185,24 @@
                         {% endif %}
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label for="account-first_name">
                             <i class="bi bi-person"></i>
                             姓名
                         </label>
-                        <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="請輸入您的姓名">
+                        <input type="text" name="first_name" id="account-first_name" value="{{ user.first_name }}" placeholder="請輸入您的姓名">
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label for="phone-input">
                             <i class="bi bi-telephone"></i>
                             手機號碼
                             {% if user.phone_verified %}
-                            <span class="verification-badge" alt="手機號碼已認證">
-                                <i class="bi bi-check-lg"></i>
-                            </span>
+                            <span class="account-badge">已驗證</span>
                             {% endif %}
                         </label>
                         <input type="tel" name="phone" id="phone-input" value="{{ user.phone }}" placeholder="請輸入手機號碼" disabled>
                         <div class="form-help-text">
                             <i class="bi bi-info-circle"></i>
-                            <span id="phone-edit-hint" style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="enablePhoneEdit()">如需更新手機號碼，請點選我</span>
+                            <button type="button" id="phone-edit-hint" style="cursor: pointer; color: #667eea; text-decoration: underline;" onclick="enablePhoneEdit()">如需更新手機號碼，請點選我</button>
                         </div>
                         {% if not user.phone_verified and user.phone %}
                         <div class="phone-verification-section" style="margin-top: 10px;">
@@ -254,84 +224,38 @@
                         {% endif %}
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label for="account-birthday">
                             <i class="bi bi-calendar3"></i>
                             生日
                         </label>
-                        <input type="date" name="birthday" class="date-input-enhanced" value="{{ user.birthday|date:'Y-m-d' }}">
+                        <input type="date" name="birthday" id="account-birthday" class="date-input-enhanced" value="{{ user.birthday|date:'Y-m-d' }}">
                     </div>
                     <div class="form-group">
-                        <label>
+                        <label for="account-address">
                             <i class="bi bi-geo-alt"></i>
-                            地址
+                            聯絡地址
                         </label>
-                        <textarea name="address" rows="3" placeholder="請輸入您的地址">{{ user.address }}</textarea>
+                        <textarea name="address" id="account-address" rows="3" placeholder="聯絡用地址；收件地址請至「常用地址」管理">{{ user.address }}</textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle-fill"></i>
-                        儲存變更
+                        儲存基本資料
                     </button>
                 </form>
             </div>
 
             <!-- 健身資料標籤頁 -->
-            <div id="fitness-tab" class="tab-content">
-                <h3 style="margin-bottom: 25px; color: #2c3e50;">健身資料</h3>
-                <form method="post" action="{% url 'profile_complete' %}">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label>
-                            <i class="bi bi-gender-ambiguous"></i>
-                            性別
-                        </label>
-                        <select name="gender">
-                            <option value="">請選擇</option>
-                            <option value="M" {% if profile.gender == 'M' %}selected{% endif %}>男性</option>
-                            <option value="F" {% if profile.gender == 'F' %}selected{% endif %}>女性</option>
-                            <option value="O" {% if profile.gender == 'O' %}selected{% endif %}>其他</option>
-                        </select>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>
-                                <i class="bi bi-rulers"></i>
-                                身高 (cm)
-                            </label>
-                            <input type="number" name="height" value="{% if profile.height %}{{ profile.height|floatformat:1 }}{% endif %}" step="0.1" min="100" max="250" placeholder="例如：170.0">
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <i class="bi bi-speedometer2"></i>
-                                體重 (kg)
-                            </label>
-                            <input type="number" name="weight" value="{% if profile.weight %}{{ profile.weight|floatformat:1 }}{% endif %}" step="0.1" min="30" max="300" placeholder="例如：65.5">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <i class="bi bi-bullseye"></i>
-                            健身目標
-                        </label>
-                        <input type="text" name="fitness_goal" value="{{ profile.fitness_goal }}" placeholder="例如：減重10公斤、增肌、提升體能等">
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <i class="bi bi-shield-exclamation"></i>
-                            飲食限制
-                        </label>
-                        <textarea name="dietary_restrictions" rows="3" placeholder="例如：素食、無麩質、低鈉等">{{ profile.dietary_restrictions }}</textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle-fill"></i>
-                        儲存變更
-                    </button>
-                </form>
+            <div id="fitness-tab" class="tab-content {% if active_tab == 'fitness' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-fitness" tabindex="0" {% if active_tab != 'fitness' %}hidden{% endif %}>
+                {% include 'account/fitness_panel.html' %}
+            </div>
+            <div id="addresses-tab" class="tab-content {% if active_tab == 'addresses' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-addresses" tabindex="0" {% if active_tab != 'addresses' %}hidden{% endif %}>
+                {% include 'account/addresses_panel.html' %}
             </div>
 
             <!-- 我的訂單標籤頁 -->
-            <div id="orders-tab" class="tab-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <h3 style="margin: 0; color: #2c3e50;">我的訂單</h3>
+            <div id="orders-tab" class="tab-content {% if active_tab == 'orders' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" {% if active_tab != 'orders' %}hidden{% endif %}>
+                <div class="panel-heading">
+                    <div><p class="panel-eyebrow">MY ORDERS</p><h2>我的訂單</h2><p>查看最近五筆訂單與付款狀態。</p></div>
                     <a href="{% url 'order_list' %}" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-right"></i>
                         查看全部訂單
@@ -341,7 +265,7 @@
                 <div class="orders-list-container">
                     <ul class="recent-orders-list">
                         {% for order in recent_orders %}
-                        <li class="recent-order-item order-item-clickable" onclick="window.location.href='{% url 'order_detail' order.id %}'">
+                        <li><a class="recent-order-item order-item-clickable" href="{% url 'order_detail' order.id %}">
                             <div class="recent-order-info">
                                 <div class="recent-order-number">訂單 #{{ order.order_number }}</div>
                                 <div class="recent-order-date">{{ order.created_at|date:"Y年m月d日 H:i" }}</div>
@@ -351,7 +275,7 @@
                                 <div class="recent-order-amount" data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</div>
                                 <i class="bi bi-chevron-right" style="color: #6c757d; font-size: 1.2rem;"></i>
                             </div>
-                        </li>
+                        </a></li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -359,17 +283,14 @@
                 <div class="empty-state" style="padding: 60px 20px; text-align: center;">
                     <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
                     <p style="font-size: 1.1rem; color: #6c757d; margin-bottom: 20px;">尚無訂單記錄</p>
-                    <!-- <a href="{% url 'products' %}" class="btn btn-primary">
-                        <i class="bi bi-cart-plus"></i>
-                        開始購物
-                    </a> -->
+                    <a href="{% url 'products' %}" class="btn btn-primary">逛逛商品</a>
                 </div>
                 {% endif %}
             </div>
 
             <!-- 帳戶安全標籤頁 -->
-            <div id="security-tab" class="tab-content">
-                <h3 style="margin-bottom: 25px; color: #2c3e50;">帳戶安全</h3>
+            <div id="security-tab" class="tab-content {% if active_tab == 'security' %}active{% endif %}" role="tabpanel" aria-labelledby="tab-security" tabindex="0" {% if active_tab != 'security' %}hidden{% endif %}>
+                <div class="panel-heading"><div><p class="panel-eyebrow">ACCOUNT SECURITY</p><h2>帳戶安全</h2><p>管理驗證狀態與登入密碼。</p></div></div>
                 
                 <!-- 驗證狀態 -->
                 <div class="form-group">
@@ -377,7 +298,7 @@
                         <i class="bi bi-shield-check"></i>
                         驗證狀態
                     </label>
-                    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: {% if user.is_verified %}#d4edda{% else %}#fff3cd{% endif %}; border-radius: 12px; border: 2px solid {% if user.is_verified %}#28a745{% else %}#ffc107{% endif %};">
+                    <div class="security-card security-verification {% if not user.is_verified %}is-unverified{% endif %}">
                         {% if user.is_verified %}
                         <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: #28a745;"></i>
                         <div>
@@ -406,7 +327,7 @@
                     </label>
                     {% if not user.has_usable_password %}
                     <!-- 沒有密碼的用戶：顯示設定密碼按鈕，點擊後才顯示表單 -->
-                    <div style="padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e0e0e0;">
+                    <div class="security-card">
                         <div style="margin-bottom: 15px;">
                             <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">目前密碼</div>
                             <div style="font-size: 0.9rem; color: #6c757d; margin-bottom: 10px;">您目前尚未設定密碼</div>
@@ -470,7 +391,7 @@
                     </div>
                     {% else %}
                     <!-- 已有密碼的用戶：顯示重設密碼按鈕 -->
-                    <div style="padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e0e0e0;">
+                    <div class="security-card">
                         <div style="margin-bottom: 15px;">
                             <div style="font-weight: 600; color: #2c3e50; margin-bottom: 5px;">目前密碼</div>
                             <div style="font-size: 0.9rem; color: #6c757d;">密碼已加密儲存，無法查看</div>
@@ -489,8 +410,8 @@
                         <i class="bi bi-info-circle"></i>
                         帳戶資訊
                     </label>
-                    <div style="padding: 15px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e0e0e0;">
-                        <div style="display: grid; gap: 10px;">
+                    <div class="security-card">
+                        <div class="security-dates">
                             <div style="display: flex; justify-content: space-between;">
                                 <span style="color: #6c757d;">註冊時間：</span>
                                 <span style="font-weight: 600; color: #2c3e50;">{{ user.date_joined|date:"Y年m月d日" }}</span>
@@ -502,6 +423,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            </div>
             </div>
         </div>
     </div>

@@ -7,26 +7,56 @@
     'use strict';
 
     // 切換標籤頁
-    function switchTab(event, tabName) {
-        if (event) {
-            event.preventDefault();
-        }
-        
-        // 移除所有活動狀態
-        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        // 添加活動狀態
-        const clickedBtn = event ? event.target : document.querySelector(`.tab-button[onclick*="${tabName}"]`);
-        if (clickedBtn) {
-            clickedBtn.classList.add('active');
-        }
-        
-        // 顯示對應的內容
+    function switchTab(event, tabName, updateHistory = true) {
         const targetTab = document.getElementById(`${tabName}-tab`);
-        if (targetTab) {
-            targetTab.classList.add('active');
+        const tab = document.getElementById(`tab-${tabName}`);
+        if (!targetTab || !tab) return;
+        if (event) event.preventDefault();
+        document.querySelectorAll('.account-nav [role="tab"]').forEach(button => {
+            const active = button === tab;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-selected', String(active));
+            button.tabIndex = active ? 0 : -1;
+        });
+        document.querySelectorAll('.account-panels > [role="tabpanel"]').forEach(panel => {
+            panel.hidden = panel !== targetTab;
+            panel.classList.toggle('active', panel === targetTab);
+        });
+        if (updateHistory) {
+            const url = new URL(window.location.href);
+            url.pathname = tab.pathname;
+            url.search = tab.search;
+            url.hash = '';
+            history.pushState({}, '', url);
         }
+    }
+
+    function initAccountTabs() {
+        const tabs = [...document.querySelectorAll('.account-nav [role="tab"]')];
+        if (!tabs.length) return;
+        tabs.forEach(tab => { tab.tabIndex = tab.classList.contains('active') ? 0 : -1; });
+        document.querySelectorAll('[data-account-tab]').forEach(link => {
+            link.addEventListener('click', event => {
+                if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+                switchTab(event, link.dataset.accountTab);
+                if (!link.closest('.account-nav')) document.getElementById(`tab-${link.dataset.accountTab}`).focus();
+            });
+        });
+        tabs.forEach((tab, index) => tab.addEventListener('keydown', event => {
+            let next;
+            if (['ArrowRight', 'ArrowDown'].includes(event.key)) next = (index + 1) % tabs.length;
+            if (['ArrowLeft', 'ArrowUp'].includes(event.key)) next = (index + tabs.length - 1) % tabs.length;
+            if (event.key === 'Home') next = 0;
+            if (event.key === 'End') next = tabs.length - 1;
+            if (next !== undefined) {
+                switchTab(event, tabs[next].dataset.accountTab);
+                tabs[next].focus();
+            }
+        }));
+        window.addEventListener('popstate', () => {
+            const name = new URL(window.location.href).searchParams.get('tab') || 'info';
+            switchTab(null, document.getElementById(`tab-${name}`) ? name : 'info', false);
+        });
     }
 
     // 打開密碼變更模態視窗
@@ -443,70 +473,6 @@
     window.showSetPasswordForm = showSetPasswordForm;
     window.hideSetPasswordForm = hideSetPasswordForm;
 
-    // 標籤頁滾動功能
-    function initTabScrolling() {
-        const tabsWrapper = document.querySelector('.profile-tabs-wrapper');
-        const tabs = document.querySelector('.profile-tabs');
-        const scrollLeftBtn = document.getElementById('tabScrollLeft');
-        const scrollRightBtn = document.getElementById('tabScrollRight');
-        
-        if (!tabsWrapper || !tabs || !scrollLeftBtn || !scrollRightBtn) return;
-        
-        let scrollInterval = null;
-        
-        // 檢查滾動按鈕顯示狀態
-        function checkScrollButtons() {
-            const scrollLeft = tabs.scrollLeft;
-            const scrollWidth = tabs.scrollWidth;
-            const clientWidth = tabs.clientWidth;
-            
-            scrollLeftBtn.style.display = scrollLeft > 0 ? 'flex' : 'none';
-            scrollRightBtn.style.display = (scrollLeft < scrollWidth - clientWidth - 5) ? 'flex' : 'none';
-        }
-        
-        // 開始滾動
-        function startScrolling(direction) {
-            const scrollAmount = 10;
-            scrollInterval = setInterval(() => {
-                if (direction === 'left') {
-                    tabs.scrollLeft -= scrollAmount;
-                } else {
-                    tabs.scrollLeft += scrollAmount;
-                }
-                checkScrollButtons();
-            }, 16); // 約 60fps
-        }
-        
-        // 停止滾動
-        function stopScrolling() {
-            if (scrollInterval) {
-                clearInterval(scrollInterval);
-                scrollInterval = null;
-            }
-        }
-        
-        // 綁定事件
-        scrollLeftBtn.addEventListener('mousedown', () => startScrolling('left'));
-        scrollLeftBtn.addEventListener('mouseup', stopScrolling);
-        scrollLeftBtn.addEventListener('mouseleave', stopScrolling);
-        scrollLeftBtn.addEventListener('touchstart', () => startScrolling('left'));
-        scrollLeftBtn.addEventListener('touchend', stopScrolling);
-        scrollLeftBtn.addEventListener('touchcancel', stopScrolling);
-        
-        scrollRightBtn.addEventListener('mousedown', () => startScrolling('right'));
-        scrollRightBtn.addEventListener('mouseup', stopScrolling);
-        scrollRightBtn.addEventListener('mouseleave', stopScrolling);
-        scrollRightBtn.addEventListener('touchstart', () => startScrolling('right'));
-        scrollRightBtn.addEventListener('touchend', stopScrolling);
-        scrollRightBtn.addEventListener('touchcancel', stopScrolling);
-        
-        tabs.addEventListener('scroll', checkScrollButtons);
-        window.addEventListener('resize', checkScrollButtons);
-        
-        // 初始檢查
-        checkScrollButtons();
-    }
-
     // 發送手機驗證碼
     function sendPhoneVerificationCode() {
         const phoneInput = document.getElementById('phone-input');
@@ -660,7 +626,7 @@
     // 初始化
     function init() {
         // 初始化標籤頁滾動
-        initTabScrolling();
+        initAccountTabs();
         
         // 格式化價格
         if (typeof formatAllPrices === 'function') {
@@ -750,4 +716,3 @@
         init();
     }
 })();
-

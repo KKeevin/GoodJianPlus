@@ -1,0 +1,27 @@
+<div class="panel-heading">
+    <div><p class="panel-eyebrow">HEALTH PROFILE</p><h2>健身資料</h2><p>集中管理身體數據、健身目標與飲食偏好。</p></div>
+    <span class="account-badge">已填寫 {{ fitness_completed }} / 4 項主要資料</span>
+</div>
+<div class="fitness-note"><i class="bi bi-info-circle" aria-hidden="true"></i><p>身高、體重與性別會同步至目標管理；更新體重會加入體重記錄。欄位皆可選填，隨時回來補充。</p></div>
+<form method="post" action="{% url 'profile_complete' %}" class="account-form">
+    {% csrf_token %}
+    {% if fitness_form.errors %}<div class="form-error-summary" role="alert">資料尚未儲存，請檢查下方標示的欄位。{{ fitness_form.non_field_errors }}</div>{% endif %}
+    <fieldset><legend>身體數據</legend>
+        <div class="account-form-grid">
+            {% include 'account/form_field.html' with field=fitness_form.gender %}
+            <div class="form-group"><p class="readonly-label">生日</p><p class="readonly-value">{{ user.birthday|date:'Y年m月d日'|default:'尚未填寫' }}</p><a href="{% url 'profile' %}?tab=info" data-account-tab="info" class="text-link">前往基本資料編輯 <i class="bi bi-arrow-right" aria-hidden="true"></i></a></div>
+            {% include 'account/form_field.html' with field=fitness_form.height %}
+            {% include 'account/form_field.html' with field=fitness_form.weight %}
+        </div>
+    </fieldset>
+    <fieldset><legend>目標與飲食</legend>
+        {% include 'account/form_field.html' with field=fitness_form.fitness_goal %}
+        {% include 'account/form_field.html' with field=fitness_form.dietary_restrictions %}
+    </fieldset>
+    <fieldset><legend>緊急聯絡人 <span>選填</span></legend><div class="account-form-grid">
+        {% include 'account/form_field.html' with field=fitness_form.emergency_contact %}
+        {% include 'account/form_field.html' with field=fitness_form.emergency_phone %}
+    </div></fieldset>
+    <div class="account-form-actions"><span>儲存後會留在此分頁</span><button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i> 儲存健身資料</button></div>
+</form>
+<a href="{% url 'goal_management' %}" class="account-feature-link"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i><span><strong>目標管理與健康記錄</strong><small>設定目標、追蹤體重與每日進度</small></span><i class="bi bi-arrow-right" aria-hidden="true"></i></a>

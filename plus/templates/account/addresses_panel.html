@@ -1,0 +1,30 @@
+<div class="panel-heading"><div><p class="panel-eyebrow">ADDRESS BOOK</p><h2>常用地址</h2><p>管理收件資料，結帳時可直接選用。</p></div><span class="account-badge">{{ addresses|length }} 個地址</span></div>
+<div class="address-grid">
+    {% for addr in addresses %}
+    <article class="address-card{% if addr.is_default %} is-default{% endif %}">
+        <div class="address-card-heading"><h3><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ addr.label }}</h3>{% if addr.is_default %}<span class="account-badge">預設地址</span>{% endif %}</div>
+        <p class="address-recipient">{{ addr.name }} <span>{{ addr.phone }}</span></p><p class="address-detail">{{ addr.address }}</p>
+        <div class="address-actions">
+            <a href="{% url 'address_book' %}?edit={{ addr.id }}#address-editor" class="btn btn-outline-primary">編輯</a>
+            {% if not addr.is_default %}<form method="post" action="{% url 'address_set_default' addr.id %}">{% csrf_token %}<button type="submit" class="btn btn-outline-secondary">設為預設</button></form>{% endif %}
+            <form method="post" action="{% url 'address_delete' addr.id %}" onsubmit="return confirm('確定刪除此收件地址？');">{% csrf_token %}<button type="submit" class="btn btn-outline-danger" aria-label="刪除{{ addr.label }}地址">刪除</button></form>
+        </div>
+    </article>
+    {% empty %}<div class="account-empty"><i class="bi bi-geo-alt" aria-hidden="true"></i><h3>新增第一個常用地址</h3><p>填寫下方資料，之後結帳就不用重複輸入。</p></div>{% endfor %}
+</div>
+<details class="address-editor" id="address-editor" {% if editing_address or address_form.errors or not addresses %}open{% endif %}>
+    <summary>{% if editing_address %}編輯「{{ editing_address.label }}」{% else %}<i class="bi bi-plus-circle" aria-hidden="true"></i> 新增常用地址{% endif %}</summary>
+    <form method="post" action="{% url 'address_book' %}" class="account-form">
+        {% csrf_token %}{% if editing_address %}<input type="hidden" name="address_id" value="{{ editing_address.id }}">{% endif %}
+        <p class="form-help-text">標示 * 的欄位為必填。</p>
+        {% if address_form.errors %}<div class="form-error-summary" role="alert">地址尚未儲存，請檢查下方標示的欄位。{{ address_form.non_field_errors }}</div>{% endif %}
+        <div class="account-form-grid">
+            {% include 'account/form_field.html' with field=address_form.label %}
+            {% include 'account/form_field.html' with field=address_form.name %}
+            {% include 'account/form_field.html' with field=address_form.phone %}
+        </div>
+        {% include 'account/form_field.html' with field=address_form.address %}
+        <label class="account-checkbox">{{ address_form.is_default }} {{ address_form.is_default.label }}</label>
+        <div class="account-form-actions">{% if editing_address %}<a class="text-link" href="{% url 'profile' %}?tab=addresses">取消編輯</a>{% else %}<span>第一個地址將自動設為預設</span>{% endif %}<button class="btn btn-primary" type="submit">{% if editing_address %}儲存地址{% else %}新增地址{% endif %}</button></div>
+    </form>
+</details>

@@ -26,6 +26,7 @@ from plus.models import (
     PhoneVerificationCode, EmailChangeRequest
 )
 from plus.forms import CustomUserRegistrationForm, QuickRegistrationForm, CustomAuthenticationForm
+from plus.forms_account import FitnessProfileForm, ShippingAddressForm
 from plus.utils.email import (
     send_verification_email, send_welcome_email,
     send_password_reset_email as send_password_reset_email_util,
@@ -47,7 +48,7 @@ from plus.utils.request import get_client_ip
 logger = logging.getLogger(__name__)
 
 @login_required
-def user_profile_view(request):
+def user_profile_view(request, *, fitness_form=None, address_form=None, editing_address=None, active_tab=None):
     """用戶個人資料頁面"""
     try:
         profile = request.user.profile
@@ -55,7 +56,7 @@ def user_profile_view(request):
         profile = UserProfile.objects.create(user=request.user)
     
     # 處理 POST 請求（保存基本資料）
-    if request.method == 'POST':
+    if request.method == 'POST' and fitness_form is None and address_form is None:
         try:
             # 更新用戶基本資料
             user = request.user
@@ -146,6 +147,16 @@ def user_profile_view(request):
     has_goal = UserGoal.objects.filter(user=request.user).exists()
     
     context = {
+        'active_tab': active_tab or (request.GET.get('tab') if request.GET.get('tab') in {'info', 'fitness', 'addresses', 'orders', 'security'} else 'info'),
+        'fitness_form': fitness_form if fitness_form is not None else FitnessProfileForm(instance=profile, prefix='fitness'),
+        'address_form': address_form if address_form is not None else ShippingAddressForm(prefix='shipping', initial={
+            'label': '住家', 'name': request.user.first_name or request.user.username,
+            'phone': request.user.phone, 'address': request.user.address,
+            'is_default': not request.user.shipping_addresses.exists(),
+        }),
+        'editing_address': editing_address,
+        'addresses': request.user.shipping_addresses.all(),
+        'fitness_completed': sum(bool(value) for value in [profile.gender, profile.height, profile.weight, profile.fitness_goal]),
         'user': request.user,
         'profile': profile,
         'orders_count': orders_count,
@@ -163,144 +174,43 @@ def user_profile_view(request):
 
 @login_required
 def profile_completion_view(request):
-    """個人資料完善頁面"""
+    """Save fitness details from the account tab, retaining errors in place."""
+    if request.method != 'POST':
+        return redirect(reverse('profile') + '?tab=fitness')
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    old_weight, old_height = profile.weight, profile.height
+    form = FitnessProfileForm(request.POST, instance=profile,
+                              prefix='fitness' if 'fitness-gender' in request.POST else None)
+    if not form.is_valid():
+        return user_profile_view(request, fitness_form=form, active_tab='fitness')
     try:
-        profile = request.user.profile
-    except UserProfile.DoesNotExist:
-        profile = UserProfile.objects.create(user=request.user)
-    if request.method == 'POST':
-        # 保存舊的體重和身高值，用於比較是否有變化
-        old_weight = profile.weight
-        old_height = profile.height
-        
-        profile.gender = request.POST.get('gender', '')
-        # 身高和體重直接存儲為小數（支援小數點第二位）
-        height_value = request.POST.get('height')
-        new_height = Decimal(height_value) if height_value else None
-        profile.height = new_height
-        weight_value = request.POST.get('weight')
-        new_weight = Decimal(weight_value) if weight_value else None
-        profile.weight = new_weight
-        profile.fitness_goal = request.POST.get('fitness_goal', '')
-        profile.dietary_restrictions = request.POST.get('dietary_restrictions', '')
-        
-        # 只有在表單中有提供這些字段時才更新（避免清除基本資料）
-        if 'birthday' in request.POST:
-            birthday_value = request.POST.get('birthday', '').strip()
-            if birthday_value:
-                try:
-                    from datetime import datetime
-                    request.user.birthday = datetime.strptime(birthday_value, '%Y-%m-%d').date()
-                except ValueError:
-                    pass  # 如果日期格式錯誤，保留原值
-            else:
-                request.user.birthday = None
-        
-        if 'address' in request.POST:
-            request.user.address = request.POST.get('address', '').strip()
-        
-        # 只有在表單中有提供這些字段時才更新（避免清除基本資料）
-        if 'first_name' in request.POST:
-            request.user.first_name = request.POST.get('first_name', '').strip()
-        
-        if 'phone' in request.POST:
-            new_phone = request.POST.get('phone', '').strip()
-            old_phone = request.user.phone
-            
-            # 如果手機號碼改變了
-            if new_phone != old_phone:
-                # 檢查新手機號碼是否已被其他帳號認證
-                other_verified_user = CustomUser.objects.filter(
-                    phone=new_phone,
-                    phone_verified=True
-                ).exclude(id=request.user.id).first()
-                
-                if other_verified_user:
-                    messages.error(request, '此手機號碼已被其他帳號認證，無法使用。請使用其他手機號碼。')
-                    return redirect('profile_complete')
-                
-                # 取消手機驗證狀態
-                request.user.phone_verified = False
-                logger.info(f'用戶修改手機號碼，取消驗證狀態: {request.user.username} ({old_phone} -> {new_phone})')
-            
-            request.user.phone = new_phone
-        try:
-            request.user.save()
-            profile.save()
-            
-            # 如果體重或身高有變化，創建新的體重記錄
-            weight_changed = new_weight is not None and (old_weight is None or new_weight != old_weight)
-            height_changed = new_height is not None and (old_height is None or new_height != old_height)
-            
-            if weight_changed or height_changed:
-                if new_weight is not None:
-                    change_notes = []
-                    if weight_changed:
-                        change_notes.append('體重')
-                    if height_changed:
-                        change_notes.append('身高')
-                    notes_text = '、'.join(change_notes) + '變更' if change_notes else '資料更新'
-                    
-                    WeightLog.objects.create(
-                        user=request.user,
-                        weight=new_weight,
-                        notes=f'從會員資料更新：{notes_text}'
-                    )
-            
-            # 同步更新到目標管理 (UserGoal)
-            try:
-                from datetime import date
-                goal, goal_created = UserGoal.objects.get_or_create(user=request.user)
-                
-                # 同步身高（UserProfile 現在直接存儲為小數）
-                if profile.height:
-                    goal.height = Decimal(str(profile.height))
-                
-                # 同步體重（UserProfile 現在直接存儲為小數）
-                if profile.weight:
-                    goal.current_weight = Decimal(str(profile.weight))
-                
-                # 同步性別 (UserProfile: 'M'/'F' -> UserGoal: 'male'/'female')
-                if profile.gender:
-                    gender_map = {'M': 'male', 'F': 'female'}
-                    goal.gender = gender_map.get(profile.gender)
-                
-                # 同步年齡 (從生日計算)
-                if request.user.birthday:
-                    today = date.today()
-                    goal.age = today.year - request.user.birthday.year - ((today.month, today.day) < (request.user.birthday.month, request.user.birthday.day))
-                
-                # 如果所有必要數據都有了，重新計算 BMR 和 TDEE
-                if goal.current_weight and goal.height and goal.age and goal.gender:
-                    from plus.services.nutrition import calculate_bmr, calculate_tdee, calculate_nutrition_targets
-                    bmr = calculate_bmr(goal.current_weight, goal.height, goal.age, goal.gender)
-                    if bmr:
-                        goal.bmr = bmr
-                        tdee = calculate_tdee(bmr, goal.activity_level)
-                        if tdee:
-                            goal.tdee = tdee
-                            target_calories, target_protein, target_carbs, target_fat = calculate_nutrition_targets(tdee, goal.goal_type)
-                            if target_calories:
-                                goal.target_calories = target_calories
-                                goal.target_protein = target_protein
-                                goal.target_carbs = target_carbs
-                                goal.target_fat = target_fat
-                
-                goal.save()
-            except Exception as e:
-                logger.error(f'Sync profile to goal error: {str(e)}')
-                # 不影響會員資料更新的成功返回
-            
-            messages.success(request, '個人資料已更新！')
-            return redirect('profile')
-        except Exception as e:
-            logger.error(f'Profile update error for user {request.user.id}: {str(e)}')
-            messages.error(request, '更新失敗，請稍後再試。')
-    context = {
-        'profile': profile,
-        'user': request.user,
-    }
-    return render(request, 'registration/profile_completion.html', context)
+        with transaction.atomic():
+            profile = form.save()
+            weight_changed = profile.weight is not None and profile.weight != old_weight
+            height_changed = profile.height is not None and profile.height != old_height
+            if profile.weight is not None and (weight_changed or height_changed):
+                WeightLog.objects.create(user=request.user, weight=profile.weight,
+                                         notes='從會員健身資料更新')
+            # Height and current_weight are read-only properties backed by UserProfile.
+            goal, _ = UserGoal.objects.get_or_create(user=request.user)
+            goal.gender = {'M': 'male', 'F': 'female'}.get(profile.gender)
+            birthday = request.user.birthday
+            today = timezone.localdate()
+            if birthday:
+                goal.age = today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+            if goal.age is not None and goal.age <= 0:
+                goal.age = None
+            goal.bmr = calculate_bmr(profile.weight, profile.height, goal.age, goal.gender)
+            goal.tdee = calculate_tdee(goal.bmr, goal.activity_level)
+            (goal.target_calories, goal.target_protein, goal.target_carbs,
+             goal.target_fat) = calculate_nutrition_targets(goal.tdee, goal.goal_type)
+            goal.save()
+        messages.success(request, '健身資料已儲存！')
+        return redirect(reverse('profile') + '?tab=fitness')
+    except Exception:
+        logger.exception('Fitness profile update failed for user %s', request.user.pk)
+        form.add_error(None, '儲存失敗，請稍後再試。您的輸入內容已保留。')
+    return user_profile_view(request, fitness_form=form, active_tab='fitness')
 
 
 @login_required
@@ -401,4 +311,3 @@ def verify_email_change(request, token):
         logger.error(f'Email change verification error: {str(e)}')
         messages.error(request, '驗證過程中發生錯誤，請稍後再試。')
         return redirect('home')
-
