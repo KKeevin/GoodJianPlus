@@ -51,11 +51,11 @@
                             <div class="order-item-meta">
                                 商品編號：{{ item.product_sku }} | 
                                 數量：{{ item.quantity }} | 
-                                單價：<span data-price="{{ item.unit_price }}">NT${{ item.unit_price|floatformat:0 }}</span>
+                                單價：<span data-price="{{ item.unit_price }}">{{ item.unit_price|money }}</span>
                             </div>
                         </div>
                         <div class="order-item-price">
-                            <span data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span>
+                            <span data-price="{{ item.subtotal }}">{{ item.subtotal|money }}</span>
                         </div>
                     </div>
                     {% endfor %}
@@ -66,7 +66,7 @@
                         <div class="order-shipping-info">收件人：{{ order.shipping_name }}</div>
                         <div>
                             <span style="color: #666; font-size: 14px;">總計：</span>
-                            <span class="order-total" data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                            <span class="order-total" data-price="{{ order.total_amount }}">{{ order.total_amount|money }}</span>
                         </div>
                     </div>
                     <div class="order-actions">

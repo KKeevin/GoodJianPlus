@@ -2,6 +2,20 @@ html:not(.goodjian-theme-ready) body {
     visibility: hidden;
 }
 
+.navbar-brand .brand-image,
+.brand-link .brand-image,
+.login-logo img {
+    width: 32px !important;
+    height: 32px !important;
+    aspect-ratio: 1 / 1;
+    display: block;
+    flex: 0 0 32px;
+    object-fit: cover;
+    object-position: 40% 50%;
+    background-color: #fff;
+    border-radius: 50% !important;
+}
+
 #goodjian-theme-toggle {
     display: inline-flex;
     align-items: center;

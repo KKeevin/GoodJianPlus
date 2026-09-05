@@ -155,29 +155,29 @@
                     <h3 style="margin-bottom: 15px;">訂單資訊</h3>
                     <div class="order-info-item">
                         <span>商品小計</span>
-                        <span data-price="{{ order.subtotal }}">NT${{ order.subtotal|floatformat:0 }}</span>
+                        <span data-price="{{ order.subtotal }}">{{ order.subtotal|money }}</span>
                     </div>
                     {% if order.shipping_fee > 0 %}
                     <div class="order-info-item">
                         <span>運費</span>
-                        <span data-price="{{ order.shipping_fee }}">NT${{ order.shipping_fee|floatformat:0 }}</span>
+                        <span data-price="{{ order.shipping_fee }}">{{ order.shipping_fee|money }}</span>
                     </div>
                     {% endif %}
                     {% if order.tax_amount > 0 %}
                     <div class="order-info-item">
                         <span>稅額</span>
-                        <span data-price="{{ order.tax_amount }}">NT${{ order.tax_amount|floatformat:0 }}</span>
+                        <span data-price="{{ order.tax_amount }}">{{ order.tax_amount|money }}</span>
                     </div>
                     {% endif %}
                     {% if order.discount_amount > 0 %}
                     <div class="order-info-item" style="color: #28a745;">
                         <span>折扣</span>
-                        <span data-price="{{ order.discount_amount }}">-NT${{ order.discount_amount|floatformat:0 }}</span>
+                        <span data-price="{{ order.discount_amount }}">-{{ order.discount_amount|money }}</span>
                     </div>
                     {% endif %}
                     <div class="order-info-item">
                         <span>總計</span>
-                        <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                        <span data-price="{{ order.total_amount }}">{{ order.total_amount|money }}</span>
                     </div>
                 </div>
 
@@ -225,7 +225,7 @@
 
                 <!-- 付款按鈕 -->
                 <button type="button" class="payment-btn" id="payBtn" onclick="processPayment()">
-                    <i class="bi bi-lock-fill"></i> 確認付款 <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                            <i class="bi bi-lock-fill"></i> 確認付款 <span data-price="{{ order.total_amount }}">{{ order.total_amount|money }}</span>
                 </button>
 
                 <div class="security-notice">
@@ -289,14 +289,14 @@ function processPayment() {
             // 支付失敗
             alert(data.message || '付款失敗，請稍後再試');
             payBtn.disabled = false;
-            payBtn.innerHTML = '<i class="bi bi-lock-fill"></i> 確認付款 <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>';
+            payBtn.innerHTML = '<i class="bi bi-lock-fill"></i> 確認付款 <span data-price="{{ order.total_amount }}">{{ order.total_amount|money }}</span>';
         }
     })
     .catch(error => {
         console.error('Payment error:', error);
         alert('付款處理發生錯誤，請稍後再試');
         payBtn.disabled = false;
-        payBtn.innerHTML = '<i class="bi bi-lock-fill"></i> 確認付款 NT${{ order.total_amount|floatformat:0 }}';
+        payBtn.innerHTML = '<i class="bi bi-lock-fill"></i> 確認付款 {{ order.total_amount|money }}';
     });
 }
 </script>

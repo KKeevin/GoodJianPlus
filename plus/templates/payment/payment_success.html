@@ -90,7 +90,7 @@
                 <div class="order-detail-item">
                     <span><strong>付款金額</strong></span>
                     <span style="color: #e74c3c; font-size: 1.2rem; font-weight: bold;" data-price="{{ order.total_amount }}">
-                        NT${{ order.total_amount|floatformat:0 }}
+                        {{ order.total_amount|money }}
                     </span>
                 </div>
                 <div class="order-detail-item">

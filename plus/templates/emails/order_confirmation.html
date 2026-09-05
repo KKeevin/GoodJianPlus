@@ -152,19 +152,19 @@
                     <tr>
                         <td>{{ item.product_name }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>NT$ {{ item.price|floatformat:0 }}</td>
-                        <td>NT$ {{ item.subtotal|floatformat:0 }}</td>
+                        <td>{{ item.price|money }}</td>
+                        <td>{{ item.subtotal|money }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="3" style="text-align: right;">運費：</td>
-                        <td>NT$ {{ order.shipping_fee|floatformat:0 }}</td>
+                        <td>{{ order.shipping_fee|money }}</td>
                     </tr>
                     <tr class="total-row">
                         <td colspan="3" style="text-align: right;">總計：</td>
-                        <td>NT$ {{ order.total_amount|floatformat:0 }}</td>
+                        <td>{{ order.total_amount|money }}</td>
                     </tr>
                 </tfoot>
             </table>

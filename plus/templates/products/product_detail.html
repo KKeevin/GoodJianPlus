@@ -69,9 +69,9 @@
 
                 <div class="product-price-section">
                     {% if product.original_price and product.original_price > product.price %}
-                    <span class="original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                    <span class="original-price" data-price="{{ product.original_price }}">{{ product.original_price|money }}</span>
                     {% endif %}
-                    <span class="current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                    <span class="current-price" data-price="{{ product.price }}">{{ product.price|money }}</span>
                     {% if product.discount_percentage > 0 %}
                     <span class="discount-badge">-{{ product.discount_percentage }}%</span>
                     {% endif %}
@@ -358,9 +358,9 @@
                         </h4>
                         <div class="related-product-price">
                             {% if related_product.original_price and related_product.original_price > related_product.price %}
-                            <span class="related-original-price" data-price="{{ related_product.original_price }}">NT${{ related_product.original_price|floatformat:0 }}</span>
+                            <span class="related-original-price" data-price="{{ related_product.original_price }}">{{ related_product.original_price|money }}</span>
                             {% endif %}
-                            <span class="related-current-price" data-price="{{ related_product.price }}">NT${{ related_product.price|floatformat:0 }}</span>
+                            <span class="related-current-price" data-price="{{ related_product.price }}">{{ related_product.price|money }}</span>
                             {% if related_product.discount_percentage > 0 %}
                             <span class="related-discount-badge">-{{ related_product.discount_percentage }}%</span>
                             {% endif %}
@@ -403,7 +403,7 @@
                             <a href="{% url 'product_detail' product.id %}">{{ product.name|truncatechars:50 }}</a>
                         </h4>
                         <div class="related-product-price">
-                            <span class="related-current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                            <span class="related-current-price" data-price="{{ product.price }}">{{ product.price|money }}</span>
                         </div>
                     </div>
                 </div>

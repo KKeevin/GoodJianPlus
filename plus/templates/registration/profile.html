@@ -272,7 +272,7 @@
                             </div>
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 <span class="recent-order-status {{ order.payment_status }}">{{ order.get_payment_status_display }}</span>
-                                <div class="recent-order-amount" data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</div>
+                                <div class="recent-order-amount" data-price="{{ order.total_amount }}">{{ order.total_amount|money }}</div>
                                 <i class="bi bi-chevron-right" style="color: #6c757d; font-size: 1.2rem;"></i>
                             </div>
                         </a></li>

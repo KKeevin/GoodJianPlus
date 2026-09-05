@@ -94,7 +94,7 @@
                                        {% if forloop.first %}checked{% endif %} required>
                                 <strong>{{ method.name }}</strong> - 
                                 {% if method.price > 0 %}
-                                    <span data-price="{{ method.price }}">NT${{ method.price|floatformat:0 }}</span>
+                                    <span data-price="{{ method.price }}">{{ method.price|money }}</span>
                                 {% else %}
                                     免運費
                                 {% endif %}
@@ -193,9 +193,9 @@
                                  class="order-item-image">
                             <div class="order-item-info">
                                 <div class="order-item-name">{{ item.product.name }}</div>
-                                <div class="order-item-meta">數量：{{ item.quantity }} × <span data-price="{{ item.product.price }}">NT${{ item.product.price|floatformat:0 }}</span></div>
+                                <div class="order-item-meta">數量：{{ item.quantity }} × <span data-price="{{ item.product.price }}">{{ item.product.price|money }}</span></div>
                             </div>
-                            <div class="order-item-price"><span data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span></div>
+                            <div class="order-item-price"><span data-price="{{ item.subtotal }}">{{ item.subtotal|money }}</span></div>
                         </div>
                         {% endfor %}
                     </div>
@@ -213,13 +213,13 @@
                     <!-- 金額明細 -->
                     <div class="summary-item">
                         <span>商品小計</span>
-                        <span data-price="{{ subtotal }}">NT${{ subtotal|floatformat:0 }}</span>
+                        <span data-price="{{ subtotal }}">{{ subtotal|money }}</span>
                     </div>
                     <div class="summary-item">
                         <span>運費</span>
                         <span id="shipping-display">
                             {% if shipping_fee > 0 %}
-                                <span data-price="{{ shipping_fee }}">NT${{ shipping_fee|floatformat:0 }}</span>
+                                <span data-price="{{ shipping_fee }}">{{ shipping_fee|money }}</span>
                             {% else %}
                                 免運費
                             {% endif %}
@@ -227,7 +227,7 @@
                     </div>
                     <div class="summary-item">
                         <span>稅額（5%）</span>
-                        <span data-price="{{ tax_amount }}">NT${{ tax_amount|floatformat:0 }}</span>
+                        <span data-price="{{ tax_amount }}">{{ tax_amount|money }}</span>
                     </div>
                     <div class="summary-item" id="discount-row" style="display: none;">
                         <span style="color: #28a745;">折扣</span>
@@ -235,7 +235,7 @@
                     </div>
                     <div class="summary-item total">
                         <span>總計</span>
-                        <span id="total-display" data-price="{{ total_amount }}">NT${{ total_amount|floatformat:0 }}</span>
+                        <span id="total-display" data-price="{{ total_amount }}">{{ total_amount|money }}</span>
                     </div>
 
                     <!-- 提交按鈕 -->

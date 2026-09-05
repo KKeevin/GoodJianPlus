@@ -93,8 +93,12 @@ _orig_admin_index = admin.site.index
 def _admin_index_with_ops_stats(request, extra_context=None):
     extra_context = extra_context or {}
     from plus.admin.dashboard import get_dashboard_data, get_ops_stats
+    try:
+        dashboard_days = int(request.GET.get('range', 7))
+    except (TypeError, ValueError):
+        dashboard_days = 7
     extra_context['ops_stats'] = get_ops_stats()
-    extra_context['dashboard'] = get_dashboard_data()
+    extra_context['dashboard'] = get_dashboard_data(dashboard_days)
     return _orig_admin_index(request, extra_context=extra_context)
 
 
@@ -104,9 +108,14 @@ _orig_admin_get_urls = admin.site.get_urls
 
 
 def _admin_get_urls():
-    from plus.admin.dashboard import recent_actions_view
+    from plus.admin.dashboard import admin_user_label_view, recent_actions_view
 
     custom_urls = [
+        path(
+            'user-label/',
+            admin.site.admin_view(admin_user_label_view),
+            name='user-label',
+        ),
         path(
             'recent-actions/',
             admin.site.admin_view(recent_actions_view),

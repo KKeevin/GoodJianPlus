@@ -134,9 +134,9 @@
                     <!-- 價格 -->
                     <div class="product-price">
                         {% if product.original_price and product.original_price > product.price %}
-                        <span class="original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                        <span class="original-price" data-price="{{ product.original_price }}">{{ product.original_price|money }}</span>
                         {% endif %}
-                        <span class="current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                        <span class="current-price" data-price="{{ product.price }}">{{ product.price|money }}</span>
                     </div>
                     
                     <!-- 庫存狀態 -->

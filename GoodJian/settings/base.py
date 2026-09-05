@@ -89,6 +89,9 @@ JAZZMIN_SETTINGS = {
     'site_title': '好健健管理系統',
     'site_header': '好健健 GoodJian Plus',
     'site_brand': '好健健 GoodJian Plus',
+    'site_logo': 'img/common/Logo.png',
+    'login_logo': 'img/common/Logo.png',
+    'site_logo_classes': 'img-circle brand-image opacity-75 shadow',
     'welcome_sign': '歡迎使用好健健管理後台',
     'copyright': 'GoodJian Plus',
     'custom_css': 'css/admin-theme-toggle.css',
@@ -312,6 +315,9 @@ TEMPLATES = [
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
+            'builtins': [
+                'plus.templatetags.currency_filters',
+            ],
             'context_processors': [
                 'django.template.context_processors.debug',  
                 'django.template.context_processors.request',

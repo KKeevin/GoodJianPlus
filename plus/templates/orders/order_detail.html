@@ -148,9 +148,9 @@
                             </div>
                         </td>
                         <td data-label="商品編號">{{ item.product_sku }}</td>
-                        <td data-label="單價"><span data-price="{{ item.unit_price }}">NT${{ item.unit_price|floatformat:0 }}</span></td>
+                        <td data-label="單價"><span data-price="{{ item.unit_price }}">{{ item.unit_price|money }}</span></td>
                         <td data-label="數量">{{ item.quantity }}</td>
-                        <td data-label="小計" style="font-weight: 600; color: #e74c3c;"><span data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span></td>
+                        <td data-label="小計" style="font-weight: 600; color: #e74c3c;"><span data-price="{{ item.subtotal }}">{{ item.subtotal|money }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -159,25 +159,25 @@
             <div class="price-summary">
                 <div class="price-row">
                     <span>商品小計</span>
-                    <span data-price="{{ order.subtotal }}">NT${{ order.subtotal|floatformat:0 }}</span>
+                    <span data-price="{{ order.subtotal }}">{{ order.subtotal|money }}</span>
                 </div>
                 <div class="price-row">
                     <span>運費</span>
-                    <span>{% if order.shipping_fee > 0 %}<span data-price="{{ order.shipping_fee }}">NT${{ order.shipping_fee|floatformat:0 }}</span>{% else %}免運費{% endif %}</span>
+                    <span>{% if order.shipping_fee > 0 %}<span data-price="{{ order.shipping_fee }}">{{ order.shipping_fee|money }}</span>{% else %}免運費{% endif %}</span>
                 </div>
                 <div class="price-row">
                     <span>稅額</span>
-                    <span data-price="{{ order.tax_amount }}">NT${{ order.tax_amount|floatformat:0 }}</span>
+                    <span data-price="{{ order.tax_amount }}">{{ order.tax_amount|money }}</span>
                 </div>
                 {% if order.discount_amount > 0 %}
                 <div class="price-row" style="color: #28a745;">
                     <span>折扣</span>
-                    <span data-price="{{ order.discount_amount }}">-NT${{ order.discount_amount|floatformat:0 }}</span>
+                    <span data-price="{{ order.discount_amount }}">-{{ order.discount_amount|money }}</span>
                 </div>
                 {% endif %}
                 <div class="price-row total">
                     <span>總計</span>
-                    <span data-price="{{ order.total_amount }}">NT${{ order.total_amount|floatformat:0 }}</span>
+                    <span data-price="{{ order.total_amount }}">{{ order.total_amount|money }}</span>
                 </div>
             </div>
 

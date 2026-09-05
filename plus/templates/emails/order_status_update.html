@@ -109,7 +109,7 @@
                     </tr>
                     <tr>
                         <td style="padding: 8px;"><strong>訂單總額：</strong></td>
-                        <td style="padding: 8px;">NT$ {{ order.total_amount|floatformat:0 }}</td>
+                        <td style="padding: 8px;">{{ order.total_amount|money }}</td>
                     </tr>
                     {% if tracking_number %}
                     <tr>

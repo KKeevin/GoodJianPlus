@@ -82,6 +82,23 @@
             var firstDivider = userMenu.querySelector('.dropdown-divider');
             userMenu.insertBefore(recentLink, firstDivider || userMenu.firstElementChild);
         }
+
+        fetch('/admin/user-label/', {credentials: 'same-origin'})
+            .then(function (response) { return response.ok ? response.json() : null; })
+            .then(function (data) {
+                if (!data || !data.label) {
+                    return;
+                }
+                var sidebarUser = document.querySelector('.user-panel .info > a');
+                if (sidebarUser) {
+                    sidebarUser.textContent = data.label;
+                }
+                var accountButton = document.querySelector('#jazzy-usermenu')?.previousElementSibling;
+                if (accountButton) {
+                    accountButton.title = data.label;
+                }
+            })
+            .catch(function () {});
         applyMode(button, getMode());
     }
 

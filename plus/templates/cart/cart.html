@@ -62,7 +62,7 @@
                     </div>
                     
                     <div class="col-price">
-                        <span class="price" data-price="{{ item.product.price }}">NT${{ item.product.price|floatformat:0 }}</span>
+                        <span class="price" data-price="{{ item.product.price }}">{{ item.product.price|money }}</span>
                     </div>
                     
                     <div class="col-quantity">
@@ -75,7 +75,7 @@
                     </div>
                     
                     <div class="col-subtotal">
-                        <span class="subtotal" id="subtotal-{{ item.id }}" data-price="{{ item.subtotal }}">NT${{ item.subtotal|floatformat:0 }}</span>
+                        <span class="subtotal" id="subtotal-{{ item.id }}" data-price="{{ item.subtotal }}">{{ item.subtotal|money }}</span>
                     </div>
                     
                     <div class="col-action">
@@ -93,7 +93,7 @@
                     
                     <div class="summary-row">
                         <span>商品小計</span>
-                        <span id="itemsTotal" data-price="{{ cart.total_price }}">NT${{ cart.total_price|floatformat:0 }}</span>
+                        <span id="itemsTotal" data-price="{{ cart.total_price }}">{{ cart.total_price|money }}</span>
                     </div>
                     
                     <div class="summary-row">
@@ -113,9 +113,9 @@
                         <span>總計</span>
                         <span id="totalAmount" data-price="{% if cart.total_price >= free_shipping_threshold|default:1000 %}{{ cart.total_price }}{% else %}{{ cart.total_price|add:'100' }}{% endif %}">
                             {% if cart.total_price >= free_shipping_threshold|default:1000 %}
-                                NT${{ cart.total_price|floatformat:0 }}
+                                {{ cart.total_price|money }}
                             {% else %}
-                                NT${{ cart.total_price|add:'100'|floatformat:0 }}
+                                {{ cart.total_price|add:'100'|money }}
                             {% endif %}
                         </span>
                     </div>
@@ -123,7 +123,7 @@
                     {% if cart.total_price < free_shipping_threshold|default:1000 %}
                     <div class="free-shipping-notice">
                         <i class="bi bi-truck"></i>
-                        <span data-price="{{ free_shipping_remaining }}">還差 NT${{ free_shipping_remaining }} 即可享免運費</span>
+                        <span data-price="{{ free_shipping_remaining }}">還差 {{ free_shipping_remaining|money }} 即可享免運費</span>
                     </div>
                     {% endif %}
                     
@@ -183,9 +183,9 @@
                         </h4>
                         <div class="recommended-product-price">
                             {% if product.original_price and product.original_price > product.price %}
-                            <span class="recommended-original-price" data-price="{{ product.original_price }}">NT${{ product.original_price|floatformat:0 }}</span>
+                            <span class="recommended-original-price" data-price="{{ product.original_price }}">{{ product.original_price|money }}</span>
                             {% endif %}
-                            <span class="recommended-current-price" data-price="{{ product.price }}">NT${{ product.price|floatformat:0 }}</span>
+                            <span class="recommended-current-price" data-price="{{ product.price }}">{{ product.price|money }}</span>
                         </div>
                         <div class="recommended-product-stock">
                             {% if product.stock_quantity > 10 %}
