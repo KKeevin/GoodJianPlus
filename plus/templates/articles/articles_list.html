@@ -77,16 +77,22 @@
                 <div class="articles-container {% if view_mode == 'grid' %}grid-view{% else %}list-view{% endif %}">
                     {% for article in articles %}
                     <article class="article-card">
-                        {% if article.cover_image %}
+                        {% with fallback_image=article.images.all|first %}
+                        {% if article.cover_image or fallback_image %}
                         <div class="article-image">
                             <a href="{% url 'article_detail' article.slug %}">
+                                {% if article.cover_image %}
                                 <img src="{{ article.cover_image.url }}" alt="{{ article.title }}" loading="lazy">
+                                {% else %}
+                                <img src="{{ fallback_image.image.url }}" alt="{{ fallback_image.alt_text|default:article.title }}" loading="lazy">
+                                {% endif %}
                             </a>
                             {% if article.is_featured %}
                             <span class="article-badge featured">精選</span>
                             {% endif %}
                         </div>
                         {% endif %}
+                        {% endwith %}
                         <div class="article-content">
                             <div class="article-meta">
                                 <span class="article-category">

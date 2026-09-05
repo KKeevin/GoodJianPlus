@@ -73,7 +73,7 @@ CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins()
 # Application definition
 
 INSTALLED_APPS = [
-    'plus',
+    'plus.apps.PlusConfig',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
