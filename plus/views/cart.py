@@ -145,7 +145,7 @@ def add_to_cart(request):
         if product.images.exists():
             product_image_url = product.images.first().image.url
         else:
-            product_image_url = '/static/img/products/default.png'
+            product_image_url = '/static/img/products/default.svg'
         
         # 計算購物車中該商品的數量（更新後的數量）
         cart_quantity = cart_item.quantity

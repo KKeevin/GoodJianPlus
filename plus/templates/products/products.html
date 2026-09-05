@@ -1,5 +1,5 @@
 {% extends "base/main_all.html" %}
-{% load static %}
+{% load static shop_tags %}
 {% block title %}
     {% if selected_category %}
         {% if selected_category.parent %}
@@ -34,12 +34,12 @@
                            id="searchInput"
                            placeholder="搜尋商品名稱、品牌、分類..." 
                            value="{{ search_query|default:'' }}"
-                           autocomplete="off">
+                           autocomplete="off" aria-label="搜尋商品名稱、品牌或分類">
                     <button class="btn btn-primary" type="submit">
                         <i class="bi bi-search"></i> 搜尋
                     </button>
                     {% if search_query %}
-                    <a href="{% url 'products' %}{% if request.GET.category %}?category={{ request.GET.category }}{% endif %}" class="btn btn-outline-secondary" title="清除搜尋">
+                    <a href="{% query_update q='' page='' %}" class="btn btn-outline-secondary" title="清除搜尋">
                         <i class="bi bi-x-circle"></i>
                     </a>
                     {% endif %}
@@ -103,7 +103,7 @@
                 {% if search_query %}
                 <span class="search-info" style="margin-left: 15px; color: #666;">
                     <i class="bi bi-search"></i> 搜尋「<strong>{{ search_query }}</strong>」的結果
-                    <a href="{% url 'products' %}{% if request.GET.category %}?category={{ request.GET.category }}{% endif %}" 
+                    <a href="{% query_update q='' page='' %}"
                        class="text-decoration-none ms-2" title="清除搜尋">
                         <i class="bi bi-x-circle"></i>
                     </a>
@@ -115,27 +115,27 @@
                     {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
                     {% if selected_category_slug %}<input type="hidden" name="category" value="{{ selected_category_slug }}">{% endif %}
                     {% if sort_by and sort_by != 'default' %}<input type="hidden" name="sort" value="{{ sort_by }}">{% endif %}
-                    <select name="brand" class="sort-select" onchange="this.form.submit()">
+                    <select name="brand" aria-label="品牌" class="sort-select" onchange="this.form.submit()">
                         <option value="">全部品牌</option>
                         {% for brand in brands %}
                         <option value="{{ brand.slug }}" {% if selected_brand_slug == brand.slug %}selected{% endif %}>{{ brand.name }}</option>
                         {% endfor %}
                     </select>
-                    <input type="number" name="min_price" class="price-filter-input" placeholder="最低價" min="0" value="{{ min_price }}">
+                    <input type="number" name="min_price" aria-label="最低價格" class="price-filter-input" placeholder="最低價" min="0" value="{{ min_price }}">
                     <span class="price-filter-sep">–</span>
-                    <input type="number" name="max_price" class="price-filter-input" placeholder="最高價" min="0" value="{{ max_price }}">
+                    <input type="number" name="max_price" aria-label="最高價格" class="price-filter-input" placeholder="最高價" min="0" value="{{ max_price }}">
                     <label class="in-stock-filter">
                         <input type="checkbox" name="in_stock" value="1" {% if in_stock %}checked{% endif %} onchange="this.form.submit()">
                         只看有貨
                     </label>
                     <button type="submit" class="btn btn-sm btn-outline-secondary">套用</button>
                 </form>
-                <select class="sort-select" id="sortSelect">
+                <select class="sort-select" id="sortSelect" aria-label="商品排序">
                     <option value="default" {% if sort_by == 'default' %}selected{% endif %}>預設排序</option>
                     <option value="price-low" {% if sort_by == 'price-low' %}selected{% endif %}>價格：低到高</option>
                     <option value="price-high" {% if sort_by == 'price-high' %}selected{% endif %}>價格：高到低</option>
                     <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>最新商品</option>
-                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>熱門商品</option>
+                    <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>熱銷優先</option>
                 </select>
                 <div class="view-toggle">
                     <button class="view-btn grid-view active" title="網格檢視"><i class="bi bi-grid"></i></button>
@@ -146,6 +146,14 @@
     </div>
 </section>
 
+<div class="container"><div class="filter-chips" aria-label="已套用的篩選">
+{% if search_query %}<a href="{% query_update q='' page='' %}">搜尋：{{ search_query }} <span aria-label="移除">×</span></a>{% endif %}
+{% if selected_brand %}<a href="{% query_update brand='' page='' %}">{{ selected_brand.name }} ×</a>{% endif %}
+{% if min_price %}<a href="{% query_update min_price='' page='' %}">最低 NT$ {{ min_price }} ×</a>{% endif %}
+{% if max_price %}<a href="{% query_update max_price='' page='' %}">最高 NT$ {{ max_price }} ×</a>{% endif %}
+{% if in_stock %}<a href="{% query_update in_stock='' page='' %}">只看有貨 ×</a>{% endif %}
+{% if search_query or selected_brand or min_price or max_price or in_stock %}<a class="clear-filters" href="{% url 'products' %}">清除全部條件</a>{% endif %}
+</div></div>
 <!-- 商品展示區域 -->
 <section class="products-display">
     <div class="container">
@@ -168,7 +176,7 @@
                         {% if product.images.exists %}
                             <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                         {% else %}
-                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                            <img src="{% static 'img/products/default.svg' %}" alt="{{ product.name }}" loading="lazy">
                         {% endif %}
                     </a>
                     <div class="product-overlay">
@@ -217,7 +225,7 @@
                     </div>
 
                     <!-- 庫存狀態 -->
-                    <div class="stock-status">
+                    <div class="product-category-label">{{ product.category.name }}{% if product.brand %} · {{ product.brand.name }}{% endif %}</div><div class="stock-status">
                         {% if product.stock_quantity > 10 %}
                             <span class="in-stock">現貨充足</span>
                         {% elif product.stock_quantity > 0 %}
@@ -255,12 +263,12 @@
             <ul class="pagination justify-content-center">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                        <a class="page-link" href="?page=1{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="首頁">
+                        <a class="page-link" href="{% query_update page=1 %}" title="首頁">
                             <i class="bi bi-chevron-double-left"></i>
                         </a>
                 </li>
                 <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="上一頁">
+                        <a class="page-link" href="{% query_update page=page_obj.previous_page_number %}" title="上一頁">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                 </li>
@@ -273,19 +281,19 @@
                     </li>
                     {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                     <li class="page-item">
-                            <a class="page-link" href="?page={{ num }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                            <a class="page-link" href="{% query_update page=num %}">{{ num }}</a>
                     </li>
                     {% endif %}
                 {% endfor %}
 
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="下一頁">
+                        <a class="page-link" href="{% query_update page=page_obj.next_page_number %}" title="下一頁">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                 </li>
                 <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="末頁">
+                        <a class="page-link" href="{% query_update page=page_obj.paginator.num_pages %}" title="末頁">
                             <i class="bi bi-chevron-double-right"></i>
                         </a>
                 </li>
@@ -328,7 +336,7 @@
                         {% if product.images.exists %}
                             <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                         {% else %}
-                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                            <img src="{% static 'img/products/default.svg' %}" alt="{{ product.name }}" loading="lazy">
                         {% endif %}
                     </a>
                     {% if product.is_featured %}
@@ -411,7 +419,7 @@
                         {% if product.images.exists %}
                             <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                         {% else %}
-                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                            <img src="{% static 'img/products/default.svg' %}" alt="{{ product.name }}" loading="lazy">
                         {% endif %}
                     </a>
                 </div>

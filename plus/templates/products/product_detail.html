@@ -10,6 +10,7 @@
 {% endblock %}
 
 {% block content %}
+{% if is_preview %}<div class="container"><p class="alert alert-warning mt-3">管理員商品預覽 · 此頁僅供檢查版面與內容，完成上架後顧客才能購買。</p></div>{% endif %}
 <section class="product-detail-section">
     <div class="container">
         <!-- 麵包屑導航 -->
@@ -26,7 +27,7 @@
             <!-- 商品圖片 -->
             <div class="product-images">
                 <div class="main-image-wrapper">
-                    <img src="{% if product.images.exists %}{{ product.images.first.image.url }}{% else %}{% static 'img/products/default.png' %}{% endif %}" 
+                    <img src="{% if product.images.exists %}{{ product.images.first.image.url }}{% else %}{% static 'img/products/default.svg' %}{% endif %}"
                          alt="{{ product.name }}" 
                          class="main-image" 
                          id="mainImage"
@@ -111,7 +112,7 @@
                     </div>
 
                     <div class="action-buttons">
-                        {% if available_quantity > 0 %}
+                        {% if is_preview %}<button class="btn-add-cart" disabled>預覽模式</button>{% elif available_quantity > 0 %}
                         <button class="btn-add-cart" onclick="addToCart({{ product.id }})">
                             <i class="bi bi-cart-plus"></i> 加入購物車
                         </button>
@@ -330,7 +331,7 @@
                             {% if related_product.images.exists %}
                                 <img src="{{ related_product.images.first.image.url }}" alt="{{ related_product.name }}" loading="lazy">
                             {% else %}
-                                <img src="{% static 'img/products/default.png' %}" alt="{{ related_product.name }}" loading="lazy">
+                                <img src="{% static 'img/products/default.svg' %}" alt="{{ related_product.name }}" loading="lazy">
                             {% endif %}
                         </a>
                         {% if related_product.is_featured %}
@@ -394,7 +395,7 @@
                             {% if product.images.exists %}
                                 <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                             {% else %}
-                                <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                                <img src="{% static 'img/products/default.svg' %}" alt="{{ product.name }}" loading="lazy">
                             {% endif %}
                         </a>
                     </div>

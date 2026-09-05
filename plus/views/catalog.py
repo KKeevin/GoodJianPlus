@@ -199,11 +199,15 @@ def products(request):
             products = products.filter(brand=selected_brand)
     if min_price:
         try:
+            if not Decimal(min_price).is_finite() or not 0 <= Decimal(min_price) <= Decimal('99999999.99'):
+                raise ValueError
             products = products.filter(price__gte=Decimal(min_price))
         except Exception:
             min_price = ''
     if max_price:
         try:
+            if not Decimal(max_price).is_finite() or not 0 <= Decimal(max_price) <= Decimal('99999999.99'):
+                raise ValueError
             products = products.filter(price__lte=Decimal(max_price))
         except Exception:
             max_price = ''
@@ -217,17 +221,21 @@ def products(request):
     )
     
     if sort_by == 'price-low':
-        products = products.order_by('price')
+        products = products.order_by('price', 'pk')
     elif sort_by == 'price-high':
-        products = products.order_by('-price')
+        products = products.order_by('-price', '-pk')
     elif sort_by == 'newest':
         products = products.order_by('-created_at')
     elif sort_by == 'popular':
-        # review_count 已經在上面計算了，不需要重複註解
-        products = products.order_by('-review_count', '-created_at')
+        from django.db.models import OuterRef, Subquery, IntegerField
+        from django.db.models.functions import Coalesce
+        sales = OrderItem.objects.filter(product_id=OuterRef('pk'), order__payment_status='paid').exclude(
+            order__status__in=('cancelled', 'refunded')
+        ).values('product_id').annotate(total=Sum('quantity')).values('total')
+        products = products.annotate(sold_quantity=Coalesce(Subquery(sales, output_field=IntegerField()), 0)).order_by('-sold_quantity', '-pk')
     else:
         products = products.order_by('-is_featured', '-created_at')
-    paginator = Paginator(products, 12)
+    paginator = Paginator(products, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     from plus.services.cart import get_or_create_cart
@@ -305,7 +313,9 @@ def search_products(request):
 def product_detail_view(request, product_id):
     """商品詳情頁面"""
     try:
-        product = Product.objects.get(id=product_id, status='published')
+        preview = request.GET.get('preview') == '1' and request.user.is_staff and request.user.has_perm('plus.change_product')
+        queryset = Product.objects.all() if preview else Product.objects.filter(status='published')
+        product = queryset.get(id=product_id)
     except Product.DoesNotExist:
         messages.error(request, '商品不存在或已下架')
         return redirect('products')
@@ -359,6 +369,7 @@ def product_detail_view(request, product_id):
     
     context = {
         'product': product,
+        'is_preview': preview,
         'reviews': reviews[:10],  # 顯示前10條評價
         'avg_rating': avg_rating,
         'is_favorited': is_favorited,
@@ -420,7 +431,7 @@ def quick_view_product(request, product_id):
     
     if not images:
         images.append({
-            'url': '/static/img/products/default.png',
+            'url': '/static/img/products/default.svg',
             'alt': product.name
         })
     

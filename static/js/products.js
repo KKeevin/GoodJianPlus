@@ -143,8 +143,14 @@
 
     // 渲染快速預覽內容
     function renderQuickView(product, container) {
-        const imagesHtml = product.images.map((img, index) => 
-            `<img src="${img.url}" alt="${img.alt}" class="quick-view-img" data-index="${index}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; display: ${index === 0 ? 'block' : 'none'};">`
+        // Keep the preview useful even if an older API response has no images.
+        // The API normally supplies this fallback, but normalizing here also
+        // protects cached responses and prevents an empty image column.
+        const images = Array.isArray(product.images) && product.images.length
+            ? product.images
+            : [{ url: '/static/img/products/default.svg', alt: `${product.name} 預設商品圖` }];
+        const imagesHtml = images.map((img, index) => 
+            `<img src="${img.url}" onerror="this.onerror=null;this.src='/static/img/products/default.svg';" alt="${img.alt}" class="quick-view-img" data-index="${index}" style="width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; display: ${index === 0 ? 'block' : 'none'};">`
         ).join('');
         
         const priceHtml = product.original_price && product.original_price > product.price
@@ -172,10 +178,10 @@
                 <div class="col-md-6">
                     <div class="quick-view-images position-relative">
                         ${imagesHtml}
-                        ${product.images.length > 1 ? `
+                        ${images.length > 1 ? `
                         <div class="quick-view-thumbnails mt-2 d-flex gap-2" style="overflow-x: auto;">
-                            ${product.images.map((img, index) => 
-                                `<img src="${img.url}" alt="${img.alt}" class="quick-view-thumb" data-index="${index}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid ${index === 0 ? '#28a745' : 'transparent'}; transition: border-color 0.3s;">`
+                            ${images.map((img, index) => 
+                                `<img src="${img.url}" onerror="this.onerror=null;this.src='/static/img/products/default.svg';" alt="${img.alt}" class="quick-view-thumb" data-index="${index}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 2px solid ${index === 0 ? '#28a745' : 'transparent'}; transition: border-color 0.3s;">`
                             ).join('')}
                         </div>
                         ` : ''}

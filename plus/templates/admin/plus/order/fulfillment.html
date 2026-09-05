@@ -1,0 +1,24 @@
+{% extends 'admin/base_site.html' %}
+{% load static shop_tags %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'admin/css/seller.css' %}">{% endblock %}
+{% block content %}
+<div class="seller-workspace">
+  <div class="seller-heading"><div><h1>出貨工作台</h1><p>先揀貨、核對包裹，再填寫物流單號完成出貨。依下單時間優先處理。</p></div><a href="{% url 'admin:plus_order_changelist' %}">完整訂單管理 →</a></div>
+  <nav class="seller-tabs" aria-label="訂單分類">{% for tab in queues %}<a class="{% if queue == tab.key %}active{% endif %}" href="?queue={{ tab.key }}">{{ tab.label }} <b>{{ tab.count }}</b></a>{% endfor %}</nav>
+  <form method="get" class="seller-search"><input type="hidden" name="queue" value="{{ queue }}"><input name="q" value="{{ query }}" aria-label="搜尋訂單" placeholder="搜尋訂單編號、收件人、電話或物流單號"><button type="submit" class="btn btn-primary">搜尋</button>{% if query %}<a href="?queue={{ queue }}">清除搜尋</a>{% endif %}</form>
+  {% if errors %}<div class="seller-errors" role="alert"><strong>本次未變更任何訂單，請修正後再送出。</strong>{% for error in errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+  <form method="post">{% csrf_token %}
+    <div class="seller-actions"><span id="selection-count" aria-live="polite">已選 0 筆</span><button name="operation" value="print" class="btn btn-outline-secondary">列印揀貨／裝箱單</button><button name="operation" value="export" class="btn btn-outline-secondary">匯出 CSV</button>{% if can_change and queue == 'ready' %}<button name="operation" value="processing" class="btn btn-outline-primary">開始備貨</button><button name="operation" value="shipped" class="btn btn-primary">確認批次出貨</button>{% endif %}</div>
+    <div class="seller-table-wrap"><table class="seller-table"><thead><tr><th><input type="checkbox" id="select-all" aria-label="全選本頁訂單"></th><th>訂單／收件人</th><th>商品明細</th><th>付款／狀態</th><th>物流資訊</th></tr></thead><tbody>
+    {% for order in page_obj %}<tr><td><input type="checkbox" name="orders" value="{{ order.pk }}" aria-label="選取 {{ order.order_number }}" {% if order.selected %}checked{% endif %}></td>
+      <td><a href="{% url 'admin:plus_order_change' order.pk %}"><strong>{{ order.order_number }}</strong></a><small>{{ order.created_at|date:'m/d H:i' }}</small><p>{{ order.shipping_name }} · {{ order.shipping_phone }}</p><small>{{ order.shipping_address }}</small>{% if order.shipping_notes %}<p class="seller-note">配送備註：{{ order.shipping_notes }}</p>{% endif %}</td>
+      <td>{% for item in order.items.all %}<p>{{ item.product_name }} <b>× {{ item.quantity }}</b><small>{{ item.product_sku }}</small></p>{% endfor %}</td>
+      <td><strong>{{ order.total_amount|money }}</strong><small>{{ order.get_payment_method_display }} · {{ order.get_payment_status_display }}</small><span class="seller-status">{{ order.get_status_display }}</span></td>
+      <td>{% if can_change and queue == 'ready' %}<label for="carrier-{{ order.pk }}">物流商</label><select id="carrier-{{ order.pk }}" name="carrier_{{ order.pk }}">{% for value,label in carriers %}<option value="{{ value }}" {% if order.input_carrier == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><label for="tracking-{{ order.pk }}">物流單號</label><input id="tracking-{{ order.pk }}" name="tracking_{{ order.pk }}" value="{{ order.input_tracking }}" maxlength="80" placeholder="填入已取得的物流單號">{% else %}{{ order.get_carrier_display }}<small>{{ order.tracking_number|default:'尚未填寫單號' }}</small>{% endif %}</td></tr>
+    {% empty %}<tr><td colspan="5" class="seller-empty">目前沒有符合條件的訂單。</td></tr>{% endfor %}
+    </tbody></table></div>
+  </form>
+  <div class="seller-pagination">{% if page_obj.has_previous %}<a href="{% query_update page=page_obj.previous_page_number %}">← 上一頁</a>{% endif %}<span>第 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }} 頁 · 共 {{ page_obj.paginator.count }} 筆</span>{% if page_obj.has_next %}<a href="{% query_update page=page_obj.next_page_number %}">下一頁 →</a>{% endif %}</div>
+</div>
+<script src="{% static 'admin/js/seller.js' %}" defer></script>
+{% endblock %}

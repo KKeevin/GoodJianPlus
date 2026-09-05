@@ -188,7 +188,7 @@
                     <div class="order-items">
                         {% for item in items %}
                         <div class="order-item">
-                            <img src="{% if item.product.images.exists %}{{ item.product.images.first.image.url }}{% else %}{% static 'img/products/default.png' %}{% endif %}" 
+                            <img src="{% if item.product.images.exists %}{{ item.product.images.first.image.url }}{% else %}{% static 'img/products/default.svg' %}{% endif %}"
                                  alt="{{ item.product.name }}" 
                                  class="order-item-image">
                             <div class="order-item-info">

@@ -48,7 +48,7 @@
                                 {% if item.product.images.exists %}
                                     <img src="{{ item.product.images.first.image.url }}" alt="{{ item.product.name }}">
                                 {% else %}
-                                    <img src="{% static 'img/products/default.png' %}" alt="{{ item.product.name }}">
+                                    <img src="{% static 'img/products/default.svg' %}" alt="{{ item.product.name }}">
                                 {% endif %}
                             </div>
                             <div class="product-details">
@@ -155,7 +155,7 @@
                             {% if product.images.exists %}
                                 <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                             {% else %}
-                                <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                                <img src="{% static 'img/products/default.svg' %}" alt="{{ product.name }}" loading="lazy">
                             {% endif %}
                         </a>
                         {% if product.is_featured %}

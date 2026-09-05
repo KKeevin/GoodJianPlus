@@ -45,7 +45,7 @@
                         {% if product.images.exists %}
                             <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" loading="lazy">
                         {% else %}
-                            <img src="{% static 'img/products/default.png' %}" alt="{{ product.name }}" loading="lazy">
+                            <img src="{% static 'img/products/default.svg' %}" alt="{{ product.name }}" loading="lazy">
                         {% endif %}
                     </a>
                     <div class="product-overlay">
