@@ -33,6 +33,7 @@ python manage.py runserver
 - [本機與部署概要](docs/operations.md)
 - [金流／郵件／OAuth／物流申請金鑰](docs/integrations.md)
 - [前台購物與健康功能](docs/storefront.md)
+- [賣家工作台、上架／庫存與出貨操作](docs/seller-center.md)
 - [正式機 SSH 與更新程式](docs/deploy.md)
 - [安全](docs/security.md)
 - [郵件](docs/email.md)

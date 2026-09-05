@@ -3,6 +3,11 @@ from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html, mark_safe
 from django.urls import reverse
 from django import forms
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from plus.admin.seller import SellerOrderMixin
+from plus.models import OrderEvent
+from plus.services.order_workflow import validate_transition, transition_order
 from plus.models import (
     CustomUser, UserProfile, Category, Brand, Product, ProductImage,
     ProductReview, Cart, CartItem, Order, OrderItem, Coupon,
@@ -43,6 +48,9 @@ class OrderItemInline(admin.TabularInline):
     readonly_fields = ('product', 'product_name', 'product_sku', 'unit_price', 'quantity', 'subtotal')
     fields = ('product_name', 'product_sku', 'unit_price', 'quantity', 'subtotal')
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 class ReturnRequestInline(admin.TabularInline):
     model = ReturnRequest
@@ -51,10 +59,46 @@ class ReturnRequestInline(admin.TabularInline):
     readonly_fields = ('user', 'reason', 'detail', 'status', 'created_at')
     fields = ('user', 'reason', 'status', 'detail', 'created_at')
 
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class OrderEventInline(admin.TabularInline):
+    model = OrderEvent
+    extra = 0
+    can_delete = False
+    readonly_fields = ('status', 'actor', 'created_at')
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class OrderAdminForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def clean(self):
+        data = super().clean()
+        if self.instance.pk and 'status' in data:
+            old = Order.objects.select_for_update().get(pk=self.instance.pk)
+            new_payment = data.get('payment_status', old.payment_status)
+            if new_payment != old.payment_status and (
+                new_payment == 'refunded' or old.payment_status in ('paid', 'refunded')
+            ):
+                raise ValidationError('不可直接回退已付款狀態；退款請透過售後流程處理。')
+            old.carrier = data.get('carrier', old.carrier)
+            old.tracking_number = data.get('tracking_number', old.tracking_number)
+            old.payment_status = data.get('payment_status', old.payment_status)
+            validate_transition(old, data['status'])
+        return data
+
 
 @admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-    inlines = [OrderItemInline, ReturnRequestInline]
+class OrderAdmin(SellerOrderMixin, admin.ModelAdmin):
+    form = OrderAdminForm
+    change_list_template = 'admin/plus/order/change_list.html'
+    inlines = [OrderItemInline, ReturnRequestInline, OrderEventInline]
     list_display = (
         'order_number', 'user', 'shipping_name', 'status', 'payment_status',
         'payment_method', 'tracking_number', 'total_amount', 'created_at',
@@ -65,43 +109,52 @@ class OrderAdmin(admin.ModelAdmin):
         'order_number', 'user__username', 'shipping_name', 'shipping_phone',
         'shipping_email', 'tracking_number', 'invoice_tax_id',
     )
-    list_editable = ('status', 'payment_status')
+    list_editable = ()
     list_select_related = ('user',)
     list_per_page = 25
     autocomplete_fields = ('user',)
     actions = ['mark_processing', 'mark_shipped', 'mark_delivered']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def save_model(self, request, obj, form, change):
         from plus.services.fulfillment import stamp_fulfillment_times, notify_order_status_change
         old_status = None
         old_payment_status = None
         if change:
-            old_obj = Order.objects.get(pk=obj.pk)
+            old_obj = Order.objects.select_for_update().get(pk=obj.pk)
             old_status = old_obj.status
             old_payment_status = old_obj.payment_status
             stamp_fulfillment_times(obj)
         super().save_model(request, obj, form, change)
         if change:
-            notify_order_status_change(obj, old_status, old_payment_status)
+            if old_status != obj.status:
+                OrderEvent.objects.create(order=obj, actor=request.user, status=obj.status)
+            if obj.status == 'cancelled' and old_status != 'cancelled':
+                from plus.services.inventory import release_order_inventory, restore_coupon
+                release_order_inventory(obj)
+                restore_coupon(obj)
+            transaction.on_commit(lambda: notify_order_status_change(obj, old_status, old_payment_status, inventory_handled=True))
 
     def _apply_status(self, request, queryset, status, require_tracking=False):
-        from plus.services.fulfillment import stamp_fulfillment_times, notify_order_status_change
         ok = 0
         skipped = 0
         for order in queryset:
-            if require_tracking and not order.tracking_number:
+            try:
+                _, changed = transition_order(order.pk, status, actor=request.user)
+            except ValidationError:
                 skipped += 1
                 continue
-            old_status = order.status
-            old_payment = order.payment_status
-            order.status = status
-            stamp_fulfillment_times(order)
-            order.save()
-            notify_order_status_change(order, old_status, old_payment)
-            ok += 1
+            if changed:
+                self.log_change(request, order, f'批次更新：{status}')
+                ok += 1
         msg = f'已更新 {ok} 筆訂單'
         if skipped:
-            msg += f'；{skipped} 筆未填物流單號已跳過'
+            msg += f'；{skipped} 筆付款、物流資料或狀態不符已跳過，請至出貨工作台確認'
         self.message_user(request, msg)
 
     @admin.action(description='標示為處理中（備貨）')
@@ -116,7 +169,9 @@ class OrderAdmin(admin.ModelAdmin):
     def mark_delivered(self, request, queryset):
         self._apply_status(request, queryset, 'delivered')
 
-    readonly_fields = ('order_number', 'created_at', 'updated_at')
+    readonly_fields = ('order_number', 'user', 'created_at', 'updated_at', 'subtotal',
+                       'shipping_fee', 'tax_amount', 'discount_amount', 'total_amount',
+                       'coupon_code', 'payment_method', 'payment_transaction_id', 'shipped_at', 'delivered_at')
 
     fieldsets = (
         ('訂單基本資訊', {
@@ -171,6 +226,7 @@ class ReturnRequestAdmin(admin.ModelAdmin):
             order.status = 'refunded'
             order.payment_status = 'refunded'
             order.save(update_fields=['status', 'payment_status'])
+            OrderEvent.objects.create(order=order, status='refunded', actor=request.user)
             from plus.services.inventory import release_order_inventory, restore_coupon
             release_order_inventory(order)
             restore_coupon(order)

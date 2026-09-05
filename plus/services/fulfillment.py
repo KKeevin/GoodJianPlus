@@ -29,9 +29,9 @@ def stamp_fulfillment_times(order):
         order.delivered_at = now
 
 
-def notify_order_status_change(order, old_status, old_payment_status, request=None):
+def notify_order_status_change(order, old_status, old_payment_status, request=None, inventory_handled=False):
     if old_status != order.status:
-        if order.status == 'cancelled' and old_status != 'cancelled':
+        if order.status == 'cancelled' and old_status != 'cancelled' and not inventory_handled:
             release_order_inventory(order)
             restore_coupon(order)
         message = STATUS_MESSAGES.get(

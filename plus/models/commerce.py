@@ -171,6 +171,18 @@ class Order(models.Model):
         return resolve_tracking_url(self)
 
 
+class OrderEvent(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='events')
+    status = models.CharField(max_length=20, choices=Order.STATUS_CHOICES, verbose_name='訂單狀態')
+    actor = models.ForeignKey(CustomUser, null=True, blank=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='更新時間')
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        verbose_name = '訂單處理紀錄'
+        verbose_name_plural = '訂單處理紀錄'
+
+
 class ShippingAddress(models.Model):
     """會員常用收件地址"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='shipping_addresses', verbose_name='會員')

@@ -39,14 +39,15 @@ def recent_actions_view(request):
 
 
 def get_ops_stats():
+    from plus.services.order_workflow import ready_to_ship
     low_stock = Product.objects.filter(
         stock_quantity__gt=0, stock_quantity__lte=F('min_stock_level')
     ).count()
     out_of_stock = Product.objects.filter(stock_quantity=0).count()
     pending_reviews = ProductReview.objects.filter(is_approved=False).count()
     return {
-        'awaiting_payment': Order.objects.filter(payment_status='pending').exclude(status='cancelled').count(),
-        'to_ship': Order.objects.filter(status__in=('confirmed', 'processing')).count(),
+        'awaiting_payment': Order.objects.filter(payment_status__in=('pending', 'failed'), status__in=('pending', 'confirmed', 'processing')).exclude(payment_method='cod').count(),
+        'to_ship': ready_to_ship().count(),
         'shipped': Order.objects.filter(status='shipped').count(),
         'pending_returns': ReturnRequest.objects.filter(status='pending').count(),
         'draft_products': Product.objects.filter(status='draft').count(),
@@ -55,8 +56,8 @@ def get_ops_stats():
         'pending_reviews': pending_reviews,
         'newsletter': NewsletterSubscriber.objects.filter(is_active=True).count(),
         'links': {
-            'awaiting_payment': reverse('admin:plus_order_changelist') + '?payment_status__exact=pending',
-            'to_ship': reverse('admin:plus_order_changelist') + '?status__exact=confirmed',
+            'awaiting_payment': reverse('admin:plus_order_fulfillment') + '?queue=unpaid',
+            'to_ship': reverse('admin:plus_order_fulfillment'),
             'shipped': reverse('admin:plus_order_changelist') + '?status__exact=shipped',
             'pending_returns': reverse('admin:plus_returnrequest_changelist') + '?status__exact=pending',
             'draft_products': reverse('admin:plus_product_changelist') + '?status__exact=draft',

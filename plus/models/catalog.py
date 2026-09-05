@@ -143,7 +143,7 @@ class ProductImage(models.Model):
     class Meta:
         verbose_name = '商品圖片'
         verbose_name_plural = '商品圖片管理'
-        ordering = ['sort_order']
+        ordering = ['-is_primary', 'sort_order', 'pk']
 
     def __str__(self):
         return f"{self.product.name} - 圖片{self.id}"

@@ -81,7 +81,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_summernote',  # 富文本編輯器
+    'GoodJian.apps.SummernoteConfig',  # 富文本編輯器，保留套件原有附件主鍵類型
     'social_django',  # Google OAuth 登入
 ]
 
@@ -150,6 +150,7 @@ JAZZMIN_SETTINGS = {
             {'model': 'plus.ProductReview'},
         ],
         '訂單與物流': [
+            {'name': '出貨工作台', 'url': 'admin:plus_order_fulfillment', 'icon': 'fas fa-box-open', 'permissions': ['plus.view_order']},
             {'model': 'plus.Cart'},
             {'model': 'plus.Order'},
             {'model': 'plus.ReturnRequest'},
@@ -407,7 +408,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 收集靜態文件的目�
 
 # 靜態文件版本號（用於強制刷新緩存）
 # 每次更新 CSS/JS 時，請更新此版本號
-STATIC_VERSION = os.getenv('STATIC_VERSION', '1.0.6')
+STATIC_VERSION = os.getenv('STATIC_VERSION', '1.1.1')
 
 # 在檔案最後加入
 MEDIA_URL = '/media/'

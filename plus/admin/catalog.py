@@ -12,6 +12,7 @@ from plus.models import (
 )
 
 from plus.admin.filters import HasImageFilter, StockStatusFilter
+from plus.admin.merchandising import MerchandisingMixin, ProductAdminForm, listing_issues
 
 try:
     from django_summernote.admin import SummernoteModelAdmin
@@ -151,24 +152,26 @@ class ProductImageInline(admin.TabularInline):
 
 
 @admin.register(Product)
-class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.ModelAdmin):
+class ProductAdmin(MerchandisingMixin, SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.ModelAdmin):
+    form = ProductAdminForm
     inlines = [ProductImageInline]
     list_display = (
         'thumbnail', 'name', 'sku', 'category', 'price', 'stock_badge',
-        'status', 'is_featured', 'view_on_site_link', 'updated_at',
+        'status', 'is_featured', 'listing_readiness', 'view_on_site_link', 'updated_at',
     )
     list_filter = ('status', 'is_featured', StockStatusFilter, HasImageFilter, 'category', 'brand', 'created_at')
     search_fields = ('name', 'sku', 'description', 'short_description')
     prepopulated_fields = {'slug': ('name',)}
     list_display_links = ('name',)
     list_editable = ('price', 'status', 'is_featured')
-    readonly_fields = ('created_at', 'updated_at', 'view_on_site_link')
+    readonly_fields = ('created_at', 'updated_at', 'view_on_site_link', 'listing_readiness')
     list_select_related = ('category', 'brand')
     list_per_page = 25
     autocomplete_fields = ('brand',)
     if SUMMERNOTE_AVAILABLE:
         summernote_fields = ('description',)
     actions = [
+        'adjust_stock',
         'generate_ai_short_description',
         'publish_products',
         'unpublish_products',
@@ -202,13 +205,17 @@ class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.Model
         from django.utils import timezone
         now = timezone.now()
         updated = 0
+        skipped = 0
         for product in queryset:
+            if product.price <= 0 or not product.category.is_active:
+                skipped += 1
+                continue
             product.status = 'published'
             if not product.published_at:
                 product.published_at = now
             product.save(update_fields=['status', 'published_at'])
             updated += 1
-        self.message_user(request, f'已發佈 {updated} 件商品')
+        self.message_user(request, f'已發佈 {updated} 件商品' + (f'；{skipped} 件價格或分類不符已跳過' if skipped else ''))
 
     @admin.action(description='改回草稿（下架）')
     def unpublish_products(self, request, queryset):
@@ -233,9 +240,10 @@ class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.Model
             image_rows = list(product.images.all())
             product.pk = None
             product.id = None
-            product.name = f'{product.name}（複製）'
-            product.slug = f'{product.slug}-copy-{uuid.uuid4().hex[:6]}'
-            product.sku = f'{product.sku}-C{uuid.uuid4().hex[:4].upper()}'[:50]
+            product.name = f'{product.name[:196]}（複製）'
+            product.slug = f'{product.slug[:180]}-copy-{uuid.uuid4().hex[:12]}'
+            product.sku = f'{product.sku[:36]}-C{uuid.uuid4().hex[:12].upper()}'
+            product.stock_quantity = 0
             product.status = 'draft'
             product.is_featured = False
             product.published_at = None
@@ -246,7 +254,14 @@ class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.Model
                 image.product = product
                 image.save()
             count += 1
-        self.message_user(request, f'已複製 {count} 件草稿，請改 SKU／名稱後再發佈')
+        self.message_user(request, f'已複製 {count} 件草稿（庫存歸零），請確認 SKU、庫存與名稱後再發佈')
+
+    @admin.display(description='上架檢查')
+    def listing_readiness(self, obj):
+        if not obj.pk:
+            return '儲存草稿後顯示檢查結果'
+        issues = listing_issues(obj)
+        return '、'.join(issues) if issues else '✓ 資料完整'
 
     def thumbnail(self, obj):
         images = list(obj.images.all())
@@ -276,6 +291,8 @@ class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.Model
         if not obj.pk:
             return '—'
         url = reverse('product_detail', kwargs={'product_id': obj.pk})
+        if obj.status != 'published':
+            url += '?preview=1'
         return format_html('<a href="{}" target="_blank" rel="noopener">前台預覽</a>', url)
     view_on_site_link.short_description = '前台'
     
@@ -409,7 +426,7 @@ class ProductAdmin(SummernoteModelAdmin if SUMMERNOTE_AVAILABLE else admin.Model
     
     fieldsets = (
         ('基本資訊', {
-            'fields': ('name', 'slug', 'category', 'brand', 'sku', 'status', 'view_on_site_link')
+            'fields': ('name', 'slug', 'category', 'brand', 'sku', 'status', 'listing_readiness', 'view_on_site_link')
         }),
         ('內容描述', {
             'fields': ('short_description', 'description')
