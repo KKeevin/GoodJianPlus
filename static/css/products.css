@@ -1853,3 +1853,9 @@
     font-weight: bold;
     margin-left: 8px;
 }
+
+/* The list view is always a single row per product, regardless of viewport. */
+.products-display .product-grid.list-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-flow: row;
+}

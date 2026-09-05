@@ -1127,6 +1127,129 @@
     box-sizing: border-box;
 }
 
+/* Mobile purchase summary: keep the primary controls within the first screen. */
+@media (max-width: 767px) {
+    .product-detail-section { padding: 10px 0 24px; }
+    .product-detail-section > .container > nav[aria-label="breadcrumb"] {
+        margin-bottom: 8px !important; /* Override the template's desktop spacing. */
+    }
+    .product-detail-section .breadcrumb {
+        flex-wrap: nowrap;
+        margin: 0;
+        font-size: 11px;
+        line-height: 18px;
+        overflow: hidden;
+    }
+    .product-detail-section .breadcrumb-item { flex-shrink: 0; }
+    .product-detail-section .breadcrumb-item.active { flex-shrink: 1; min-width: 0; }
+    .product-detail-section .product-detail-container {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+    .product-detail-section .product-images {
+        position: static;
+        max-width: none;
+    }
+    .product-detail-section .main-image-wrapper {
+        height: clamp(110px, 22vh, 180px);
+        height: clamp(110px, 22svh, 180px);
+        aspect-ratio: auto;
+        margin-bottom: 6px;
+        cursor: pointer;
+    }
+    .product-detail-section .main-image { aspect-ratio: auto; object-fit: contain; }
+    .product-detail-section .main-image-wrapper:hover .main-image { opacity: 1; }
+    .product-detail-section .thumbnail-images { gap: 6px; padding-bottom: 2px; }
+    .product-detail-section .thumbnail { width: 38px; height: 38px; min-width: 38px; }
+    .product-detail-section .product-info-section { display: flex; flex-direction: column; }
+    .product-detail-section .product-info-section h1 {
+        order: 0;
+        font-size: 18px;
+        line-height: 1.35;
+        margin: 0 0 6px;
+    }
+    .product-detail-section .product-price-section {
+        order: 1;
+        flex-direction: row;
+        align-items: baseline;
+        margin: 0 0 6px;
+        gap: 7px;
+    }
+    .product-detail-section .current-price { font-size: 24px; margin: 0; }
+    .product-detail-section .original-price { font-size: 13px; }
+    .product-detail-section .discount-badge { margin: 0; padding: 3px 6px; font-size: 11px; }
+    .product-detail-section .stock-info {
+        order: 2;
+        margin: 0 0 6px !important;
+        font-size: 12px;
+        line-height: 18px;
+    }
+    .product-detail-section .product-actions { order: 3; margin: 0 0 12px; }
+    .product-detail-section .quantity-selector {
+        flex-direction: row;
+        align-items: center;
+        gap: 4px 10px;
+        margin: 0 0 8px;
+    }
+    .product-detail-section .quantity-selector label { width: auto; font-size: 13px; }
+    .product-detail-section .quantity-controls { max-width: none; }
+    .product-detail-section .qty-btn { width: 44px; height: 44px; }
+    .product-detail-section .qty-input { width: 52px; height: 44px; font-size: 16px; }
+    .product-detail-section .quantity-selector > div:last-child {
+        flex-basis: 100%;
+        margin-top: 0 !important;
+        font-size: 12px !important;
+        line-height: 18px;
+    }
+    .product-detail-section .action-buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .product-detail-section .btn-add-cart,
+    .product-detail-section .btn-buy-now {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        min-height: 44px;
+        padding: 10px 6px;
+        font-size: 13px;
+        line-height: 20px;
+    }
+    .product-detail-section .action-buttons .wishlist-btn {
+        flex: 0 0 44px;
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        padding: 0;
+        margin: 0;
+        font-size: 18px;
+    }
+    .product-detail-section .wishlist-btn-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+    .product-detail-section .product-meta {
+        order: 4;
+        flex-direction: row;
+        gap: 4px 12px;
+        margin: 0 0 8px;
+        padding-bottom: 8px;
+        font-size: 12px;
+    }
+    .product-detail-section .product-rating { gap: 5px; }
+    .product-detail-section .product-description { order: 5; margin: 0; font-size: 13px; line-height: 1.6; }
+    .product-detail-section .product-details-tabs { margin-top: 20px; }
+    .product-detail-section .action-buttons .alert { flex-basis: 100%; }
+}
+
 /* 確保容器不會溢出 */
 /* 商品詳細頁專用的 container，不影響全局 */
 .product-detail-section .container {
@@ -1134,5 +1257,275 @@
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+}
+
+/* 手機版商品描述、規格與評價內容 */
+@media (max-width: 600px) {
+    .product-detail-section .product-details-tabs {
+        margin-top: 16px;
+    }
+
+    .product-detail-section .tab-nav {
+        margin-bottom: 8px;
+        border-bottom-width: 1px;
+    }
+
+    .product-detail-section .tab-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 9px 5px 8px;
+        font-size: 12px;
+    }
+
+    .product-detail-section .tab-content {
+        padding: 14px 0;
+        font-size: 13px;
+        line-height: 1.65;
+    }
+
+    .product-detail-section #description-tab > div {
+        line-height: 1.65 !important;
+    }
+
+    .product-detail-section #description-tab p {
+        margin-bottom: 8px;
+    }
+
+    .product-detail-section #specs-tab .table {
+        margin-bottom: 8px;
+        font-size: 12px;
+    }
+
+    .product-detail-section #specs-tab .table th,
+    .product-detail-section #specs-tab .table td {
+        padding: 8px 9px;
+        line-height: 1.45;
+        vertical-align: middle;
+        word-break: break-word;
+    }
+
+    .product-detail-section #specs-tab .table th {
+        width: 30%;
+        font-weight: 600;
+    }
+
+    .product-detail-section #specs-tab form {
+        margin-top: 10px !important;
+    }
+
+    .product-detail-section #specs-tab form button {
+        min-height: 34px;
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .product-detail-section #reviews-tab .review-form {
+        margin-top: 8px;
+        padding: 13px;
+        border-radius: 8px;
+    }
+
+    .product-detail-section #reviews-tab .review-form h4,
+    .product-detail-section #reviews-tab .review-form h5 {
+        margin-bottom: 8px;
+        font-size: 15px;
+    }
+
+    .product-detail-section #reviews-tab .form-label,
+    .product-detail-section #reviews-tab label {
+        margin-bottom: 4px;
+        font-size: 12px;
+    }
+
+    .product-detail-section #reviews-tab .form-control,
+    .product-detail-section #reviews-tab select,
+    .product-detail-section #reviews-tab textarea {
+        padding: 7px 9px;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .product-detail-section #reviews-tab textarea {
+        min-height: 86px;
+    }
+
+    .product-detail-section #reviews-tab .rating-input {
+        gap: 2px;
+        margin-bottom: 10px;
+    }
+
+    .product-detail-section #reviews-tab .rating-star {
+        font-size: 1.45rem;
+    }
+
+    .product-detail-section #reviews-tab .reviews-list {
+        margin-top: 16px !important;
+    }
+
+    .product-detail-section #reviews-tab .review-item {
+        margin-bottom: 10px !important;
+        padding: 12px !important;
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    .product-detail-section #reviews-tab .review-item h5 {
+        margin: 6px 0;
+        font-size: 14px;
+    }
+
+    .product-detail-section #reviews-tab .review-item p {
+        margin-bottom: 6px;
+    }
+
+    .product-detail-section #reviews-tab .review-item .rating-stars,
+    .product-detail-section #reviews-tab .review-item small {
+        font-size: 10px;
+    }
+
+    .product-detail-section #reviews-tab .review-form button,
+    .product-detail-section #reviews-tab .review-item button {
+        min-height: 32px;
+        padding: 5px 9px;
+        font-size: 11px;
+    }
+}
+
+/* 商品詳細頁的相關商品與最近瀏覽，使用列表頁的緊湊卡片比例 */
+.product-detail-section .related-products-section {
+    margin-top: 24px !important;
+    padding: 24px 0 !important;
+}
+
+.product-detail-section .related-products-title {
+    margin: 0 0 18px !important;
+    font-size: 1.3rem !important;
+    line-height: 1.3 !important;
+}
+
+.product-detail-section .related-products-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.product-detail-section .related-product-card {
+    min-width: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.product-detail-section .related-product-image {
+    height: auto;
+    aspect-ratio: 1.28;
+    min-height: 0;
+}
+
+.product-detail-section .related-product-image img {
+    object-fit: contain;
+}
+
+.product-detail-section .related-product-info {
+    padding: 11px 13px 13px;
+}
+
+.product-detail-section .related-product-name {
+    margin-bottom: 6px;
+    min-height: 37px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.product-detail-section .related-product-price,
+.product-detail-section .related-product-price-row {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    gap: 3px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.product-detail-section .related-product-price * {
+    white-space: nowrap;
+}
+
+.product-detail-section .related-current-price {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+}
+
+.product-detail-section .related-original-price,
+.product-detail-section .related-discount,
+.product-detail-section .related-discount-badge {
+    font-size: 10px;
+}
+
+.product-detail-section .related-product-rating {
+    min-height: 16px;
+    margin-bottom: 3px;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.product-detail-section .related-product-stock {
+    margin-top: 3px;
+    font-size: 11px;
+}
+
+.product-detail-section .related-product-card button,
+.product-detail-section .related-add-to-cart {
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 12px;
+}
+
+@media (max-width: 1024px) {
+    .product-detail-section .related-products-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .product-detail-section .related-product-info { padding: 10px 11px 11px; }
+    .product-detail-section .related-product-name { min-height: 34px; font-size: 12px; }
+    .product-detail-section .related-current-price { font-size: 14px; }
+    .product-detail-section .related-original-price,
+    .product-detail-section .related-discount,
+    .product-detail-section .related-discount-badge { font-size: 9px; }
+}
+
+@media (max-width: 600px) {
+    .product-detail-section .related-products-section {
+        margin-top: 18px !important;
+        padding: 18px 0 !important;
+    }
+
+    .product-detail-section .related-products-title {
+        margin-bottom: 12px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .product-detail-section .related-products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .product-detail-section .related-product-info { padding: 9px 10px 10px; }
+    .product-detail-section .related-product-name {
+        min-height: 33px;
+        margin-bottom: 4px;
+        font-size: 12px;
+    }
+    .product-detail-section .related-product-rating { font-size: 10px; }
+    .product-detail-section .related-current-price { font-size: 15px; }
+    .product-detail-section .related-product-stock { font-size: 10px; }
+    .product-detail-section .related-product-card button,
+    .product-detail-section .related-add-to-cart {
+        min-height: 34px;
+        padding: 6px 8px;
+        font-size: 11px;
+    }
 }
 
