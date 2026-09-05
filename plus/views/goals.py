@@ -3,11 +3,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Avg, Q, Sum
 from decimal import Decimal
+from datetime import timedelta
 import logging
 
-from plus.models import Food, UserGoal, WeightLog, NutritionLog, UserProfile, DailyNutritionTarget, Notification
+from plus.models import (
+    DailyHealthLog, DailyNutritionTarget, Food, NutritionLog, Notification,
+    UserGoal, UserProfile, WaterLog, WeightLog, WorkoutLog,
+)
 from plus.decorators import verified_required
 from plus.services.nutrition import (
     calculate_bmr, calculate_tdee, calculate_nutrition_targets,
@@ -96,7 +100,6 @@ def goal_management_view(request):
     
     from plus.services.nutrition import sum_nutrition_logs
     from plus.services.body_metrics import body_metrics_summary
-    from plus.models import WorkoutLog, WaterLog
     today_totals = sum_nutrition_logs(today_nutrition_logs)
     body_metrics = body_metrics_summary(
         goal.current_weight, goal.height, goal.goal_type
@@ -110,6 +113,37 @@ def goal_management_view(request):
             user=user, logged_at__gte=today_start, logged_at__lte=today_end
         ).values_list('amount_ml', flat=True)
     )
+
+    # 今日整體健康與最近 7 天行動進度
+    today_health_log = DailyHealthLog.objects.filter(user=user, recorded_date=today).first()
+    week_start = today - timedelta(days=6)
+    week_start_dt = timezone.make_aware(dt.combine(week_start, dt.min.time()))
+    health_week = DailyHealthLog.objects.filter(
+        user=user, recorded_date__gte=week_start, recorded_date__lte=today
+    )
+    weekly_health = health_week.aggregate(
+        avg_sleep=Avg('sleep_hours'),
+        avg_steps=Avg('steps'),
+    )
+    weekly_workout_minutes = WorkoutLog.objects.filter(
+        user=user, logged_at__gte=week_start_dt, logged_at__lte=today_end
+    ).aggregate(total=Sum('duration_minutes'))['total'] or 0
+    water_goal_ml = goal.daily_water_goal_ml or body_metrics.get('water_ml') or 2000
+    today_steps = today_health_log.steps if today_health_log and today_health_log.steps is not None else 0
+    weekly_progress = {
+        'workout_minutes': weekly_workout_minutes,
+        'workout_percent': min(100, round(weekly_workout_minutes / max(goal.weekly_workout_goal_minutes, 1) * 100)),
+        'avg_sleep': weekly_health['avg_sleep'],
+        'sleep_percent': min(100, round(float(weekly_health['avg_sleep'] or 0) / max(float(goal.sleep_goal_hours), 0.1) * 100)),
+        'avg_steps': round(weekly_health['avg_steps'] or 0),
+        'steps_percent': min(100, round(today_steps / max(goal.daily_steps_goal, 1) * 100)),
+        'water_percent': min(100, round(today_water_ml / max(water_goal_ml, 1) * 100)),
+        'checkin_days': health_week.count(),
+    }
+
+    goal_days_remaining = None
+    if goal.target_date:
+        goal_days_remaining = (goal.target_date - today).days
 
     # -------------------------------------------------------------
     # 計算目前體重與目標體重的絕對差距
@@ -132,6 +166,19 @@ def goal_management_view(request):
         'today_water_ml': today_water_ml,
         'workout_choices': WorkoutLog.ACTIVITY_CHOICES,
         'food_categories': Food.CATEGORY_CHOICES,
+        'today': today,
+        'today_health_log': today_health_log,
+        'weekly_progress': weekly_progress,
+        'water_goal_ml': water_goal_ml,
+        'goal_days_remaining': goal_days_remaining,
+        'rating_options': range(1, 6),
+        'mood_options': [
+            (1, '😞', '低落'),
+            (2, '😕', '不太好'),
+            (3, '😐', '普通'),
+            (4, '🙂', '不錯'),
+            (5, '😄', '很好'),
+        ],
     }
     return render(request, 'goals/goal_management.html', context)
 
@@ -176,6 +223,32 @@ def update_goal_view(request):
             goal.activity_level = request.POST.get('activity_level')
         if request.POST.get('goal_type'):
             goal.goal_type = request.POST.get('goal_type')
+
+        if request.POST.get('target_date'):
+            from datetime import date
+            target_date = date.fromisoformat(request.POST.get('target_date'))
+            if target_date < timezone.localdate():
+                return JsonResponse({'success': False, 'message': '目標日期不能早於今天'})
+            goal.target_date = target_date
+        elif 'target_date' in request.POST:
+            goal.target_date = None
+
+        numeric_goals = {
+            'daily_water_goal_ml': (500, 6000),
+            'daily_steps_goal': (1000, 50000),
+            'weekly_workout_goal_minutes': (10, 3000),
+        }
+        for field, (minimum, maximum) in numeric_goals.items():
+            if request.POST.get(field):
+                value = int(request.POST[field])
+                if value < minimum or value > maximum:
+                    return JsonResponse({'success': False, 'message': f'{goal._meta.get_field(field).verbose_name}超出合理範圍'})
+                setattr(goal, field, value)
+        if request.POST.get('sleep_goal_hours'):
+            sleep_goal = Decimal(request.POST['sleep_goal_hours'])
+            if sleep_goal < Decimal('4') or sleep_goal > Decimal('12'):
+                return JsonResponse({'success': False, 'message': '睡眠目標請設定在 4–12 小時'})
+            goal.sleep_goal_hours = sleep_goal
         
         # 更新身體組成目標
         if request.POST.get('current_muscle_percentage'):
@@ -327,6 +400,11 @@ def update_goal_view(request):
                 'target_protein': float(goal.target_protein) if goal.target_protein else None,
                 'target_carbs': float(goal.target_carbs) if goal.target_carbs else None,
                 'target_fat': float(goal.target_fat) if goal.target_fat else None,
+                'target_date': goal.target_date.isoformat() if goal.target_date else None,
+                'daily_water_goal_ml': goal.daily_water_goal_ml,
+                'daily_steps_goal': goal.daily_steps_goal,
+                'weekly_workout_goal_minutes': goal.weekly_workout_goal_minutes,
+                'sleep_goal_hours': float(goal.sleep_goal_hours),
                 'current_muscle_percentage': float(goal.current_muscle_percentage) if goal.current_muscle_percentage else None,
                 'target_muscle_percentage': float(goal.target_muscle_percentage) if goal.target_muscle_percentage else None,
                 'current_fat_percentage': float(goal.current_fat_percentage) if goal.current_fat_percentage else None,
@@ -970,4 +1048,3 @@ def nutrition_log_api(request):
         },
         'targets': target_data  # 該日期的營養目標
     })
-

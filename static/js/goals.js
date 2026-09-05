@@ -158,6 +158,19 @@ function updateGoalDisplay(goalData) {
         statItems[2].querySelector('.stat-value').textContent = goalData.target_weight ? parseFloat(goalData.target_weight).toFixed(1) + ' kg' : '未設定';
         statItems[3].querySelector('.stat-value').textContent = goalData.activity_level_display || '未設定';
     }
+
+    const actionStrip = goalDisplay.querySelector('.goal-action-strip');
+    if (actionStrip) {
+        actionStrip.innerHTML = `
+            <div><i class="bi bi-droplet"></i><span>每日飲水</span><strong>${goalData.daily_water_goal_ml} ml</strong></div>
+            <div><i class="bi bi-person-walking"></i><span>每日步數</span><strong>${Number(goalData.daily_steps_goal).toLocaleString()} 步</strong></div>
+            <div><i class="bi bi-stopwatch"></i><span>每週運動</span><strong>${goalData.weekly_workout_goal_minutes} 分</strong></div>
+            <div><i class="bi bi-moon-stars"></i><span>每日睡眠</span><strong>${goalData.sleep_goal_hours} 小時</strong></div>
+            ${goalData.target_date ? `<div><i class="bi bi-flag"></i><span>目標日期</span><strong>${goalData.target_date.replaceAll('-', '/')}</strong></div>` : ''}
+        `;
+        window.GOALS_CONFIG.waterGoalMl = goalData.daily_water_goal_ml;
+        window.GOALS_CONFIG.stepsGoal = goalData.daily_steps_goal;
+    }
     
     // 更新計算結果
     if (goalData.bmr) {
@@ -1143,6 +1156,13 @@ function addWater(amount) {
             if (data.success) {
                 const el = document.getElementById('todayWaterMl');
                 if (el) el.textContent = data.today_ml;
+                const overview = document.getElementById('overviewWaterMl');
+                if (overview) overview.textContent = data.today_ml;
+                const percent = Math.min(100, Math.round((data.today_ml / Math.max(window.GOALS_CONFIG.waterGoalMl || 2000, 1)) * 100));
+                ['overviewWaterBar', 'waterCardBar'].forEach(id => {
+                    const bar = document.getElementById(id);
+                    if (bar) bar.style.width = percent + '%';
+                });
                 showToast(data.message, 'success');
             } else {
                 showToast(data.message || '記錄失敗', 'error');
@@ -1195,6 +1215,62 @@ document.getElementById('customFoodForm')?.addEventListener('submit', function(e
 });
 
 window.addWater = addWater;
+
+document.getElementById('dailyHealthForm')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const submit = form.querySelector('button[type="submit"]');
+    const original = submit.innerHTML;
+    submit.disabled = true;
+    submit.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> 儲存中';
+
+    fetch(window.GOALS_CONFIG.saveDailyHealthUrl, {
+        method: 'POST',
+        headers: csrfHeaders(),
+        body: new URLSearchParams(new FormData(form))
+    })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.message || '儲存失敗');
+            return data;
+        })
+        .then(data => {
+            const badge = document.getElementById('checkinSavedBadge');
+            if (badge) {
+                badge.className = 'saved-badge';
+                badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> 今日已記錄';
+            }
+            const steps = data.log.steps || 0;
+            const stepsOverview = document.getElementById('overviewSteps');
+            if (stepsOverview) stepsOverview.textContent = `${steps.toLocaleString()} / ${Number(window.GOALS_CONFIG.stepsGoal).toLocaleString()} 步`;
+            const stepsBar = document.getElementById('overviewStepsBar');
+            if (stepsBar) stepsBar.style.width = Math.min(100, Math.round(steps / Math.max(window.GOALS_CONFIG.stepsGoal, 1) * 100)) + '%';
+            showToast(data.message, 'success');
+        })
+        .catch(error => showToast(error.message || '儲存失敗，請稍後再試', 'error'))
+        .finally(() => {
+            submit.disabled = false;
+            submit.innerHTML = original;
+        });
+});
+
+// 目標設定是低頻操作，放到日常紀錄與趨勢之後，讓主要任務更快被看見。
+document.addEventListener('DOMContentLoaded', function() {
+    const settings = document.getElementById('goalSettings');
+    const weight = document.getElementById('weightSection');
+    if (settings && weight) weight.insertAdjacentElement('afterend', settings);
+
+    const navLinks = [...document.querySelectorAll('.section-jump-nav a')];
+    if ('IntersectionObserver' in window && navLinks.length) {
+        const sections = navLinks.map(link => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+        const observer = new IntersectionObserver(entries => {
+            const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            navLinks.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`));
+        }, { rootMargin: '-25% 0px -65% 0px', threshold: [0, .2, .6] });
+        sections.forEach(section => observer.observe(section));
+    }
+});
 
 // 即時更新頂部 KPI 儀表板
 function updateKpiDashboard() {
@@ -1333,4 +1409,3 @@ document.addEventListener('DOMContentLoaded', function() {
     updateKpiDashboard();
     updateMacroRatioBar();
 });
-

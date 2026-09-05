@@ -1,15 +1,16 @@
 import csv
-from datetime import timedelta
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from plus.models import Food, NutritionLog, UserProfile, WaterLog, WeightLog, WorkoutLog
+from plus.models import DailyHealthLog, Food, NutritionLog, UserProfile, WaterLog, WeightLog, WorkoutLog
 from plus.services.body_metrics import estimate_workout_calories
 from plus.services.nutrition import local_day_range
 
@@ -59,7 +60,80 @@ def health_export_view(request):
             'ml',
             '',
         ])
+    for log in DailyHealthLog.objects.filter(user=request.user, recorded_date__gte=since.date()):
+        values = [
+            ('睡眠', log.sleep_hours, '小時'),
+            ('步數', log.steps, '步'),
+            ('靜止心率', log.resting_heart_rate, 'bpm'),
+            ('血壓', log.blood_pressure, 'mmHg'),
+            ('心情', log.get_mood_display() if log.mood else None, '1–5'),
+            ('精神', log.energy_level, '1–5'),
+        ]
+        for item, value, unit in values:
+            if value is not None:
+                writer.writerow(['每日健康', log.recorded_date.isoformat(), item, value, unit, log.notes])
     return response
+
+
+@login_required
+@require_http_methods(['POST'])
+def save_daily_health_log_view(request):
+    """建立或更新指定日期的每日健康 check-in。"""
+    try:
+        recorded_date = date.fromisoformat(
+            request.POST.get('recorded_date') or timezone.localdate().isoformat()
+        )
+    except (TypeError, ValueError):
+        return JsonResponse({'success': False, 'message': '日期格式不正確'}, status=400)
+    if recorded_date > timezone.localdate():
+        return JsonResponse({'success': False, 'message': '無法記錄未來日期'}, status=400)
+
+    def optional_decimal(name):
+        value = (request.POST.get(name) or '').strip()
+        return Decimal(value) if value else None
+
+    def optional_int(name):
+        value = (request.POST.get(name) or '').strip()
+        return int(value) if value else None
+
+    try:
+        log, _created = DailyHealthLog.objects.get_or_create(
+            user=request.user,
+            recorded_date=recorded_date,
+        )
+        log.sleep_hours = optional_decimal('sleep_hours')
+        log.sleep_quality = optional_int('sleep_quality')
+        log.steps = optional_int('steps')
+        log.resting_heart_rate = optional_int('resting_heart_rate')
+        log.systolic_bp = optional_int('systolic_bp')
+        log.diastolic_bp = optional_int('diastolic_bp')
+        log.mood = optional_int('mood')
+        log.energy_level = optional_int('energy_level')
+        log.notes = (request.POST.get('notes') or '').strip()[:500]
+        if log.systolic_bp and log.diastolic_bp and log.systolic_bp <= log.diastolic_bp:
+            return JsonResponse({'success': False, 'message': '收縮壓應高於舒張壓'}, status=400)
+        log.full_clean()
+        log.save()
+    except (InvalidOperation, TypeError, ValueError, ValidationError) as exc:
+        message = '請確認健康數值是否在合理範圍'
+        if isinstance(exc, ValidationError) and exc.messages:
+            message = exc.messages[0]
+        return JsonResponse({'success': False, 'message': message}, status=400)
+
+    return JsonResponse({
+        'success': True,
+        'message': '今日健康紀錄已儲存',
+        'log': {
+            'recorded_date': log.recorded_date.isoformat(),
+            'sleep_hours': float(log.sleep_hours) if log.sleep_hours is not None else None,
+            'steps': log.steps,
+            'mood': log.mood,
+            'mood_display': log.get_mood_display() if log.mood else None,
+            'energy_level': log.energy_level,
+            'heart_rate': log.resting_heart_rate,
+            'blood_pressure': log.blood_pressure,
+        },
+    })
 
 
 @login_required

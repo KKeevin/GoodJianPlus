@@ -20,10 +20,28 @@
                 </ol>
             </nav>
 
-            <h1 class="page-title"><i class="bi bi-speedometer2"></i> 目標管理</h1>
+            <div class="goals-hero">
+                <div>
+                    <span class="eyebrow">MY HEALTH DASHBOARD</span>
+                    <h1 class="page-title">今天，也為自己前進一點</h1>
+                    <p>把重要的健康數字集中在一頁，快速記錄、看懂趨勢、完成目標。</p>
+                </div>
+                <a class="btn btn-light hero-export" href="{% url 'health_export' %}">
+                    <i class="bi bi-download"></i> 匯出紀錄
+                </a>
+            </div>
+
+            <nav class="section-jump-nav" aria-label="健康管理快速導覽">
+                <a href="#todayOverview" class="active"><i class="bi bi-grid"></i> 今日總覽</a>
+                <a href="#healthCheckin"><i class="bi bi-heart-pulse"></i> 健康 Check-in</a>
+                <a href="#nutritionSection"><i class="bi bi-egg-fried"></i> 飲食</a>
+                <a href="#activitySection"><i class="bi bi-bicycle"></i> 活動</a>
+                <a href="#weightSection"><i class="bi bi-graph-up"></i> 趨勢</a>
+                <a href="#goalSettings"><i class="bi bi-sliders"></i> 目標設定</a>
+            </nav>
 
             <!-- 頂部即時 KPI 與淨熱量儀表板 -->
-            <div class="kpi-dashboard-grid mb-4">
+            <div class="kpi-dashboard-grid mb-4" id="todayOverview">
                 <!-- 淨熱量平衡卡片 -->
                 <div class="kpi-card net-calories-card">
                     <div class="kpi-card-header">
@@ -101,7 +119,7 @@
                 <!-- 快捷功能導覽列卡片 -->
                 <div class="kpi-card quick-actions-card">
                     <div class="kpi-card-header">
-                        <span class="kpi-title"><i class="bi bi-lightning-auto text-info"></i> 快捷紀錄紀錄</span>
+                        <span class="kpi-title"><i class="bi bi-lightning-auto text-info"></i> 快捷紀錄</span>
                     </div>
                     <div class="kpi-card-body quick-buttons-grid">
                         <button type="button" class="btn btn-quick-action btn-water" onclick="addWater(250)">
@@ -116,12 +134,50 @@
                         <button type="button" class="btn btn-quick-action btn-weight" onclick="showAddWeightModal()">
                             <i class="bi bi-body-text"></i> 記錄體重
                         </button>
+                        <a class="btn btn-quick-action btn-checkin" href="#healthCheckin">
+                            <i class="bi bi-heart-pulse-fill"></i> 今日 Check-in
+                        </a>
+                        <a class="btn btn-quick-action btn-workout" href="#activitySection">
+                            <i class="bi bi-stopwatch-fill"></i> 記錄運動
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="weekly-overview" aria-label="七日健康進度">
+                <div class="weekly-heading">
+                    <div>
+                        <span class="eyebrow">LAST 7 DAYS</span>
+                        <h2>你的 7 日節奏</h2>
+                    </div>
+                    <span class="checkin-streak"><i class="bi bi-calendar2-check"></i> 已記錄 {{ weekly_progress.checkin_days }}/7 天</span>
+                </div>
+                <div class="habit-grid">
+                    <div class="habit-card habit-move">
+                        <div class="habit-icon"><i class="bi bi-activity"></i></div>
+                        <div class="habit-content"><span>運動</span><strong>{{ weekly_progress.workout_minutes }} / {{ goal.weekly_workout_goal_minutes }} 分</strong></div>
+                        <div class="habit-progress"><span style="width: {{ weekly_progress.workout_percent }}%"></span></div>
+                    </div>
+                    <div class="habit-card habit-water">
+                        <div class="habit-icon"><i class="bi bi-droplet"></i></div>
+                        <div class="habit-content"><span>今日飲水</span><strong><span id="overviewWaterMl">{{ today_water_ml }}</span> / {{ water_goal_ml }} ml</strong></div>
+                        <div class="habit-progress"><span id="overviewWaterBar" style="width: {{ weekly_progress.water_percent }}%"></span></div>
+                    </div>
+                    <div class="habit-card habit-steps">
+                        <div class="habit-icon"><i class="bi bi-person-walking"></i></div>
+                        <div class="habit-content"><span>今日步數</span><strong id="overviewSteps">{% if today_health_log.steps %}{{ today_health_log.steps }}{% else %}0{% endif %} / {{ goal.daily_steps_goal }} 步</strong></div>
+                        <div class="habit-progress"><span id="overviewStepsBar" style="width: {{ weekly_progress.steps_percent }}%"></span></div>
+                    </div>
+                    <div class="habit-card habit-sleep">
+                        <div class="habit-icon"><i class="bi bi-moon-stars"></i></div>
+                        <div class="habit-content"><span>7 日平均睡眠</span><strong>{% if weekly_progress.avg_sleep %}{{ weekly_progress.avg_sleep|floatformat:1 }}{% else %}--{% endif %} / {{ goal.sleep_goal_hours }} 小時</strong></div>
+                        <div class="habit-progress"><span style="width: {{ weekly_progress.sleep_percent }}%"></span></div>
                     </div>
                 </div>
             </div>
 
             <!-- 目標設定卡片 -->
-            <div class="goal-card">
+            <div class="goal-card" id="goalSettings">
                 <div class="card-header">
                     <h2><i class="bi bi-bullseye"></i> 目標設定</h2>
                     <button class="btn btn-sm btn-light mt-1" onclick="editGoal()">
@@ -152,6 +208,42 @@
                                         <option value="active" {% if goal.activity_level == 'active' %}selected{% endif %}>高度活動（每週6-7天運動）</option>
                                         <option value="very_active" {% if goal.activity_level == 'very_active' %}selected{% endif %}>極高度活動（每天劇烈運動）</option>
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section-heading">
+                            <span><i class="bi bi-calendar2-week"></i></span>
+                            <div><h4>行動目標</h4><small>設定真正能每天執行的節奏</small></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>達成日期</label>
+                                    <input type="date" name="target_date" class="form-control" min="{{ today|date:'Y-m-d' }}" value="{% if goal.target_date %}{{ goal.target_date|date:'Y-m-d' }}{% endif %}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>每日飲水（ml）</label>
+                                    <input type="number" name="daily_water_goal_ml" class="form-control" min="500" max="6000" step="100" value="{{ goal.daily_water_goal_ml }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>每日步數</label>
+                                    <input type="number" name="daily_steps_goal" class="form-control" min="1000" max="50000" step="500" value="{{ goal.daily_steps_goal }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>每週運動（分鐘）</label>
+                                    <input type="number" name="weekly_workout_goal_minutes" class="form-control" min="10" max="3000" step="10" value="{{ goal.weekly_workout_goal_minutes }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>每日睡眠（小時）</label>
+                                    <input type="number" name="sleep_goal_hours" class="form-control" min="4" max="12" step="0.5" value="{{ goal.sleep_goal_hours }}">
                                 </div>
                             </div>
                         </div>
@@ -285,6 +377,13 @@
                                 <div class="stat-label">活動強度</div>
                                 <div class="stat-value">{{ goal.get_activity_level_display|default:"未設定" }}</div>
                             </div>
+                        </div>
+                        <div class="goal-action-strip">
+                            <div><i class="bi bi-droplet"></i><span>每日飲水</span><strong>{{ goal.daily_water_goal_ml }} ml</strong></div>
+                            <div><i class="bi bi-person-walking"></i><span>每日步數</span><strong>{{ goal.daily_steps_goal }} 步</strong></div>
+                            <div><i class="bi bi-stopwatch"></i><span>每週運動</span><strong>{{ goal.weekly_workout_goal_minutes }} 分</strong></div>
+                            <div><i class="bi bi-moon-stars"></i><span>每日睡眠</span><strong>{{ goal.sleep_goal_hours }} 小時</strong></div>
+                            {% if goal.target_date %}<div><i class="bi bi-flag"></i><span>目標日期</span><strong>{{ goal.target_date|date:"Y/m/d" }}</strong></div>{% endif %}
                         </div>
                         <div class="body-composition-section" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #eee;">
                             <h3 style="color: #2D5B69; margin-bottom: 8px;">BMI 與健康試算</h3>
@@ -460,8 +559,64 @@
                 </div>
             </div>
 
+            <div class="goal-card health-checkin-card" id="healthCheckin">
+                <div class="card-header checkin-header">
+                    <div>
+                        <span class="card-kicker">每天 30 秒，更了解自己的狀態</span>
+                        <h2><i class="bi bi-heart-pulse"></i> 今日健康 Check-in</h2>
+                    </div>
+                    {% if today_health_log %}<span class="saved-badge" id="checkinSavedBadge"><i class="bi bi-check-circle-fill"></i> 今日已記錄</span>{% else %}<span class="saved-badge pending" id="checkinSavedBadge">尚未記錄</span>{% endif %}
+                </div>
+                <div class="card-body">
+                    <form id="dailyHealthForm">
+                        <input type="hidden" name="recorded_date" value="{{ today|date:'Y-m-d' }}">
+                        <div class="checkin-primary-grid">
+                            <div class="checkin-field">
+                                <label for="sleepHours"><i class="bi bi-moon-stars"></i> 昨晚睡眠</label>
+                                <div class="input-with-unit"><input id="sleepHours" type="number" name="sleep_hours" min="0" max="24" step="0.5" value="{{ today_health_log.sleep_hours|default:'' }}" placeholder="7.5"><span>小時</span></div>
+                            </div>
+                            <div class="checkin-field">
+                                <label for="stepsInput"><i class="bi bi-person-walking"></i> 今日步數</label>
+                                <div class="input-with-unit"><input id="stepsInput" type="number" name="steps" min="0" max="100000" step="100" value="{{ today_health_log.steps|default:'' }}" placeholder="8000"><span>步</span></div>
+                            </div>
+                            <fieldset class="checkin-field rating-field">
+                                <legend><i class="bi bi-emoji-smile"></i> 今天心情</legend>
+                                <div class="emoji-options" aria-label="心情評分">
+                                    {% for value, emoji, label in mood_options %}
+                                    <label title="{{ label }}"><input type="radio" name="mood" value="{{ value }}" {% if today_health_log.mood == value %}checked{% endif %}><span>{{ emoji }}</span><small>{{ label }}</small></label>
+                                    {% endfor %}
+                                </div>
+                            </fieldset>
+                            <fieldset class="checkin-field rating-field">
+                                <legend><i class="bi bi-battery-half"></i> 精神狀態</legend>
+                                <div class="number-options" aria-label="精神狀態評分">
+                                    {% for value in rating_options %}<label><input type="radio" name="energy_level" value="{{ value }}" {% if today_health_log.energy_level == value %}checked{% endif %}><span>{{ value }}</span></label>{% endfor %}
+                                </div>
+                                <div class="rating-scale"><span>疲憊</span><span>充滿活力</span></div>
+                            </fieldset>
+                        </div>
+
+                        <button class="advanced-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#advancedHealthFields" aria-expanded="{% if today_health_log.resting_heart_rate or today_health_log.systolic_bp %}true{% else %}false{% endif %}">
+                            <i class="bi bi-sliders"></i> 更多健康數據 <span>睡眠品質、心率、血壓與筆記</span><i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div class="collapse {% if today_health_log.resting_heart_rate or today_health_log.systolic_bp %}show{% endif %}" id="advancedHealthFields">
+                            <div class="advanced-health-grid">
+                                <div class="checkin-field"><label>睡眠品質</label><select name="sleep_quality" class="form-control"><option value="">未記錄</option>{% for value in rating_options %}<option value="{{ value }}" {% if today_health_log.sleep_quality == value %}selected{% endif %}>{{ value }} / 5</option>{% endfor %}</select></div>
+                                <div class="checkin-field"><label>靜止心率</label><div class="input-with-unit"><input type="number" name="resting_heart_rate" min="30" max="240" value="{{ today_health_log.resting_heart_rate|default:'' }}" placeholder="70"><span>bpm</span></div></div>
+                                <div class="checkin-field"><label>血壓</label><div class="blood-pressure-input"><input type="number" name="systolic_bp" min="60" max="260" value="{{ today_health_log.systolic_bp|default:'' }}" placeholder="120"><span>/</span><input type="number" name="diastolic_bp" min="30" max="180" value="{{ today_health_log.diastolic_bp|default:'' }}" placeholder="80"></div></div>
+                                <div class="checkin-field note-field"><label>今日筆記</label><input type="text" name="notes" maxlength="500" value="{{ today_health_log.notes|default:'' }}" placeholder="例如：下午精神很好、右膝稍微緊繃"></div>
+                            </div>
+                        </div>
+                        <div class="checkin-actions">
+                            <span><i class="bi bi-shield-check"></i> 紀錄僅供自我追蹤，不作醫療診斷</span>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> 儲存今日紀錄</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- 今日營養攝取卡片 -->
-            <div class="goal-card">
+            <div class="goal-card" id="nutritionSection">
                 <div class="card-header">
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                         <div style="display: flex; align-items: center; gap: 15px;">
@@ -591,12 +746,13 @@
                 </div>
             </div>
 
-            <div class="goal-card">
+            <div class="activity-layout">
+            <div class="goal-card" id="waterSection">
                 <div class="card-header">
                     <h2><i class="bi bi-droplet"></i> 今日飲水</h2>
                 </div>
                 <div class="card-body">
-                    <p>今日已喝 <strong id="todayWaterMl">{{ today_water_ml|default:0 }}</strong> ml{% if body_metrics.water_ml %}／建議 {{ body_metrics.water_ml }} ml{% endif %}</p>
+                    <div class="water-summary"><p>今日已喝 <strong id="todayWaterMl">{{ today_water_ml|default:0 }}</strong> / {{ water_goal_ml }} ml</p><div class="habit-progress"><span id="waterCardBar" style="width: {{ weekly_progress.water_percent }}%"></span></div></div>
                     <div class="d-flex flex-wrap gap-2">
                         <button type="button" class="btn btn-outline-primary" onclick="addWater(250)">+250 ml</button>
                         <button type="button" class="btn btn-outline-primary" onclick="addWater(500)">+500 ml</button>
@@ -604,7 +760,7 @@
                 </div>
             </div>
 
-            <div class="goal-card">
+            <div class="goal-card" id="activitySection">
                 <div class="card-header">
                     <h2><i class="bi bi-bicycle"></i> 今日運動</h2>
                     <span class="mt-1">已消耗約 {{ today_workout_kcal|default:0 }} 大卡</span>
@@ -645,9 +801,10 @@
                     </div>
                 </div>
             </div>
+            </div>
 
             <!-- 體重記錄卡片 -->
-            <div class="goal-card">
+            <div class="goal-card" id="weightSection">
                 <div class="card-header">
                     <h2><i class="bi bi-graph-up"></i> 體重記錄</h2>
                     <button class="btn btn-sm btn-primary mt-1" onclick="showAddWeightModal()">
@@ -839,6 +996,9 @@ window.GOALS_CONFIG = {
     addCustomFoodUrl: '{% url "add_custom_food" %}',
     addWorkoutLogUrl: '{% url "add_workout_log" %}',
     addWaterLogUrl: '{% url "add_water_log" %}',
+    saveDailyHealthUrl: '{% url "save_daily_health_log" %}',
+    waterGoalMl: {{ water_goal_ml }},
+    stepsGoal: {{ goal.daily_steps_goal }},
     csrfToken: '{{ csrf_token }}',
     defaultTargets: {
         calories: {{ goal.target_calories|default:0 }},
@@ -858,4 +1018,3 @@ window.GOALS_CONFIG = {
 </script>
 <script src="{% static 'js/goals.js' %}?v={{ static_version }}"></script>
 {% endblock %}
-

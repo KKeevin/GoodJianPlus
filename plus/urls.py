@@ -32,6 +32,7 @@ from plus.views import (
     address_book_view, address_set_default_view, address_delete_view, address_json_api,
     bmi_calculator_view, health_export_view, add_custom_food_view,
     add_workout_log_view, add_water_log_view, log_product_nutrition_view,
+    save_daily_health_log_view,
 )
 
 urlpatterns = [
@@ -137,6 +138,7 @@ urlpatterns = [
     path('api/foods/custom/', add_custom_food_view, name='add_custom_food'),
     path('api/workouts/add/', add_workout_log_view, name='add_workout_log'),
     path('api/water/add/', add_water_log_view, name='add_water_log'),
+    path('api/health/daily/', save_daily_health_log_view, name='save_daily_health_log'),
     path('api/products/log-nutrition/', log_product_nutrition_view, name='log_product_nutrition'),
     path('goals/export/', health_export_view, name='health_export'),
     path('health/calculator/', bmi_calculator_view, name='bmi_calculator'),

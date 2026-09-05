@@ -87,6 +87,29 @@ class UserGoal(models.Model):
     target_bone_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='目標骨骼比例（%）')
     current_water_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='目前水分比例（%）')
     target_water_percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='目標水分比例（%）')
+    target_date = models.DateField(null=True, blank=True, verbose_name='目標日期')
+    daily_water_goal_ml = models.PositiveIntegerField(
+        default=2000,
+        validators=[MinValueValidator(500), MaxValueValidator(6000)],
+        verbose_name='每日飲水目標（ml）',
+    )
+    daily_steps_goal = models.PositiveIntegerField(
+        default=8000,
+        validators=[MinValueValidator(1000), MaxValueValidator(50000)],
+        verbose_name='每日步數目標',
+    )
+    weekly_workout_goal_minutes = models.PositiveIntegerField(
+        default=150,
+        validators=[MinValueValidator(10), MaxValueValidator(3000)],
+        verbose_name='每週運動目標（分鐘）',
+    )
+    sleep_goal_hours = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        default=Decimal('8.0'),
+        validators=[MinValueValidator(Decimal('4.0')), MaxValueValidator(Decimal('12.0'))],
+        verbose_name='每日睡眠目標（小時）',
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='建立時間')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新時間')
 
@@ -343,3 +366,97 @@ class WaterLog(models.Model):
     def __str__(self):
         return f'{self.user.username} {self.amount_ml}ml'
 
+
+class DailyHealthLog(models.Model):
+    """每日整體健康 check-in；一天一筆，重複提交會更新。"""
+
+    RATING_CHOICES = [(value, str(value)) for value in range(1, 6)]
+    MOOD_CHOICES = [
+        (1, '很低落'),
+        (2, '不太好'),
+        (3, '普通'),
+        (4, '不錯'),
+        (5, '很好'),
+    ]
+
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='daily_health_logs',
+        verbose_name='用戶',
+    )
+    recorded_date = models.DateField(default=timezone.localdate, verbose_name='記錄日期')
+    sleep_hours = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0')), MaxValueValidator(Decimal('24'))],
+        verbose_name='睡眠時數',
+    )
+    sleep_quality = models.PositiveSmallIntegerField(
+        choices=RATING_CHOICES,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name='睡眠品質',
+    )
+    steps = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(100000)],
+        verbose_name='步數',
+    )
+    resting_heart_rate = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(30), MaxValueValidator(240)],
+        verbose_name='靜止心率（bpm）',
+    )
+    systolic_bp = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(60), MaxValueValidator(260)],
+        verbose_name='收縮壓（mmHg）',
+    )
+    diastolic_bp = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(30), MaxValueValidator(180)],
+        verbose_name='舒張壓（mmHg）',
+    )
+    mood = models.PositiveSmallIntegerField(
+        choices=MOOD_CHOICES,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name='心情',
+    )
+    energy_level = models.PositiveSmallIntegerField(
+        choices=RATING_CHOICES,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        verbose_name='精神狀態',
+    )
+    notes = models.CharField(max_length=500, blank=True, verbose_name='今日筆記')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='建立時間')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新時間')
+
+    class Meta:
+        verbose_name = '每日健康紀錄'
+        verbose_name_plural = '每日健康紀錄'
+        ordering = ['-recorded_date']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'recorded_date'], name='unique_daily_health_log'),
+        ]
+        indexes = [models.Index(fields=['user', 'recorded_date'])]
+
+    def __str__(self):
+        return f'{self.user.username} - {self.recorded_date}'
+
+    @property
+    def blood_pressure(self):
+        if self.systolic_bp and self.diastolic_bp:
+            return f'{self.systolic_bp}/{self.diastolic_bp}'
+        return None

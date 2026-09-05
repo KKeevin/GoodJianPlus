@@ -16,6 +16,7 @@ from plus.views.addresses import address_book_view, address_set_default_view, ad
 from plus.views.health import (
     bmi_calculator_view, health_export_view, add_custom_food_view,
     add_workout_log_view, add_water_log_view, log_product_nutrition_view,
+    save_daily_health_log_view,
 )
 from plus.views.notifications import notification_list_view, notification_detail_view, notification_toggle_read, notification_delete, notification_api, notification_unread_count_api, notification_mark_all_read, notification_batch_action, get_time_ago
 from plus.views.social import associate_by_email, social_auth_pipeline, google_login, facebook_login, line_login, google_callback, social_auth_error, social_auth_complete
@@ -130,4 +131,5 @@ __all__ = [
     'add_workout_log_view',
     'add_water_log_view',
     'log_product_nutrition_view',
+    'save_daily_health_log_view',
 ]

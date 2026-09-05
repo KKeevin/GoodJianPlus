@@ -9,7 +9,7 @@ from plus.models import (
     Wishlist, ShippingMethod, SiteSettings, Notification,
     Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
     Article, ArticleCategory, ArticleImage, EmailVerificationToken,
-    WorkoutLog, WaterLog,
+    DailyHealthLog, WorkoutLog, WaterLog,
 )
 
 try:
@@ -125,3 +125,10 @@ class WaterLogAdmin(admin.ModelAdmin):
     list_filter = ('logged_at',)
     search_fields = ('user__username',)
 
+
+@admin.register(DailyHealthLog)
+class DailyHealthLogAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recorded_date', 'sleep_hours', 'steps', 'resting_heart_rate', 'mood', 'energy_level')
+    list_filter = ('recorded_date', 'mood', 'energy_level')
+    search_fields = ('user__username', 'notes')
+    date_hierarchy = 'recorded_date'
