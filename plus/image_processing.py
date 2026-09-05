@@ -1,7 +1,7 @@
 """Normalize uploaded images to WebP with a 2048px maximum edge."""
 
 from io import BytesIO
-from pathlib import Path
+import uuid
 
 from django.core.files.base import ContentFile
 from django.db.models.fields.files import ImageFieldFile
@@ -32,11 +32,10 @@ def normalize_image_field(field_file: ImageFieldFile) -> None:
         image.save(output, format='WEBP', quality=WEBP_QUALITY, method=6)
         output.seek(0)
 
-    original_stem = Path(field_file.name).stem or 'image'
     # Let ImageField apply its configured upload_to path before storage.save.
     new_name = field_file.field.generate_filename(
         field_file.instance,
-        f'{original_stem}.webp',
+        f'img_{uuid.uuid4().hex}.webp',
     )
     # Avoid overwriting a different upload with the same original filename.
     saved_name = field_file.storage.save(new_name, ContentFile(output.read()))
