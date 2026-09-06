@@ -743,6 +743,10 @@
     color: #06c755;
 }
 
+.line-consent-modal .line-consent-icon {
+    color: #00c300 !important;
+}
+
 .line-consent-modal .modal-body {
     padding: 14px 16px 8px;
     color: #526170;
