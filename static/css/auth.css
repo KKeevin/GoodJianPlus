@@ -720,6 +720,20 @@
     background: linear-gradient(to right, transparent, #e1e8ed, transparent);
 }
 
+.login-container .social-login-notice {
+    margin: 8px 0 0;
+    color: #526170;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.login-container .social-login-notice a {
+    color: #287438;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
 .social-buttons {
     display: flex;
     gap: 5px;

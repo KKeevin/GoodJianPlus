@@ -4,7 +4,7 @@
 
 <!-- header區塊 -->
 {% block head %}
-<link href="{% static 'css/auth.css' %}?v={{ static_version }}" rel="stylesheet" type="text/css">
+<link href="{% static 'css/auth.css' %}?v={{ static_version }}-line-notice" rel="stylesheet" type="text/css">
 {% endblock %}
 
 <!-- 內容區塊 -->
@@ -178,11 +178,14 @@
                         Facebook
                     </button>
                     
-                    <button type="button" class="btn btn-social btn-line" onclick="socialLogin('line')">
+                    <button type="button" class="btn btn-social btn-line" onclick="socialLogin('line')" aria-describedby="line-login-notice">
                         <i class="fab fa-line"></i>
                         LINE
                     </button>
                 </div>
+                <p id="line-login-notice" class="social-login-notice">
+                    使用 LINE 登入時，我們會在您授權後取得您的 LINE 個人資料與電子郵件地址，用於建立或登入會員帳號、帳號識別，以及寄送訂單與必要服務通知。詳情請參閱<a href="{% url 'privacy_policy' %}">隱私權政策</a>。
+                </p>
             </div>
         </div>
     </div>
