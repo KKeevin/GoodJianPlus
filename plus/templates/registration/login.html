@@ -638,22 +638,46 @@ function socialLogin(provider) {
     let loginUrl = '';
     
     if (provider === 'google') {
-        loginUrl = '{% url "google_login" %}';
+        loginUrl = '{% url "social:begin" "google-oauth2" %}';
     } else if (provider === 'facebook') {
-        loginUrl = '{% url "facebook_login" %}';
+        loginUrl = '{% url "social:begin" "facebook" %}';
     } else if (provider === 'line') {
-        loginUrl = '{% url "line_login" %}';
+        loginUrl = '{% url "social:begin" "line" %}';
     } else {
         showAlert(`${provider} 登入功能開發中...`, 'info');
         return;
     }
-    
-    if (nextUrl) {
-        loginUrl += `?next=${encodeURIComponent(nextUrl)}`;
+
+    // social_django's begin endpoint intentionally accepts POST only. Submit
+    // a real CSRF-protected form instead of navigating to it with GET (which
+    // would result in HTTP 405).
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        showAlert('登入頁面已過期，請重新整理後再試。', 'error');
+        return;
     }
-    
-    // 跳轉到對應的社交登入
-    window.location.href = loginUrl;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = loginUrl;
+    form.style.display = 'none';
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    if (nextUrl) {
+        const nextInput = document.createElement('input');
+        nextInput.type = 'hidden';
+        nextInput.name = 'next';
+        nextInput.value = nextUrl;
+        form.appendChild(nextInput);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function showAlert(message, type = 'info') {
