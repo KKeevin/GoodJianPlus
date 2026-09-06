@@ -111,7 +111,7 @@ class SellerCenterTests(TestCase):
         from django.utils import timezone
         coupon = Coupon.objects.create(code='ONE', name='ONE', discount_type='fixed', discount_value=10,
             used_count=2, valid_from=timezone.now(), valid_until=timezone.now())
-        order = self.order(coupon_code=coupon.code)
+        order = self.order(coupon_code=coupon.code, coupon_reserved=True)
         transition_order(order.pk, 'cancelled', actor=self.buyer)
         transition_order(order.pk, 'cancelled', actor=self.buyer)
         self.product.refresh_from_db()

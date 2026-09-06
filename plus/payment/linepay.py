@@ -117,7 +117,7 @@ class LinePayAPI:
         url = f"{self.base_url}{uri}"
         
         try:
-            response = requests.post(url, json=body, headers=headers, timeout=30)
+            response = requests.post(url, data=json.dumps(body, separators=(',', ':')).encode('utf-8'), headers=headers, timeout=30)
             response.raise_for_status()
             result = response.json()
             
@@ -174,7 +174,7 @@ class LinePayAPI:
         url = f"{self.base_url}{uri}"
         
         try:
-            response = requests.post(url, json=body, headers=headers, timeout=30)
+            response = requests.post(url, data=json.dumps(body, separators=(',', ':')).encode('utf-8'), headers=headers, timeout=30)
             response.raise_for_status()
             result = response.json()
             

@@ -4,6 +4,8 @@
 文件：https://developers.ecpay.com.tw/
 """
 import hashlib
+import hmac
+import re
 import logging
 from decimal import Decimal, ROUND_HALF_UP
 from urllib.parse import quote_plus
@@ -35,19 +37,30 @@ class ECPayAPI:
         """綠界 CheckMacValue：依 key 排序、夾 HashKey/HashIV、URL encode、SHA256 大寫。"""
         items = []
         for key in sorted(params.keys(), key=lambda k: k.lower()):
-            if key.lower() == 'checkmacvalue' or params[key] in (None, ''):
+            if key.lower() == 'checkmacvalue':
                 continue
-            items.append(f'{key}={params[key]}')
+            items.append(f'{key}={params[key] if params[key] is not None else ""}')
         raw = f'HashKey={self.hash_key}&{"&".join(items)}&HashIV={self.hash_iv}'
-        encoded = quote_plus(raw, safe='').lower()
+        encoded = quote_plus(raw, safe='-_.!*()').replace('~', '%7e').lower()
         return hashlib.sha256(encoded.encode('utf-8')).hexdigest().upper()
 
     def verify_check_mac_value(self, params):
         incoming = (params.get('CheckMacValue') or '').upper()
-        if not incoming:
+        if not re.fullmatch(r'[0-9A-F]{64}', incoming) or not self.hash_key or not self.hash_iv:
             return False
         computed = self.generate_check_mac_value(params)
-        return incoming == computed
+        return hmac.compare_digest(incoming, computed)
+
+    def valid_result(self, params, order):
+        return (
+            self.is_configured()
+            and self.verify_check_mac_value(params)
+            and params.get('MerchantID') == self.merchant_id
+            and params.get('MerchantTradeNo') == order.order_number
+            and params.get('TradeAmt') == str(self.to_twd_amount(order.total_amount))
+            and bool(params.get('TradeNo'))
+            and params.get('SimulatePaid', '0') == '0'
+        )
 
     def build_checkout_params(self, order, return_url, result_url, client_back_url):
         if not self.is_configured():

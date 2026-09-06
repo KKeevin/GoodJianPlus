@@ -1,30 +1,40 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from django.utils.html import format_html, mark_safe
-from django.urls import reverse
 from django import forms
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from plus.admin.seller import SellerOrderMixin
 from plus.models import OrderEvent
+from plus.models.commerce import PaymentReceipt
 from plus.services.order_workflow import validate_transition, transition_order
-from plus.models import (
-    CustomUser, UserProfile, Category, Brand, Product, ProductImage,
-    ProductReview, Cart, CartItem, Order, OrderItem, Coupon,
-    Wishlist, ShippingMethod, SiteSettings, Notification,
-    Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
-    Article, ArticleCategory, ArticleImage, EmailVerificationToken,
-    ReturnRequest,
-    ShippingAddress,
-)
+from plus.models import (Cart, CartItem, Order, OrderItem, Coupon, Wishlist,
+                         ShippingMethod, Notification, ReturnRequest, ShippingAddress)
 
-try:
-    from django_summernote.admin import SummernoteModelAdmin
-    SUMMERNOTE_AVAILABLE = True
-except ImportError:
-    SUMMERNOTE_AVAILABLE = False
-    class SummernoteModelAdmin(admin.ModelAdmin):
-        pass
+
+class PaymentReceiptForm(forms.ModelForm):
+    class Meta:
+        model = PaymentReceipt
+        fields = '__all__'
+
+    def clean(self):
+        data = super().clean()
+        if self.instance.needs_review and not data.get('needs_review') and not data.get('resolution', '').strip():
+            raise ValidationError('請先填寫對帳／退款處理紀錄。')
+        return data
+
+
+@admin.register(PaymentReceipt)
+class PaymentReceiptAdmin(admin.ModelAdmin):
+    form = PaymentReceiptForm
+    list_display = ('order', 'provider', 'transaction_id', 'amount', 'needs_review', 'created_at')
+    list_filter = ('needs_review', 'provider')
+    search_fields = ('order__order_number', 'transaction_id')
+    readonly_fields = ('order', 'provider', 'transaction_id', 'amount', 'reason', 'created_at')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 class CartItemInline(admin.TabularInline):
     model = CartItem
@@ -115,6 +125,13 @@ class OrderAdmin(SellerOrderMixin, admin.ModelAdmin):
     autocomplete_fields = ('user',)
     actions = ['mark_processing', 'mark_shipped', 'mark_delivered']
 
+    def get_readonly_fields(self, request, obj=None):
+        fields = list(super().get_readonly_fields(request, obj))
+        # Online payment state is only changed by validated provider events.
+        if not obj or obj.payment_method != 'cod' or not request.user.is_superuser:
+            fields.append('payment_status')
+        return fields
+
     def has_add_permission(self, request):
         return False
 
@@ -197,15 +214,46 @@ class OrderAdmin(SellerOrderMixin, admin.ModelAdmin):
     )
 
 
+class ReturnRequestForm(forms.ModelForm):
+    class Meta:
+        model = ReturnRequest
+        fields = '__all__'
+
+    def clean(self):
+        data = super().clean()
+        if not self.instance.pk:
+            return data
+        old = ReturnRequest.objects.select_for_update().get(pk=self.instance.pk)
+        transitions = {'pending': {'approved', 'rejected'}, 'approved': {'received', 'refunded'},
+                       'received': {'refunded'}, 'rejected': set(), 'cancelled': set(), 'refunded': set()}
+        status = data.get('status', old.status)
+        if status != old.status and status not in transitions.get(old.status, set()):
+            raise ValidationError('退貨申請狀態不可回退，請先完成審核與驗收。')
+        if status == 'refunded' and old.status != status:
+            order = Order.objects.select_for_update().get(pk=old.order_id)
+            if order.payment_status != 'paid' or not data.get('refund_reference', '').strip():
+                raise ValidationError('請確認訂單已付款，並填寫在金流平台完成退款的憑證編號。')
+            if data.get('restock_items') and old.status != 'received':
+                raise ValidationError('商品必須先標示為已收回，才能退回庫存。')
+        return data
+
+
 @admin.register(ReturnRequest)
 class ReturnRequestAdmin(admin.ModelAdmin):
+    form = ReturnRequestForm
     list_display = ('id', 'order', 'user', 'reason', 'status', 'created_at')
     list_filter = ('status', 'reason', 'created_at')
     search_fields = ('order__order_number', 'user__username', 'detail')
-    list_editable = ('status',)
+    list_editable = ()
     list_select_related = ('order', 'user')
     autocomplete_fields = ('order', 'user')
-    readonly_fields = ('created_at', 'updated_at')
+    readonly_fields = ('order', 'user', 'reason', 'detail', 'created_at', 'updated_at')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
     def save_model(self, request, obj, form, change):
         old_status = None
@@ -228,7 +276,10 @@ class ReturnRequestAdmin(admin.ModelAdmin):
             order.save(update_fields=['status', 'payment_status'])
             OrderEvent.objects.create(order=order, status='refunded', actor=request.user)
             from plus.services.inventory import release_order_inventory, restore_coupon
-            release_order_inventory(order)
+            if obj.restock_items:
+                release_order_inventory(order)
+            else:
+                Order.objects.filter(pk=order.pk).update(inventory_held=False)
             restore_coupon(order)
 
 

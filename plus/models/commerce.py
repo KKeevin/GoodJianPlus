@@ -125,6 +125,7 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='總金額')
     coupon_code = models.CharField(max_length=50, blank=True, verbose_name='優惠券代碼')
     inventory_held = models.BooleanField(default=False, verbose_name='是否仍預扣庫存')
+    coupon_reserved = models.BooleanField(default=False, verbose_name='優惠券使用次數尚未返還')
     
     # 支付相關
     payment_method = models.CharField(
@@ -169,6 +170,28 @@ class Order(models.Model):
     def get_public_tracking_url(self):
         from plus.services.shipping import resolve_tracking_url
         return resolve_tracking_url(self)
+
+
+class RequestLimit(models.Model):
+    key = models.CharField(max_length=64, primary_key=True)
+    count = models.PositiveIntegerField(default=0)
+    expires_at = models.DateTimeField(db_index=True)
+
+
+class PaymentReceipt(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name='payment_receipts')
+    provider = models.CharField(max_length=20)
+    transaction_id = models.CharField(max_length=200)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    needs_review = models.BooleanField(default=False, verbose_name='待人工對帳')
+    reason = models.CharField(max_length=200, blank=True)
+    resolution = models.TextField(blank=True, verbose_name='對帳／退款處理紀錄')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['provider', 'transaction_id'], name='unique_provider_receipt')]
+        verbose_name = '付款對帳紀錄'
+        verbose_name_plural = '付款對帳紀錄'
 
 
 class OrderEvent(models.Model):
@@ -322,6 +345,8 @@ class ReturnRequest(models.Model):
     detail = models.TextField(verbose_name='說明')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='狀態')
     admin_notes = models.TextField(blank=True, verbose_name='後台備註')
+    refund_reference = models.CharField(max_length=200, blank=True, verbose_name='實際退款憑證／交易編號')
+    restock_items = models.BooleanField(default=False, verbose_name='已驗收可重新販售，退回庫存')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='申請時間')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新時間')
 

@@ -1,51 +1,18 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import check_password
-from django.contrib.auth import update_session_auth_hash
+import logging
+
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.utils.crypto import get_random_string
-from django.utils import timezone
-from django.urls import reverse
-from django.db import transaction
-from django.db.models import Q, Avg, Count, Sum
-from django.core.paginator import Paginator
-from decimal import Decimal
-import logging
-import re
-from datetime import datetime, timedelta
 
-from plus.models import (
-    CustomUser, UserProfile, Wishlist, Category, Brand, Product,
-    ProductImage, ProductReview, Cart, CartItem, Order, OrderItem,
-    Coupon, ShippingMethod, SiteSettings, Notification,
-    Food, UserGoal, WeightLog, NutritionLog, DailyNutritionTarget,
-    Article, ArticleCategory, ArticleImage, EmailVerificationToken,
-    PhoneVerificationCode, EmailChangeRequest
-)
-from plus.forms import CustomUserRegistrationForm, QuickRegistrationForm, CustomAuthenticationForm
-from plus.utils.email import (
-    send_verification_email, send_welcome_email,
-    send_password_reset_email as send_password_reset_email_util,
-    send_order_status_update_email,
-    send_email_change_verification_email
-)
-from plus.services.sms import send_sms_verification_code
-from plus.services.notifications import send_notification
-from plus.services.nutrition import (
-    calculate_bmr, calculate_tdee, calculate_nutrition_targets,
-    get_or_create_daily_nutrition_target,
-)
-from plus.services.checkout import (
-    get_pricing_settings, resolve_shipping_fee, compute_coupon_discount,
-)
-from plus.decorators import verified_required
-from plus.utils.request import get_client_ip
-from plus.services.inventory import release_order_inventory, restore_coupon
-from django.conf import settings
+from plus.models import Order
+from plus.services.payments import payable, settle_payment, fail_payment
 
 logger = logging.getLogger(__name__)
 
@@ -83,37 +50,18 @@ def process_payment(request, order_id):
             })
         
         payment_method = request.POST.get('payment_method', order.payment_method)
+        if payment_method == 'test_payment' and not settings.DEBUG:
+            return JsonResponse({'success': False, 'message': '不支援的支付方式'})
+        if not payable(order) or payment_method != order.payment_method:
+            return JsonResponse({'success': False, 'message': '訂單無法付款，請重新建立訂單或聯絡客服。'}, status=409)
         
         if payment_method == 'test_payment':
-            if not settings.DEBUG:
-                return JsonResponse({
-                    'success': False,
-                    'message': '不支援的支付方式'
-                })
             import uuid
             transaction_id = f"TXN{uuid.uuid4().hex[:16].upper()}"
             
-            with transaction.atomic():
-                order.payment_method = payment_method
-                order.payment_status = 'paid'
-                order.payment_transaction_id = transaction_id
-                order.status = 'confirmed'
-                order.save()
-                
-                # 建立通知
-                Notification.objects.create(
-                    user=request.user,
-                    type='order',
-                    title='付款成功',
-                    message=f'您的訂單 {order.order_number} 已成功付款，交易編號：{transaction_id}'
-                )
-                
-                # 發送訂單狀態更新郵件
-                try:
-                    send_order_status_update_email(order, request)
-                except Exception as e:
-                    logger.error(f'Failed to send order status update email: {str(e)}')
-            
+            if not settle_payment(order.pk, payment_method, transaction_id, order.total_amount):
+                return JsonResponse({'success': False, 'message': '付款需要人工確認'}, status=409)
+
             logger.info(f'Payment processed: {transaction_id} for order {order.order_number}')
             
             return JsonResponse({
@@ -127,14 +75,24 @@ def process_payment(request, order_id):
             from plus.payment.linepay import LinePayAPI
             
             linepay = LinePayAPI()
+            if not linepay.channel_id or not linepay.channel_secret:
+                return JsonResponse({'success': False, 'message': '此付款方式暫時無法使用，請聯絡客服。'}, status=503)
+            import uuid
+            request_marker = f'requesting:{uuid.uuid4().hex}'
+            claimed = Order.objects.filter(pk=order.pk, status='pending', payment_status='pending',
+                inventory_held=True, payment_method='linepay').filter(
+                    Q(payment_transaction_id__isnull=True) | Q(payment_transaction_id='')
+                ).update(payment_transaction_id=request_marker)
+            if not claimed:
+                return JsonResponse({'success': False, 'message': '已有付款處理中，請查看原付款頁或聯絡客服確認。'}, status=409)
             
             # 構建回調 URL
             confirm_url = request.build_absolute_uri(reverse('linepay_confirm', kwargs={'order_id': order.id}))
             cancel_url = request.build_absolute_uri(reverse('linepay_cancel', kwargs={'order_id': order.id}))
             
             # 生成商品名稱
-            product_names = [item.product_name for item in order.items.all()[:3]]
-            product_name = '、'.join(product_names)
+            product_names = [item.product_name for item in order.items.all()[:4]]
+            product_name = '、'.join(product_names[:3])
             if len(product_names) > 3:
                 product_name += ' 等商品'
             
@@ -151,7 +109,10 @@ def process_payment(request, order_id):
                 # 保存交易 ID
                 order.payment_method = payment_method
                 order.payment_transaction_id = result.get('transactionId')
-                order.save()
+                updated = Order.objects.filter(pk=order.pk, status='pending', payment_status='pending', inventory_held=True,
+                    payment_transaction_id=request_marker).update(payment_transaction_id=str(result.get('transactionId')))
+                if not updated:
+                    return JsonResponse({'success': False, 'message': '訂單狀態已變更，請聯絡客服。'}, status=409)
                 
                 return JsonResponse({
                     'success': True,
@@ -172,8 +133,6 @@ def process_payment(request, order_id):
                     'success': False,
                     'message': '綠界金流尚未設定，請見 docs/integrations.md',
                 })
-            order.payment_method = 'ecpay'
-            order.save(update_fields=['payment_method'])
             return JsonResponse({
                 'success': True,
                 'message': '正在前往綠界付款...',
@@ -207,6 +166,8 @@ def payment_success_view(request, order_id):
     except Order.DoesNotExist:
         messages.error(request, '訂單不存在')
         return redirect('order_list')
+    if order.payment_status != 'paid':
+        return redirect('order_detail', order_id=order.pk)
     
     context = {
         'order': order,
@@ -219,13 +180,6 @@ def payment_failed_view(request, order_id):
     """支付失敗頁面"""
     try:
         order = Order.objects.get(id=order_id, user=request.user)
-        # 創建支付失敗通知
-        send_notification(
-            user=request.user,
-            notification_type='order',
-            title='付款失敗',
-            message=f'您的訂單 {order.order_number} 付款失敗，請檢查付款資訊後重新嘗試，或選擇其他付款方式。'
-        )
     except Order.DoesNotExist:
         messages.error(request, '訂單不存在')
         return redirect('order_list')
@@ -256,6 +210,14 @@ def linepay_confirm(request, order_id):
             messages.error(request, '交易資訊不符，已取消此次確認')
             return redirect('payment_failed', order_id=order.id)
         
+        if order.payment_status == 'paid':
+            return redirect('order_detail', order_id=order.pk)
+        if not payable(order) or order.payment_method != 'linepay':
+            messages.error(request, '此訂單無法確認付款，請聯絡客服。')
+            return redirect('order_detail', order_id=order.pk)
+        if order_id_param and order_id_param != str(order.pk):
+            return HttpResponse('OrderMismatch', status=400)
+
         # 確認支付
         from plus.payment.linepay import LinePayAPI
         linepay = LinePayAPI()
@@ -266,42 +228,20 @@ def linepay_confirm(request, order_id):
         )
         
         if result.get('success'):
-            # 支付成功
-            with transaction.atomic():
-                order.payment_status = 'paid'
-                order.payment_transaction_id = result.get('transactionId', transaction_id)
-                order.status = 'confirmed'
-                order.save()
-                
-                # 建立通知
-                Notification.objects.create(
-                    user=request.user,
-                    type='order',
-                    title='付款成功',
-                    message=f'您的訂單 {order.order_number} 已成功透過 LINE Pay 付款完成。'
-                )
-                
-                # 發送訂單狀態更新郵件
-                try:
-                    send_order_status_update_email(order, request)
-                except Exception as e:
-                    logger.error(f'Failed to send order status update email: {str(e)}')
-            
-            logger.info(f'LINE Pay confirmed: {transaction_id} for order {order.order_number}')
-            messages.success(request, '付款成功！')
-            return redirect('payment_success', order_id=order.id)
-        else:
-            # 支付失敗
-            with transaction.atomic():
-                order.payment_status = 'failed'
-                order.save(update_fields=['payment_status'])
-                release_order_inventory(order)
-                restore_coupon(order)
-            
-            logger.error(f'LINE Pay confirm failed: {result.get("message")} for order {order.order_number}')
-            messages.error(request, f'付款確認失敗：{result.get("message", "未知錯誤")}')
-            return redirect('payment_failed', order_id=order.id)
-            
+            if (str(result.get('transactionId')) != transaction_id
+                    or str(result.get('orderId')) != str(order.pk)):
+                logger.error('LINE Pay response mismatch for order %s', order.pk)
+                messages.error(request, '付款結果需要人工確認，請聯絡客服。')
+                return redirect('order_detail', order_id=order.pk)
+            settled = settle_payment(order.pk, 'linepay', transaction_id, order.total_amount)
+            messages.info(request, '付款成功！' if settled else '付款已收到，訂單需要人工確認。')
+            return redirect('order_detail', order_id=order.pk)
+        # A timeout or repeated confirmation is not proof of payment failure.
+        # Keep the reservation until a provider result or staff reconciliation is available.
+        logger.warning('LINE Pay confirmation unresolved: order=%s', order.pk)
+        messages.info(request, '付款結果尚待確認，請稍後查看訂單或聯絡客服。')
+        return redirect('order_detail', order_id=order.pk)
+
     except Order.DoesNotExist:
         messages.error(request, '訂單不存在')
         return redirect('order_list')
@@ -334,6 +274,9 @@ def ecpay_checkout(request, order_id):
         return redirect('order_list')
     if order.payment_status == 'paid':
         return redirect('order_detail', order_id=order.id)
+    if not payable(order) or order.payment_method != 'ecpay':
+        messages.error(request, '此訂單無法付款，請重新建立訂單。')
+        return redirect('order_detail', order_id=order.id)
     ecpay = ECPayAPI()
     return_url = request.build_absolute_uri(reverse('ecpay_return'))
     result_url = request.build_absolute_uri(reverse('ecpay_result', kwargs={'order_id': order.id}))
@@ -350,24 +293,7 @@ def ecpay_checkout(request, order_id):
 
 
 def _mark_ecpay_paid(order, trade_no):
-    if order.payment_status == 'paid':
-        return
-    with transaction.atomic():
-        order.payment_method = 'ecpay'
-        order.payment_status = 'paid'
-        order.payment_transaction_id = trade_no or order.payment_transaction_id
-        order.status = 'confirmed'
-        order.save()
-        Notification.objects.create(
-            user=order.user,
-            type='order',
-            title='付款成功',
-            message=f'您的訂單 {order.order_number} 已透過綠界付款完成。',
-        )
-    try:
-        send_order_status_update_email(order)
-    except Exception as exc:
-        logger.error('ECPay status email failed: %s', exc)
+    return settle_payment(order.pk, 'ecpay', trade_no, order.total_amount)
 
 
 @csrf_exempt
@@ -386,37 +312,33 @@ def ecpay_return(request):
     except Order.DoesNotExist:
         logger.error('ECPay ReturnURL unknown order %s', merchant_trade_no)
         return HttpResponse('0|OrderNotFound')
+    if not ecpay.valid_result(params, order):
+        return HttpResponse('0|InvalidPaymentData', status=400)
     if params.get('RtnCode') == '1':
-        _mark_ecpay_paid(order, params.get('TradeNo', ''))
-    elif order.payment_status != 'paid':
-        order.payment_status = 'failed'
-        order.save(update_fields=['payment_status'])
-        release_order_inventory(order)
-        restore_coupon(order)
+        try:
+            _mark_ecpay_paid(order, params['TradeNo'])
+        except ValidationError:
+            return HttpResponse('0|TransactionMismatch', status=400)
+    elif order.payment_method == 'ecpay':
+        fail_payment(order.pk)
     return HttpResponse('1|OK')
 
 
 @csrf_exempt
 def ecpay_result(request, order_id):
     """綠界瀏覽器導回。"""
-    from plus.payment.ecpay import ECPayAPI
     try:
         order = Order.objects.get(id=order_id)
     except Order.DoesNotExist:
         messages.error(request, '訂單不存在')
         return redirect('order_list')
-    if request.method == 'POST':
-        ecpay = ECPayAPI()
-        params = {key: request.POST.get(key) for key in request.POST}
-        if ecpay.verify_check_mac_value(params) and params.get('RtnCode') == '1':
-            _mark_ecpay_paid(order, params.get('TradeNo', ''))
-            order.refresh_from_db()
+    # Browser redirects are display-only. Only authenticated server callbacks settle payments.
     if request.user.is_authenticated and request.user == order.user:
         if order.payment_status == 'paid':
             messages.success(request, '付款成功！')
             return redirect('payment_success', order_id=order.id)
-        messages.error(request, '付款未完成，請再試一次')
-        return redirect('payment_failed', order_id=order.id)
-    messages.info(request, '付款結果已記錄，請登入後查看訂單')
+        messages.info(request, '付款結果尚待確認，請稍後於訂單查看。')
+        return redirect('order_detail', order_id=order.id)
+    messages.info(request, '請登入後查看付款結果')
     return redirect('login')
 
