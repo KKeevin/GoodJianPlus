@@ -93,6 +93,13 @@
     font-size: 1.1rem;
 }
 
+.payment-brand-icon {
+    margin-right: 8px;
+    color: #00c300;
+    font-size: 24px;
+    line-height: 1;
+}
+
 .payment-method-desc {
     margin-left: 35px;
     color: #666;
@@ -191,7 +198,7 @@
                             <input type="radio" name="payment_method" value="linepay"{% if not allow_test_payment %} checked{% endif %}>
                             <div>
                                 <div>
-                                    <img src="https://static.line-scdn.net/linepay/portal/img/linepay_logo.svg" alt="LINE Pay" style="height: 24px; vertical-align: middle; margin-right: 8px;">
+                                    <i class="fab fa-line payment-brand-icon" aria-hidden="true"></i>
                                     LINE Pay
                                 </div>
                                 <div class="payment-method-desc">使用 LINE Pay 快速安全付款，支援信用卡、銀行帳戶等多種付款方式</div>
