@@ -14,7 +14,7 @@ def verified_required(view_func):
     @wraps(view_func)
     @login_required
     def _wrapped_view(request, *args, **kwargs):
-        if not request.user.is_verified:
+        if not request.user.has_verified_contact:
             # 根據視圖函數名稱決定功能名稱
             feature_name_map = {
                 'goal_management_view': '目標管理',

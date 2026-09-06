@@ -75,7 +75,7 @@ def wishlist_view(request):
 def toggle_wishlist(request):
     """加入/移除收藏 API"""
     # 檢查用戶是否已驗證
-    if not request.user.is_verified:
+    if not request.user.has_verified_contact:
         return JsonResponse({
             'success': False,
             'message': '請先驗證您的電子郵件地址以使用收藏功能',

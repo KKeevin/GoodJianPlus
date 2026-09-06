@@ -25,11 +25,29 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    @property
+    def has_verified_contact(self):
+        """Return whether at least one contact method has been verified.
+
+        ``is_verified`` is retained as a database field for compatibility, but
+        this property is the source of truth for request-time checks.  It also
+        keeps the application correct if an older record has a stale cached
+        ``is_verified`` value.
+        """
+        return bool(self.phone_verified or self.email_verified)
     
     def save(self, *args, **kwargs):
         """覆寫 save 方法，自動計算 is_verified"""
         # 如果手機或電子郵件任一驗證，則設置為已驗證
         self.is_verified = self.phone_verified or self.email_verified
+
+        # Keep the cached flag in sync even when callers use partial saves.
+        # Without this, save(update_fields=['email_verified']) would update
+        # only email_verified and leave is_verified stale in the database.
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None and {'phone_verified', 'email_verified'} & set(update_fields):
+            kwargs['update_fields'] = set(update_fields) | {'is_verified'}
         super().save(*args, **kwargs)
 
 
