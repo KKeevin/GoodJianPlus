@@ -115,7 +115,7 @@
                 <i class="bi bi-inbox"></i>
             </div>
             <div class="empty-state-copy">
-                <h3>{% if search_query or selected_status != 'all' %}沒有符合條件的訂單{% else %}目前沒有訂單{% endif %}</h3>{% if search_query or selected_status != 'all' %}<a href="{% url 'order_list' %}">查看全部訂單</a>{% endif %}
+                <h3>{% if search_query or selected_status != 'all' %}沒有符合條件的訂單{% else %}目前沒有訂單{% endif %}</h3>
                 <a href="{% url 'products' %}" class="empty-state-new-action"><span>前往選購</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
             </div>
         </div>
