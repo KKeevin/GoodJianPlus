@@ -130,16 +130,16 @@
                                 捐贈發票
                             </label>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group invoice-field" id="invoice-title-group" hidden>
                             <label for="invoice_title">發票抬頭（公司戶必填）</label>
                             <input type="text" id="invoice_title" name="invoice_title" maxlength="100">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group invoice-field" id="invoice-tax-id-group" hidden>
                             <label for="invoice_tax_id">統一編號（8 碼）</label>
                             <input type="text" id="invoice_tax_id" name="invoice_tax_id" maxlength="8" pattern="[0-9]*" inputmode="numeric">
                         </div>
-                        <div class="form-group">
-                            <label for="invoice_carrier">載具條碼或愛心碼</label>
+                        <div class="form-group invoice-field" id="invoice-carrier-group" hidden>
+                            <label for="invoice_carrier" id="invoice-carrier-label">載具條碼</label>
                             <input type="text" id="invoice_carrier" name="invoice_carrier" maxlength="64" placeholder="/AB12345 或愛心碼">
                         </div>
                     </div>
@@ -405,6 +405,33 @@ function applyCoupon() {
 
 // 配送方式改變時重新計算價格
 document.addEventListener('DOMContentLoaded', function() {
+    const invoiceTypeInputs = document.querySelectorAll('input[name="invoice_type"]');
+    const invoiceTitleGroup = document.getElementById('invoice-title-group');
+    const invoiceTaxIdGroup = document.getElementById('invoice-tax-id-group');
+    const invoiceCarrierGroup = document.getElementById('invoice-carrier-group');
+    const invoiceTitle = document.getElementById('invoice_title');
+    const invoiceTaxId = document.getElementById('invoice_tax_id');
+    const invoiceCarrier = document.getElementById('invoice_carrier');
+    const invoiceCarrierLabel = document.getElementById('invoice-carrier-label');
+
+    function updateInvoiceFields() {
+        const type = document.querySelector('input[name="invoice_type"]:checked')?.value || 'personal';
+        const isCompany = type === 'company';
+        const needsCarrier = type === 'personal' || type === 'donate';
+
+        invoiceTitleGroup.hidden = !isCompany;
+        invoiceTaxIdGroup.hidden = !isCompany;
+        invoiceCarrierGroup.hidden = !needsCarrier;
+        invoiceTitle.required = isCompany;
+        invoiceTaxId.required = isCompany;
+        invoiceCarrier.required = type === 'donate';
+        invoiceCarrierLabel.textContent = type === 'donate' ? '愛心碼' : '載具條碼（選填）';
+        invoiceCarrier.placeholder = type === 'donate' ? '請輸入愛心碼' : '/AB12345';
+    }
+
+    invoiceTypeInputs.forEach(input => input.addEventListener('change', updateInvoiceFields));
+    updateInvoiceFields();
+
     const shippingMethods = document.querySelectorAll('input[name="shipping_method"]');
     shippingMethods.forEach(method => {
         method.addEventListener('change', function() {
