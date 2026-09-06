@@ -1,0 +1,23 @@
+name: Django checks
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DEBUG: 'True'
+      DJANGO_ENV: local
+      DB_ENGINE: sqlite
+      ADMIN_REQUIRE_OTP: 'False'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements.txt
+      - run: python manage.py check
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py test plus.tests --noinput
+      - run: pip install pip-audit
+      - run: pip-audit --progress-spinner off

@@ -1,11 +1,25 @@
 from functools import wraps
+from hashlib import sha256
+from datetime import timedelta
 
 from django.contrib import messages
-from django.core.cache import cache
+from django.db import transaction
+from django.db.models import F
+from django.utils import timezone
 from django.http import JsonResponse
 from django.shortcuts import redirect
 
 from plus.utils.request import get_client_ip
+
+
+@transaction.atomic
+def consume_limit(identity, limit, window):
+    from plus.models.commerce import RequestLimit
+    now = timezone.now()
+    bucket = int(now.timestamp()) // window
+    key = sha256(f'{identity}:{bucket}'.encode()).hexdigest()
+    entry, _ = RequestLimit.objects.get_or_create(key=key, defaults={'expires_at': now + timedelta(seconds=window * 2)})
+    return bool(RequestLimit.objects.filter(pk=entry.pk, count__lt=limit).update(count=F('count') + 1))
 
 
 def ratelimit(limit=10, window=60, methods=('POST',)):
@@ -18,8 +32,7 @@ def ratelimit(limit=10, window=60, methods=('POST',)):
                 return view_func(request, *args, **kwargs)
             ident = get_client_ip(request) or 'unknown'
             cache_key = f'rl:{view_func.__module__}.{view_func.__name__}:{ident}'
-            count = cache.get(cache_key, 0)
-            if count >= limit:
+            if not consume_limit(cache_key, limit, window):
                 wants_json = (
                     request.headers.get('x-requested-with') == 'XMLHttpRequest'
                     or 'application/json' in request.headers.get('Accept', '')
@@ -31,7 +44,6 @@ def ratelimit(limit=10, window=60, methods=('POST',)):
                     }, status=429)
                 messages.error(request, '嘗試次數過多，請稍後再試')
                 return redirect(request.path)
-            cache.set(cache_key, count + 1, window)
             return view_func(request, *args, **kwargs)
         return wrapped
     return decorator

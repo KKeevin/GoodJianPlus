@@ -3,8 +3,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from plus.views import social_auth_complete, social_auth_error
+from plus.security import admin_mfa, health_check
 
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
+    path('admin-mfa/', admin_mfa, name='admin_mfa'),
     path('admin/', admin.site.urls),
     path('summernote/', include('django_summernote.urls')),
     path('auth/complete/<str:backend>/', social_auth_complete, name='social_complete'),

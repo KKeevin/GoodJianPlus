@@ -74,6 +74,8 @@ CSRF_TRUSTED_ORIGINS = _csrf_trusted_origins()
 
 INSTALLED_APPS = [
     'plus.apps.PlusConfig',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -236,6 +238,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
+    'plus.security.AdminSecurityMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',  # 處理社交登入異常（必須在最後）
@@ -363,6 +367,7 @@ else:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': os.getenv('SQLITE_NAME', os.path.join(BASE_DIR, 'db.sqlite3')),
+            'OPTIONS': {'timeout': 20, 'transaction_mode': 'IMMEDIATE'},
         }
     }
 
@@ -408,7 +413,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 收集靜態文件的目�
 
 # 靜態文件版本號（用於強制刷新緩存）
 # 每次更新 CSS/JS 時，請更新此版本號
-STATIC_VERSION = os.getenv('STATIC_VERSION', '1.1.1')
+STATIC_VERSION = os.getenv('STATIC_VERSION', '1.1.2')
 
 # 在檔案最後加入
 MEDIA_URL = '/media/'
@@ -427,10 +432,17 @@ CACHES = {
     }
 }
 
+TRUSTED_PROXY_NETWORKS = [value.strip() for value in os.getenv('TRUSTED_PROXY_NETWORKS', '127.0.0.1/32,::1/128').split(',') if value.strip()]
+ADMIN_REQUIRE_OTP = os.getenv('ADMIN_REQUIRE_OTP', str(not DEBUG)).lower() == 'true'
+OTP_TOTP_ISSUER = 'GoodJianPlus'
+
 # ========== Summernote 富文本編輯器設定 ==========
 SUMMERNOTE_THEME = 'bs5'  # 使用 Bootstrap 5 主題
 
+from plus.image_processing import can_upload_editor_image
+
 SUMMERNOTE_CONFIG = {
+    'test_func_upload_view': can_upload_editor_image,
     # 編輯器尺寸
     'width': '100%',
     'height': '500',

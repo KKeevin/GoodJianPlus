@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>後台雙重驗證</title>
+<style>body{font:16px/1.6 system-ui;background:#f3f6f5;margin:0;padding:24px}main{max-width:440px;margin:5vh auto;padding:24px;background:white;border-radius:12px}input{box-sizing:border-box;display:block;width:100%;padding:10px;font:inherit}button{padding:12px 20px;background:#287440;color:white;border:0;border-radius:6px;font:inherit}code{overflow-wrap:anywhere}.errorlist{color:#b3261e}</style></head>
+<body><main><h1>後台雙重驗證</h1>
+{% if secret %}<p>首次設定：在驗證器 App 新增帳戶，選擇「時間型驗證碼」，輸入以下設定金鑰。</p><code>{{ secret }}</code><p>請妥善保管驗證器，並輸入目前密碼及產生的代碼完成綁定。</p>{% else %}<p>請輸入目前密碼與驗證器代碼。</p>{% endif %}
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">驗證並進入後台</button></form></main></body></html>

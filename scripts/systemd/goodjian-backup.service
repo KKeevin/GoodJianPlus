@@ -1,0 +1,12 @@
+[Unit]
+Description=GoodJian verified SQLite and media backup
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/GoodJianPlus
+UMask=0077
+ExecStart=/bin/sh -c '/home/ubuntu/GoodJianPlus/.venv/bin/python manage.py backup_site --output "/home/ubuntu/goodjian-backups/site-$(date +%%Y%%m%%d-%%H%%M%%S).zip"'
+ExecStartPost=/home/ubuntu/GoodJianPlus/.venv/bin/python manage.py cleanup_request_limits
+NoNewPrivileges=true
+PrivateTmp=true
