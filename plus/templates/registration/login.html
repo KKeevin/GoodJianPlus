@@ -178,18 +178,35 @@
                         Facebook
                     </button>
                     
-                    <button type="button" class="btn btn-social btn-line" onclick="socialLogin('line')" aria-describedby="line-login-notice">
+                    <button type="button" class="btn btn-social btn-line" onclick="openLineLoginConsent()">
                         <i class="fab fa-line"></i>
                         LINE
                     </button>
                 </div>
-                <p id="line-login-notice" class="social-login-notice">
-                    使用 LINE 登入時，我們會在您授權後取得您的 LINE 個人資料與電子郵件地址，用於建立或登入會員帳號、帳號識別，以及寄送訂單與必要服務通知。詳情請參閱<a href="{% url 'privacy_policy' %}">隱私權政策</a>。
-                </p>
             </div>
         </div>
     </div>
 </section>
+
+<!-- LINE 資料使用確認 -->
+<div class="modal fade line-consent-modal" id="lineLoginConsentModal" tabindex="-1" aria-labelledby="lineLoginConsentTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="lineLoginConsentTitle"><i class="fab fa-line"></i> LINE 登入說明</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+            </div>
+            <div class="modal-body">
+                <p>使用 LINE 登入時，我們會在您授權後取得您的 LINE 個人資料與電子郵件地址，用於建立或登入會員帳號、帳號識別，以及寄送訂單與必要服務通知。</p>
+                <a href="{% url 'privacy_policy' %}" target="_blank" rel="noopener">查看隱私權政策</a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-line line-consent-confirm" onclick="confirmLineLogin()"><i class="fab fa-line"></i> 同意並繼續</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- 忘記密碼 Modal -->
 <div class="modal fade" id="forgotPasswordModal" tabindex="-1">
@@ -681,6 +698,26 @@ function socialLogin(provider) {
 
     document.body.appendChild(form);
     form.submit();
+}
+
+function openLineLoginConsent() {
+    const modalElement = document.getElementById('lineLoginConsentModal');
+    if (window.bootstrap && modalElement) {
+        bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        return;
+    }
+    // Keep the login usable if Bootstrap fails to load.
+    if (window.confirm('使用 LINE 登入時，我們會在您授權後取得您的 LINE 個人資料與電子郵件地址，用於建立或登入會員帳號、帳號識別，以及寄送訂單與必要服務通知。')) {
+        socialLogin('line');
+    }
+}
+
+function confirmLineLogin() {
+    const modalElement = document.getElementById('lineLoginConsentModal');
+    if (window.bootstrap && modalElement) {
+        bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+    }
+    socialLogin('line');
 }
 
 function showAlert(message, type = 'info') {

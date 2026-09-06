@@ -720,18 +720,70 @@
     background: linear-gradient(to right, transparent, #e1e8ed, transparent);
 }
 
-.login-container .social-login-notice {
-    margin: 8px 0 0;
-    color: #526170;
-    font-size: 12px;
-    line-height: 1.5;
-    text-align: left;
+.line-consent-modal .modal-content {
+    overflow: hidden;
+    border: 1px solid #d8eadc;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(26, 72, 47, 0.18);
 }
 
-.login-container .social-login-notice a {
+.line-consent-modal .modal-header {
+    padding: 14px 16px 10px;
+    background: #f1f7f3;
+    border-bottom: 1px solid #e1eee4;
+}
+
+.line-consent-modal .modal-title {
+    color: #245b37;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.line-consent-modal .modal-title i {
+    color: #06c755;
+}
+
+.line-consent-modal .modal-body {
+    padding: 14px 16px 8px;
+    color: #526170;
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.line-consent-modal .modal-body p {
+    margin: 0 0 7px;
+}
+
+.line-consent-modal .modal-body a {
     color: #287438;
+    font-size: 11px;
     text-decoration: underline;
     text-underline-offset: 2px;
+}
+
+.line-consent-modal .modal-footer {
+    gap: 7px;
+    padding: 8px 16px 14px;
+    border-top: 0;
+}
+
+.line-consent-modal .modal-footer .btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.line-consent-modal .line-consent-confirm {
+    color: #fff;
+    background: #06c755;
+    border-color: #06c755;
+}
+
+.line-consent-modal .line-consent-confirm:not(:hover):not(:focus-visible) i {
+    color: #fff;
+}
+.btn-social.btn-line:not(:hover):not(:focus-visible) i {
+    color: #06a94a;
 }
 
 .social-buttons {
@@ -1363,5 +1415,14 @@
     .login-container .btn-social {
         padding: 6px 7px;
         font-size: 11px;
+    }
+
+    .line-consent-modal .modal-body {
+        padding: 12px 14px 6px;
+        font-size: 11px;
+    }
+
+    .line-consent-modal .modal-footer {
+        padding: 6px 14px 12px;
     }
 }
