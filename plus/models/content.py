@@ -80,6 +80,33 @@ class Article(models.Model):
         super().save(*args, **kwargs)
 
     @property
+    def thumbnail_url(self):
+        if self.cover_image:
+            return self.cover_image.url
+        first = next(iter(self.images.all()), None)
+        if first and first.image:
+            return first.image.url
+        from html.parser import HTMLParser
+        from urllib.parse import urlsplit
+
+        class FirstImage(HTMLParser):
+            url = ''
+
+            def handle_starttag(self, tag, attrs):
+                if tag != 'img' or self.url:
+                    return
+                source = dict(attrs).get('src', '').strip()
+                if source and urlsplit(source).scheme.lower() in ('', 'http', 'https'):
+                    self.url = source
+
+        parser = FirstImage()
+        try:
+            parser.feed(self.content or '')
+        except ValueError:
+            return ''
+        return parser.url
+
+    @property
     def display_author(self):
         """顯示作者名稱"""
         if self.author:

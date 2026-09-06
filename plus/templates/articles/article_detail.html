@@ -61,7 +61,8 @@
 
                 <!-- 文章內容 -->
                 <div class="article-detail-content">
-                    {{ article.content|safe }}
+                    {% load rich_content %}
+                    {{ article.content|clean_article_html }}
                 </div>
 
                 <!-- 相關圖片 -->
