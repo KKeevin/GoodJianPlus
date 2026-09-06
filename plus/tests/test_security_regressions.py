@@ -243,7 +243,9 @@ class SecurityRegressions(TestCase):
         self.user.save()
         self.client.force_login(self.user)
         self.assertRedirects(self.client.get('/admin/'), '/admin-mfa/', fetch_redirect_response=False)
-        self.assertEqual(self.client.get('/admin-mfa/').status_code, 200)
+        mfa_page = self.client.get('/admin-mfa/')
+        self.assertEqual(mfa_page.status_code, 200)
+        self.assertEqual(mfa_page.headers['Referrer-Policy'], 'same-origin')
         device = TOTPDevice.objects.get(user=self.user)
         token = f'{totp(device.bin_key):06d}'
         response = self.client.post('/admin-mfa/', {'password': 'A-long-password-1!', 'token': token})

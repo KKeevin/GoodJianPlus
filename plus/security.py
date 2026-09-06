@@ -77,5 +77,10 @@ def admin_mfa(request):
             form.add_error(None, '密碼或驗證碼不正確，請稍後重試。')
         secret = b32encode(device.bin_key).decode().rstrip('=') if not device.confirmed else ''
     response = render(request, 'admin/mfa.html', {'form': form, 'secret': secret})
-    response['Referrer-Policy'] = 'no-referrer'
+    # ``no-referrer`` makes browsers submit same-origin HTML forms with
+    # ``Origin: null``. Django's CSRF middleware correctly rejects that value
+    # before it can fall back to the trusted same-origin referer check. The
+    # same-origin policy still hides the URL from cross-origin requests while
+    # preserving a normal origin for this form submission.
+    response['Referrer-Policy'] = 'same-origin'
     return response
