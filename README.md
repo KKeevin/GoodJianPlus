@@ -35,6 +35,7 @@ python manage.py runserver
 - [前台購物與健康功能](docs/storefront.md)
 - [賣家工作台、上架／庫存與出貨操作](docs/seller-center.md)
 - [正式機 SSH 與更新程式](docs/deploy.md)
+- [Oracle 免費機保活（調整／停用）](docs/oracle-keepalive.md)
 - [安全](docs/security.md)
 - [郵件](docs/email.md)
 - [手機登入 / SMS](docs/sms-phone-login.md)
