@@ -1,0 +1,22 @@
+[Unit]
+Description=Keep Oracle Always Free instance above idle-reclamation thresholds
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Environment=KEEPALIVE_CPU_PERCENT=25
+Environment=KEEPALIVE_MEM_MB=0
+ExecStart=/usr/bin/python3 /home/ubuntu/GoodJianPlus/scripts/oracle_keepalive.py
+Restart=always
+RestartSec=30
+# Only use CPU time nothing else wants, so Gunicorn/Nginx are never slowed down.
+CPUSchedulingPolicy=idle
+Nice=19
+IOSchedulingClass=idle
+MemoryMax=1200M
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

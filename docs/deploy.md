@@ -16,14 +16,20 @@ ssh -i "私鑰的完整路徑.key" ubuntu@公網IP
 - 第一次連會問 `Are you sure you want to continue connecting`，打 `yes`。
 - 成功後提示變成 `ubuntu@goodjian:~$`。
 
-私鑰權限太開時會出現 `UNPROTECTED PRIVATE KEY FILE`，在 **本機** PowerShell 跑（路徑改成你的 `.key`）：
+私鑰權限太開時會出現 `UNPROTECTED PRIVATE KEY FILE`，在 **本機** PowerShell 跑（路徑改成你的 `.key`；真實路徑見 [operations.local.md](operations.local.md)）：
 
 ```powershell
-icacls "私鑰的完整路徑.key" /inheritance:r
-icacls "私鑰的完整路徑.key" /grant:r "$env:USERNAME:(R)"
+$key = "私鑰的完整路徑.key"
+icacls.exe $key /inheritance:r
+icacls.exe $key /remove "NT AUTHORITY\Authenticated Users"
+icacls.exe $key /remove "Authenticated Users"
+icacls.exe $key /remove "BUILTIN\Users"
+icacls.exe $key /remove "Everyone"
+icacls.exe $key /grant:r "$($env:USERNAME):(R)"
+icacls.exe $key
 ```
 
-再重跑 `ssh`。
+PowerShell 請用 `"$($env:USERNAME):(R)"`，不要用 `"$env:USERNAME:(R)"`。確認權限大致只剩自己的 `(R)` 後再重跑 `ssh`。
 
 連進去後要操作專案，先進入目錄並啟用虛擬環境：
 
@@ -92,6 +98,33 @@ tail -n 50 ~/GoodJianPlus/logs/gunicorn_error.log
 sudo journalctl -u goodjian -n 80 --no-pager
 sudo systemctl restart goodjian
 ```
+
+## Oracle 免費機保活（避免閒置被回收）
+
+Oracle Always Free 會回收「7 天內 CPU 95 百分位 < 20%（且網路、A1 的記憶體也都很低）」的閒置主機。`scripts/oracle_keepalive.py` 讓每顆 vCPU 固定忙 25%，用 systemd 開機自動跑；排程等級是 `idle`，網站有流量時會自動讓出 CPU，不會拖慢網站。
+
+安裝（`git pull` 拿到檔案後，在伺服器跑一次即可）：
+
+```bash
+cd ~/GoodJianPlus
+sudo cp scripts/systemd/goodjian-keepalive.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now goodjian-keepalive.service
+sudo systemctl status goodjian-keepalive.service --no-pager
+```
+
+確認：`top` 應看到幾個 `python3` 各約 25%（`NI` 欄是 19）。約一小時後到 Oracle Console → 執行個體 → **Metrics** 看 CPU Utilization 是否穩定在 20% 以上。
+
+調整強度：`sudo systemctl edit goodjian-keepalive.service`，加入
+
+```ini
+[Service]
+Environment=KEEPALIVE_CPU_PERCENT=30
+```
+
+再 `sudo systemctl restart goodjian-keepalive.service`。換到 A1 大機後也可加 `Environment=KEEPALIVE_MEM_MB=...` 讓記憶體用量超過 20%（只需 CPU 達標就不算閒置，這項是額外保險）；1 GB 暫時機請保持 `0`。
+
+停用：`sudo systemctl disable --now goodjian-keepalive.service`。
 
 ## 不要做的事
 
